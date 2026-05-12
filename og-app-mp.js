@@ -57,6 +57,9 @@
     // The Continue button is the last button in the rendered fragment.
     html = html.replace(/<button class="btn btn-primary btn-full"[^>]*>[^<]*Continue[^<]*<\/button>\s*$/,'');
     _lobbyCreationHost.innerHTML = html;
+    // Solo Play is a single-player option and shouldn't appear in the MP lobby.
+    _lobbyCreationHost.querySelectorAll('[onclick="toggleSolo()"]').forEach(n=>n.remove());
+    if(S.creation) S.creation.solo = false;
   }
 
   // Wraps renderCreationStep so that:
