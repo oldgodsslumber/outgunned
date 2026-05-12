@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Outgunned</title>
+<title>Outgunned — Multiplayer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -690,8 +690,28 @@ textarea{resize:vertical;min-height:70px}
   </div>
 </div>
 
+<!-- Firebase SDK (compat builds — no bundler needed) -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<script>
+// ====================================================================
+// FIREBASE_CONFIG — paste your project's web config from the Firebase
+// console here. Leave as-is to see setup instructions on first load.
+// ====================================================================
+window.FIREBASE_CONFIG = {
+  apiKey:            "",
+  authDomain:        "",
+  databaseURL:       "",
+  projectId:         "",
+  storageBucket:     "",
+  messagingSenderId: "",
+  appId:             ""
+};
+</script>
 <script src="og-data.js"></script>
 <script src="og-rules.js"></script>
+<script src="og-mp.js"></script>
 <script>
 
 
@@ -4418,5 +4438,9 @@ window.oracleCriminal=function(){
 OR.countryLabels={US:'United States',MX:'Mexico',UK:'United Kingdom',BR:'Brazil',IN:'India',NG:'Nigeria',JP:'Japan',DE:'Germany',FR:'France',CN:'China',RU:'Russia',KR:'South Korea',IT:'Italy',AU:'Australia',AR:'Argentina',PH:'Philippines',EG:'Egypt',PK:'Pakistan',CO:'Colombia',PL:'Poland'};
 })();
 </script>
+<script src="og-app-mp.js" defer></script>
+<script>document.addEventListener('DOMContentLoaded',function(){
+  if(typeof OG_BOOT_MP==='function') OG_BOOT_MP(window.FIREBASE_CONFIG);
+});</script>
 </body>
 </html>

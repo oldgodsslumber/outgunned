@@ -1,0 +1,15 @@
+# Backups
+*.bak
+
+# Source PDFs / docs (too large for git; keep locally as references)
+*.pdf
+*.docx
+
+# Local-only scratch
+Outgunned.py
+extract.py
+
+# Rulebook conversions (kept locally as references; not redistributed)
+OG_WoK_ENG.md
+Outgunned_Corebook_ENG.md
+Outgunned_Superheroes_ENG_1_0.md
