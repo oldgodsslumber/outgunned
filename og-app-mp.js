@@ -433,10 +433,23 @@
   }
   function _onNotesChange(notes){
     lastRemote.notes = notes||{};
-    S.notes = Object.keys(lastRemote.notes)
-      .map(k=>Object.assign({id:k}, lastRemote.notes[k]))
-      .sort((a,b)=>(b.ts||0)-(a.ts||0));
-    if(typeof renderNotes==='function') renderNotes();
+    // Coerce numeric Firebase keys back to numbers so they match the IDs the
+    // offline addNote() generated locally (Date.now()) — renderNotes uses ===
+    // when comparing noteEditing to note.id.
+    const remoteList = Object.keys(lastRemote.notes).map(k=>{
+      const id = /^\d+$/.test(k) ? Number(k) : k;
+      return Object.assign({id}, lastRemote.notes[k]);
+    });
+    const remoteIds = new Set(remoteList.map(n=>String(n.id)));
+    // A note that exists in S.notes but not in remote is local-only (the user
+    // just added it but hasn't saved yet). Keep it.
+    const preserved = (S.notes||[]).filter(n=> !remoteIds.has(String(n.id)));
+    S.notes = remoteList.concat(preserved).sort((a,b)=>(b.ts||0)-(a.ts||0));
+    // Don't re-render if the user is actively typing in a note textarea —
+    // innerHTML would destroy the textarea and lose what they typed.
+    const ta = document.activeElement;
+    const editing = ta && ta.tagName==='TEXTAREA' && /^note-edit-/.test(ta.id||'');
+    if(!editing && typeof renderNotes==='function') renderNotes();
   }
   function _onScenesChange(scenes){
     lastRemote.scenes = scenes||{};
@@ -485,35 +498,56 @@
       };
     }
 
-    // Notes — addNote, deleteNote, saveNoteText: route through Firebase.
+    // Notes — let the offline implementation own local state (S.notes,
+    // noteEditing, the inline editor). We mirror to Firebase only on save /
+    // delete, NOT on add. Pushing on add would trigger a subscription-driven
+    // re-render mid-typing and wipe the textarea; deferring the push until
+    // save means other clients only see the note once it has content.
+    function _notesRef(){ return firebase.database().ref('parties/'+MP.currentParty().code+'/notes'); }
+    function _pushNote(note){
+      if(!note) return;
+      return _notesRef().child(String(note.id)).set({
+        type: note.type, text: note.text||'',
+        authorUid: MP.currentUid(),
+        authorName: (MP.currentUser()&&MP.currentUser().displayName)||'Player',
+        ts: firebase.database.ServerValue.TIMESTAMP
+      });
+    }
+
     const origAdd = window.addNote;
     if(typeof origAdd==='function'){
-      window.addNote = function(type){
-        if(!inParty) return origAdd.apply(this, arguments);
-        MP.appendNote({type:type, text:''}).then(nid=>{
-          // openEditor — the original implementation reads S.notes and edits inline.
-          // Our subscription will pull the new note into S.notes; the user can then edit.
-          if(typeof noteEditing!=='undefined'){ window.noteEditing = nid; }
-          if(typeof renderNotes==='function') renderNotes();
-        }).catch(e=>alert(e.message));
-      };
-    }
-    const origDel = window.deleteNote;
-    if(typeof origDel==='function'){
-      window.deleteNote = function(id){
-        if(!inParty) return origDel.apply(this, arguments);
-        MP.deleteNote(id).catch(e=>alert(e.message));
+      window.addNote = function(){
+        origAdd.apply(this, arguments);
+        // origAdd already pushed onto S.notes and set noteEditing/renderNotes.
+        // We don't push to Firebase yet (see comment above).
       };
     }
     const origSaveNote = window.saveNoteText;
     if(typeof origSaveNote==='function'){
       window.saveNoteText = function(id){
-        if(!inParty) return origSaveNote.apply(this, arguments);
-        const ta = document.querySelector('[data-note-id="'+id+'"] textarea, #note-edit-'+id);
-        const text = ta ? ta.value : '';
-        MP.updateNote(id,{text:text}).catch(e=>alert(e.message));
-        window.noteEditing = null;
-        if(typeof renderNotes==='function') renderNotes();
+        origSaveNote.apply(this, arguments);  // commits textarea→S.notes, clears noteEditing
+        if(!inParty) return;
+        const note = (S.notes||[]).find(n=>String(n.id)===String(id));
+        if(note) _pushNote(note).catch(console.error);
+      };
+    }
+    const origCancelEdit = window.cancelNoteEdit;
+    if(typeof origCancelEdit==='function'){
+      window.cancelNoteEdit = function(id){
+        origCancelEdit.apply(this, arguments);
+        if(!inParty) return;
+        // origCancelEdit deletes the note if it's empty (→ our deleteNote wrap
+        // handles the Firebase remove). If non-empty, persist so other clients see it.
+        const note = (S.notes||[]).find(n=>String(n.id)===String(id));
+        if(note && note.text) _pushNote(note).catch(console.error);
+      };
+    }
+    const origDel = window.deleteNote;
+    if(typeof origDel==='function'){
+      window.deleteNote = function(id){
+        origDel.apply(this, arguments);
+        if(!inParty) return;
+        _notesRef().child(String(id)).remove().catch(console.error);
       };
     }
 
