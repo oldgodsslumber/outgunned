@@ -33,6 +33,7 @@
     try{ MP.init(firebaseConfig); }
     catch(e){ alert('Failed to initialize Firebase: '+e.message); return; }
     _hideOfflineEntry();          // suppress the slot modal until lobby decides
+    _installCreationStepWrap();   // must wrap before any picker renders
     _renderLobbyShell();
     MP.onAuth(_onAuth);
   };
@@ -45,6 +46,58 @@
     chars:{}, members:{}, npcs:{}, enemies:{}, notes:{}, meta:null, rolls:[], scenes:null
   };
   let rollFeed = [];              // local cache of last-12 rolls for the dice-page render
+  let _lobbyCreationHost = null;  // when set, renderCreationStep paints into this node instead of #hero-creation
+
+  // Renders the offline "Select Your Games" step into the lobby host. Strips
+  // the trailing "Continue →" button (the lobby uses its own Create button).
+  function _renderLobbyPicker(){
+    if(!_lobbyCreationHost) return;
+    if(typeof renderStepGames!=='function') return;
+    let html = renderStepGames();
+    // The Continue button is the last button in the rendered fragment.
+    html = html.replace(/<button class="btn btn-primary btn-full"[^>]*>[^<]*Continue[^<]*<\/button>\s*$/,'');
+    _lobbyCreationHost.innerHTML = html;
+  }
+
+  // Wraps renderCreationStep so that:
+  //  1. When the lobby is showing the picker, re-renders go into the lobby host.
+  //  2. When a Player is in a party, step 0 (game selection) is skipped — they
+  //     inherit the Director's choices from meta.gameType/meta.books.
+  let _rcsWrapped = false;
+  function _installCreationStepWrap(){
+    if(_rcsWrapped) return;
+    const origRCS = window.renderCreationStep;
+    if(typeof origRCS!=='function') return;
+    _rcsWrapped = true;
+    window.renderCreationStep = function(){
+      if(_lobbyCreationHost){ _renderLobbyPicker(); return; }
+      if(inParty && !MP.isDirector() && S.creation){
+        const m = lastRemote.meta||{};
+        if(m.gameType) S.creation.coreBook = m.gameType;
+        // Prefer the full include map the Director stored at party creation;
+        // fall back to the simple per-book boolean when older parties only have that.
+        if(m.include){
+          S.creation.include = JSON.parse(JSON.stringify(m.include));
+        } else if(m.books){
+          S.creation.include = S.creation.include || defaultInclude();
+          Object.keys(m.books).forEach(b=>{
+            if(b===S.creation.coreBook) return;
+            const on = !!m.books[b];
+            S.creation.include[b] = {roles:on, feats:on, scenes:on};
+          });
+        }
+        if(m.powerTier) S.creation.powerTier = m.powerTier;
+        if(S.creation.step===0) S.creation.step = 1;
+      }
+      const r = origRCS.apply(this, arguments);
+      if(inParty && !MP.isDirector() && S.creation && S.creation.step<=1){
+        document.querySelectorAll('#hero-creation button').forEach(b=>{
+          if(b.textContent && b.textContent.indexOf('Back')>=0) b.style.display='none';
+        });
+      }
+      return r;
+    };
+  }
 
   // ---- DOM helpers --------------------------------------------------------
   function el(tag, attrs, kids){
@@ -184,40 +237,53 @@
       card.appendChild(list);
     }
 
-    // Create new party — collapsible mini form.
+    // Create new party — collapsible. The book/expansion picker is the SAME
+    // renderStepGames() panel used in the offline character-creation flow, so
+    // future expansions appear automatically and the layout always matches.
     const newWrap = el('details',{style:{margin:'14px 0',padding:'12px',background:'var(--surface2)',borderRadius:'6px'}});
     newWrap.appendChild(el('summary',{style:{cursor:'pointer',fontWeight:'700'}},['Create a new party (as Director)']));
     const f=el('div',{style:{display:'flex',flexDirection:'column',gap:'8px',marginTop:'10px'}});
     const title=el('input',{type:'text',placeholder:'Party title (e.g. Heist Night)',style:{padding:'8px',background:'var(--surface)',border:'1px solid var(--border)',color:'var(--text)',borderRadius:'4px'}});
-    const game=el('select',{style:{padding:'8px',background:'var(--surface)',border:'1px solid var(--border)',color:'var(--text)',borderRadius:'4px'}});
-    selectableBooks().forEach(b=>{
-      const o=el('option',{value:b},[bookLabel(b)]); game.appendChild(o);
-    });
     f.appendChild(el('label',{style:{fontSize:'11px',color:'var(--muted)'}},['Party title']));
     f.appendChild(title);
-    f.appendChild(el('label',{style:{fontSize:'11px',color:'var(--muted)',marginTop:'6px'}},['Primary game']));
-    f.appendChild(game);
-    // Expansion toggles
-    const togWrap=el('div',{style:{display:'flex',gap:'8px',flexWrap:'wrap',marginTop:'6px'}});
-    const toggles={};
-    selectableBooks().forEach(b=>{
-      const chk=el('input',{type:'checkbox'});
-      const lab=el('label',{style:{display:'inline-flex',gap:'4px',alignItems:'center',fontSize:'12px',color:'var(--muted)'}},[chk,bookShort(b)]);
-      togWrap.appendChild(lab); toggles[b]=chk;
-    });
-    f.appendChild(el('label',{style:{fontSize:'11px',color:'var(--muted)',marginTop:'6px'}},['Enable books']));
-    f.appendChild(togWrap);
+
+    // Embed the full offline picker. Reset S.creation so this Director's
+    // choices start fresh (we are not actually building a hero — we're just
+    // borrowing the picker's UI to capture meta.gameType + meta.books).
+    S.creation = (typeof defaultCreation==='function')?defaultCreation():S.creation;
+    S.creation.step = 0;
+    const pickerHost = el('div',{class:'og-mp-picker-host',style:{marginTop:'6px'}});
+    f.appendChild(pickerHost);
+    _lobbyCreationHost = pickerHost;
+    _renderLobbyPicker();
+
     const go=el('button',{class:'btn btn-primary',style:{marginTop:'10px'},onclick:async()=>{
-      const books={}; selectableBooks().forEach(b=>{books[b]=!!toggles[b].checked;});
-      books[game.value]=true;          // primary book always enabled
+      // S.creation now holds the Director's full selection: coreBook (the primary
+      // game), include (per-book Roles/Feats/Scenes flags), powerTier (OSH only).
+      // We mirror those into meta so players auto-inherit them.
+      const include = JSON.parse(JSON.stringify(S.creation.include||{}));
+      const books = {}; selectableBooks().forEach(b=>{
+        if(b===S.creation.coreBook){ books[b]=true; return; }
+        const inc = include[b]||{};
+        books[b] = !!(inc.roles || inc.feats || inc.scenes);
+      });
       try{
-        const code=await MP.createParty({title:title.value.trim()||'Untitled Party', gameType:game.value, books});
+        const code = await MP.createParty({
+          title:    title.value.trim()||'Untitled Party',
+          gameType: S.creation.coreBook||'core',
+          books,
+          include,
+          powerTier: S.creation.powerTier||null
+        });
+        _lobbyCreationHost = null;
         await _joinByCode(code);
       }catch(e){alert(e.message);}
     }},['Create party']);
     f.appendChild(go);
     newWrap.appendChild(f);
     card.appendChild(newWrap);
+    // Drop the host reference when the lobby is dismissed (close/leave/etc.).
+    newWrap.addEventListener('toggle',()=>{ if(!newWrap.open) _lobbyCreationHost=null; else _renderLobbyPicker(); });
 
     // Join by code
     const joinWrap=el('div',{style:{margin:'10px 0',display:'flex',gap:'8px'}});
@@ -469,44 +535,9 @@
       };
     });
 
-    // Character creation — players inherit the party's book selection (already
-    // chosen by the Director when they created the party), so skip step 0 (the
-    // "Select Your Games" screen) and start at Personal Info. Directors don't
-    // make heroes at all, so they never hit this path.
-    const origRCS = window.renderCreationStep;
-    if(typeof origRCS==='function'){
-      window.renderCreationStep = function(){
-        if(inParty && !MP.isDirector() && S.creation){
-          const m = lastRemote.meta||{};
-          // Inherit the party's primary game and enabled books on every render —
-          // cheap, and means the Director can still toggle books mid-session.
-          if(m.gameType) S.creation.coreBook = m.gameType;
-          if(m.books){
-            S.creation.include = S.creation.include || defaultInclude();
-            Object.keys(m.books).forEach(b=>{
-              if(b===S.creation.coreBook) return; // core book isn't toggled in include
-              S.creation.include[b] = S.creation.include[b] || {roles:false,feats:false,scenes:false};
-              // Treat a single boolean in meta.books as "all three categories on".
-              const on = !!m.books[b];
-              S.creation.include[b].roles  = on;
-              S.creation.include[b].feats  = on;
-              S.creation.include[b].scenes = on;
-            });
-          }
-          if(S.creation.step===0) S.creation.step = 1;
-        }
-        const r = origRCS.apply(this, arguments);
-        // Hide the "Back" button at step 1 — there's nowhere to go back to since
-        // the game-selection step is unreachable for players in a party.
-        if(inParty && !MP.isDirector() && S.creation && S.creation.step<=1){
-          document.querySelectorAll('#hero-creation button').forEach(b=>{
-            if(b.textContent && b.textContent.indexOf('Back')>=0) b.style.display='none';
-          });
-        }
-        return r;
-      };
-    }
-    // Block creationBack() from returning to the hidden game-selection step.
+    // renderCreationStep is wrapped at boot in _installCreationStepWrap so the
+    // lobby's book-picker works before joining any party. We only need the
+    // creationBack guard here (it's safe to install once we're in a party).
     const origBack = window.creationBack;
     if(typeof origBack==='function'){
       window.creationBack = function(){

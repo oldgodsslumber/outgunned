@@ -94,7 +94,7 @@ window.MP = (function(){
     throw new Error('Could not allocate a free 4-digit code — try again.');
   }
 
-  async function createParty({title, gameType, books}){
+  async function createParty({title, gameType, books, include, powerTier}){
     if(!user) throw new Error('Sign in first.');
     const code = await _claimCode(user.uid);
     const meta = {
@@ -105,6 +105,8 @@ window.MP = (function(){
       gameType: gameType || 'core',
       books: books || {core:true,wok:false,osh:false}
     };
+    if(include)   meta.include   = include;    // per-book {roles,feats,scenes}
+    if(powerTier) meta.powerTier = powerTier;  // OSH only
     await db.ref('parties/'+code+'/meta').set(meta);
     await db.ref('parties/'+code+'/members/'+user.uid).set({
       name: user.displayName||'Player',
