@@ -207,6 +207,11 @@
   }
   function _closeLobbyOverlay(){
     const r = $('og-mp-lobby'); if(r) r.remove();
+    // CRITICAL: drop the lobby's creation-host reference. Otherwise the
+    // renderCreationStep wrap keeps routing renders to a detached DOM node
+    // and #hero-creation never updates — so players land on the stale step 0
+    // game-selection screen even after joining a party.
+    _lobbyCreationHost = null;
   }
 
   async function _renderLobbyContent(card){
