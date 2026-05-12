@@ -15,6 +15,16 @@ let html=fs.readFileSync('outgunned.html','utf8');
 
 html = html.replace('<title>Outgunned</title>','<title>Outgunned — Multiplayer</title>');
 
+// Carry over the existing FIREBASE_CONFIG from index.html if it has been
+// filled in — otherwise rebuilds would wipe the user's project credentials
+// every time and the live site would revert to "Multiplayer not configured".
+let CONFIG_OVERRIDE = null;
+try{
+  const prev = fs.readFileSync('index.html','utf8');
+  const m = prev.match(/window\.FIREBASE_CONFIG\s*=\s*\{[\s\S]*?\};/);
+  if(m && /apiKey:\s*"[^"]+"/.test(m[0])) CONFIG_OVERRIDE = m[0];
+}catch(_){ /* no prior index.html — first build, use the empty template */ }
+
 const FIREBASE_BLOCK = [
 '<!-- Firebase SDK (compat builds — no bundler needed) -->',
 '<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>',
@@ -37,6 +47,10 @@ const FIREBASE_BLOCK = [
 '</script>',
 ].join('\n');
 html = html.replace('<script src="og-data.js"></script>', FIREBASE_BLOCK+'\n<script src="og-data.js"></script>');
+if(CONFIG_OVERRIDE){
+  html = html.replace(/window\.FIREBASE_CONFIG\s*=\s*\{[\s\S]*?\};/, CONFIG_OVERRIDE);
+  console.log('Preserved existing FIREBASE_CONFIG values from prior index.html');
+}
 html = html.replace('<script src="og-rules.js"></script>',
   '<script src="og-rules.js"></script>\n<script src="og-mp.js"></script>');
 
