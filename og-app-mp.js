@@ -383,6 +383,14 @@
       scenes: _onScenesChange,
     });
     _applyDirectorGating();
+    // Force a re-render of whatever's currently on screen so the wraps kick
+    // in. In particular, character creation may have been rendered at step 0
+    // (Select Your Games) by the offline init before the player even signed
+    // in — the wrap skips step 0 for non-Directors but only on the *next*
+    // render. Do that render now.
+    if(typeof renderHero==='function'){
+      try{ renderHero(); }catch(_){}
+    }
   }
 
   function _applyDirectorGating(){
@@ -403,9 +411,15 @@
 
   // ---- Remote → local handlers -------------------------------------------
   function _onMetaChange(meta){
+    const prevMeta = lastRemote.meta;
     lastRemote.meta = meta;
     _applyDirectorGating();
     _refreshTopBar();
+    // First meta delivery — re-render the Hero/creation page so a player who
+    // joined before the meta arrived inherits the right coreBook/include now.
+    if(!prevMeta && meta && typeof renderHero==='function' && !MP.isDirector() && !S.char){
+      try{ renderHero(); }catch(_){}
+    }
   }
   function _onMembersChange(members){
     lastRemote.members = members||{};
