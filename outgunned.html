@@ -286,10 +286,13 @@ textarea{resize:vertical;min-height:70px}
   #notes-fab-area{right:20px;bottom:20px}
 }
 
-/* Skills in two columns (both mobile and desktop) — packs the name and value next to
-   each other and lets the attribute sub-header span the full width. */
-.skills-section{display:grid;grid-template-columns:1fr 1fr;column-gap:14px;row-gap:0}
-.skills-section .skill-attr-label{grid-column:1 / -1}
+/* Skills section — two columns of complete attribute groups (heading + its 4 skills
+   stay together in one column). 5 attributes split as 3 + 2 across the columns. */
+.skills-section{display:grid;grid-template-columns:1fr 1fr;column-gap:14px;row-gap:0;align-items:start}
+.skill-group{display:flex;flex-direction:column}
+.skill-group .skill-attr-label{margin-top:6px}
+.skill-group:first-child .skill-attr-label,
+.skill-group:nth-child(2) .skill-attr-label{margin-top:0}
 .skills-section .skill-row{padding:4px 0}
 
 /* Mobile / narrow viewports: flatten every wrapper so all cards stack in a single
@@ -893,101 +896,106 @@ const ORIGINS_OSH=[
   {id:'simple_human',name:'Simple Human',book:'osh',desc:'You are only human, with no innate power.',effect:'Take the Specialty Superpower; begin with 2 Spotlights instead of 1.'}
 ];
 const FEATS_OSH=[
-  {name:'Acrobat',book:'osh',trigger:'Passive',desc:'Gain a Free Re-roll to run, jump, balance, and perform feats of acrobatics.'},
-  {name:'Barrier',book:'osh',trigger:'Full Turn',adr:true,desc:'Spend 1 Adrenaline to create a barrier giving Total Cover to you and 4 others while you remain still.'},
-  {name:'Bulletproof',book:'osh',trigger:'Passive',desc:'Immune to firearm damage (not energy or explosive). A friend may use you as Partial Cover.'},
-  {name:'Bullseye',book:'osh',trigger:'Passive',desc:'Free Re-roll to hit a target with precision using a small object or ranged weapon.'},
-  {name:'Cyborg',book:'osh',trigger:'Passive',adr:true,desc:'Free Re-roll to Fix; Fix instead of Heal to remove Hurt. Spend 1 Adrenaline to repeat a failed Reaction Roll.'},
+  {name:'Acrobat',book:'osh',trigger:'Passive',desc:'You are nimble and graceful enough to be a circus performer. Gain a Free Re-roll to run, jump, balance, and perform feats of acrobatics.'},
+  {name:'Barrier',book:'osh',trigger:'Full Turn',adr:true,desc:'You can summon or create impenetrable barriers. You can use your strength or powers to stop incoming water or flames, to protect yourself or your group from the wind, or to contain a small explosion. Indestructible Barrier [Full Turn]: spend 1 Adrenaline to summon a barrier that grants Total Cover to yourself and 4 other people. The barrier can withstand anything, and lasts as long as you remain still and focused.'},
+  {name:'Bulletproof',book:'osh',trigger:'Passive',desc:'Your body is made of stone or metal, or your skin and bones are as tough as duramantium. You are completely immune to damage from firearms (but not from energy weapons or explosive weapons). During a shootout, a friend can use you as Partial Cover.'},
+  {name:'Bullseye',book:'osh',trigger:'Passive',desc:'Every shot hits its mark. Gain a Free Re-roll to hit a target with precision using a small object or ranged weapon.'},
+  {name:'Cyborg',book:'osh',trigger:'Passive',adr:true,desc:'Part of your body was replaced by a hyper-technological prosthesis, or you are a fully synthetic being. Gain a Free Re-roll to all Fix rolls. It takes a Fix roll instead of a Heal roll to remove the Hurt Condition from you. Solid Metal: spend 1 Adrenaline to repeat a failed Reaction Roll.'},
   // Detective: unified core/osh entry lives in the main FEATS array (tagged books:['core','osh']).
-  {name:'Energy Manipulation',book:'osh',trigger:'Passive',desc:'Gain the Energy Blade (Melee, Perfect) and Energy Bolt super-weapons. Take twice to add Maximum Power.'},
-  {name:'Familiar',book:'osh',trigger:'Passive',desc:'A small animal, magical creature, robot, or other ally. Helps as a Quick Action; shares your Grit.'},
-  {name:'Flight',book:'osh',trigger:'Passive',desc:'You can fly freely and hover. Stunt is used to fly fast or with agility.'},
-  {name:'Foresight',book:'osh',trigger:'Passive',adr:true,desc:'Once per Session, rewind an action and choose a different course. Spend Adrenaline equal to an Enemy SA level to stop it.'},
-  {name:'Gadget',book:'osh',trigger:'Passive',desc:'Gain one Gadget of any kind from the gadget list. May be chosen more than once.'},
-  {name:'Giant Growth',book:'osh',trigger:'Full Turn',adr:true,desc:'Spend 1 Adrenaline to become a giant: Brawn 3 (5 effective), halve Grit losses, auto-fail Crime, act every other Action Turn.'},
+  {name:'Energy Manipulation',book:'osh',trigger:'Passive',desc:'You can use your powers to hone pure energy into a weapon. Gain the Energy Blade (Melee Weapon, Perfect) and Energy Bolt (Energy Weapon) super-weapons; an Energy Blade can represent any melee weapon made of pure energy. You can choose this Feat twice — if you do, your Energy Bolt also gains the Maximum Power Feat.'},
+  {name:'Familiar',book:'osh',trigger:'Passive',desc:'You never leave your friend behind. You have a small animal, magical creature, friendly robot, or another friendly familiar. Your familiar takes a small Quick Action every Turn and always tries to Help you however it can. The familiar shares your Grit and can never be Left for Dead.'},
+  {name:'Flight',book:'osh',trigger:'Passive',desc:'You can control gravity around you, or have a beautiful set of wings. You can fly freely and hover. In most cases, the skill used to fly fast or with agility is Stunt.'},
+  {name:'Foresight',book:'osh',trigger:'Passive',adr:true,desc:'You already know what they’re about to say. Once per Session, predict the outcome of an action taken by yourself or a friend and choose to alter it: once the Director describes the outcome, you may let your vision come true and keep playing, “rewind” and choose a different course of action, or warn your friends. Read Your Opponent: when an Enemy uses a Special Action in combat, spend an amount of Adrenaline equal to the level of the action to stop them before it can go through.'},
+  {name:'Gadget',book:'osh',trigger:'Passive',desc:'You have a weapon or object of hyper-technological, magical, or legendary origin. Choose and gain one Gadget of any kind from the gadget list. You can choose this Feat more than once.'},
+  {name:'Giant Growth',book:'osh',trigger:'Full Turn',adr:true,desc:'You can increase your size beyond measure, becoming an actual giant. When you have the peace and quiet to do it (e.g. during a Time-Out), you can become a giant to easily carry out otherwise difficult actions, like building a barricade, clearing rubble, or raising a dam. Giant Form [Full Turn]: spend 1 Adrenaline to quickly turn into a giant. While a giant, your Brawn score is always 5; every time you would lose Grit, you instead lose half that amount (rounded up). Due to your size you become extremely slow and heavy: you automatically fail all rolls in Crime, and you can only act once every other Action Turn (but still take all Reaction Turns). You return to normal when you run out of Grit, become Broken or Powerless, when you reach the end of the Scene, or whenever you choose. When you drop Giant form, you become Tired; if you are already Tired, you become Broken.'},
   // Hacker: unified core/osh entry lives in the main FEATS array (tagged books:['core','osh']).
-  {name:'Immortality',book:'osh',trigger:'Passive',desc:'When Left for Dead, flip each Turn; on Tails revive with 1 Grit and shrug off one Condition.'},
-  {name:'Incorporeal',book:'osh',trigger:'Passive',adr:true,desc:'Full Turn to pass through walls. Spend 1 Adrenaline to phase instantly or dodge a melee attack without rolling.'},
-  {name:'Invisible',book:'osh',trigger:'Quick Action',desc:'Turn fully invisible. Drop on 2+ Grit lost, suffering a Condition, or choice.'},
-  {name:'Jump',book:'osh',trigger:'Passive',adr:true,desc:'Make impossibly long or high jumps; never lose Grit from falls. Spend 1 Adrenaline to leap with +1 and a Free Re-roll.'},
-  {name:'Lord of the Seas',book:'osh',trigger:'Passive',adr:true,desc:'In water, Free Re-roll to all rolls, Help to swim, breathe underwater. Spend 1 Adrenaline to call sea creatures.'},
-  {name:'Mind Control',book:'osh',trigger:'Passive',adr:true,desc:'Free Re-roll to persuade. Spend 1 Adrenaline: control a supporting character or an Enemy (Action vs Defense).'},
-  {name:'Monster',book:'osh',trigger:'Passive',desc:'Inhuman appearance: Hindrance with strangers, Help intimidating.'},
-  {name:'Multiple Hero',book:'osh',trigger:'Full Turn',desc:'Smooth+Endure roll multiplies you: 1/3/9 copies per Basic/Crit/Extreme. Each takes a Quick Action; extra Grit.'},
-  {name:'New Powers',book:'osh',trigger:'Passive',desc:'Gain a new Superpower of your choice (except Invincible or One of a Kind), with story support.'},
-  {name:'Only Weakness',book:'osh',trigger:'Passive',desc:'A single fatal weakness. Exposure causes Powerless. Taken at creation only; grants an extra Feat.'},
-  {name:'Personal A.I.',book:'osh',trigger:'Passive',desc:'A.I. companion answers questions, tracks enemies, grants Help analyzing layouts.'},
-  {name:'PhD',book:'osh',trigger:'Passive',desc:'Choose one field of study. Free Re-roll for all rolls in your specialization.'},
-  {name:'Pint-Sized',book:'osh',trigger:'Passive',desc:'About half human-height. Free Re-roll to Stealth or dodging projectiles; Help to squeeze into narrow spaces.'},
-  {name:'Power Absorption',book:'osh',trigger:'Full Turn',desc:'Touch risks Powerless on a powered being. Full Turn to steal an ally’s Superpower until end of Scene (they go Powerless).'},
-  {name:'Power-Mirror',book:'osh',trigger:'Quick Action',adr:true,desc:'Help a friend Show Off during Time-Out. Spend 1 Adrenaline on touch to use one of their special actions or briefly gain their Superpower.'},
-  {name:'Prep Time',book:'osh',trigger:'Passive',adr:true,desc:'Once per Session, ask for info on a location/person. Once per combat, spend 1 Adrenaline to negate a revealed Enemy Feat for the Scene.'},
-  {name:'Regeneration',book:'osh',trigger:'Passive',adr:true,desc:'Lose 1 less Grit whenever you would lose 3+. Spend 1 Adrenaline to recover 3 Grit or remove Tired/Hurt.'},
-  {name:'Shrinkage',book:'osh',trigger:'Full Turn',adr:true,desc:'Shrink to ant-size as a Full Turn. Spend 1 Adrenaline to shrink instantly or enlarge instantly with +1 and Free Re-roll.'},
-  {name:'Sonic Boom',book:'osh',trigger:'Passive',desc:'Gain the Sonic Wave super-weapon (Energy, Impact). Take twice to add Maximum Power.'},
-  {name:'Speak with Animals',book:'osh',trigger:'Passive',adr:true,desc:'Speak with all animals. Spend 1 Adrenaline to call nearby animals to Help.'},
-  {name:'Super Senses',book:'osh',trigger:'Passive',adr:true,desc:'Free Re-roll for all Reaction Rolls in combat and for sensing danger. Spend 1 Adrenaline to repeat a failed Detect/Awareness.'},
-  {name:'Super-Ride',book:'osh',trigger:'Passive',adr:true,desc:'A super-ride at your beck and call; Free Re-roll to drive it. Spend 1 Adrenaline as a Quick Action to recall it.'},
-  {name:'Team Leader',book:'osh',trigger:'Passive',desc:'Free Re-roll to inspire and coordinate, and to remove Like a Fool and Defeated. Starting Teamwork 2 when Heroes assemble.'},
-  {name:'Trained Fighter',book:'osh',trigger:'Passive',desc:'Choose one fighting style or melee weapon. Free Re-roll for Action and Reaction Rolls with it.'},
-  {name:'Transformation',book:'osh',trigger:'Full Turn',adr:true,desc:'Human form (no Superpower/tied Feats) and powered form. Spend 1 Adrenaline to transform as a Quick Action and recover all Grit.'},
-  {name:'Unlimited Funds',book:'osh',trigger:'Passive',desc:'At creation, spend 10$ on gear (instead of 4) and start with 5$. Once per Session, access an exclusive service.',creationEffects:{cashOverride:5}},
-  {name:'Unstoppable Force',book:'osh',trigger:'Quick Action',adr:true,desc:'Spend 1 Adrenaline for +1 to your next Action Roll in combat; on a hit, the Enemy loses 1 extra Grit.'},
-  {name:'Wall-Climber',book:'osh',trigger:'Passive',desc:'Climb any surface; Free Re-roll for all climbing rolls.'}
+  {name:'Immortality',book:'osh',trigger:'Passive',desc:'You are practically immortal. When you are Left for Dead, you fall into a state of apparent death. Once per Turn, you can flip a coin; if the result is Tails, you come back to life, ready for action. When you revive, you recover 1 Grit and can brush off one Condition of your choice. If you are cut to pieces or buried, it takes you two days to get yourself back together or regenerate from your head.'},
+  {name:'Incorporeal',book:'osh',trigger:'Full Turn',adr:true,desc:'Walls, doors, safes — nothing can keep you out. You can use one Full Turn to move through a wall, floor, or other solid surface as if it were made of air. Phase Shift: spend 1 Adrenaline to instantly become incorporeal (for example when running or falling) without using up your Turn. Alternatively, dodge one melee attack without rolling.'},
+  {name:'Invisible',book:'osh',trigger:'Quick Action',desc:'Now I see you. Now I don’t. As a Quick Action, you can turn fully invisible, or return visible. While invisible, gain a Help for all rolls to avoid being located. During combat, if you opt not to attack the Enemy on your Action Turn, you cause them to lose track of you and skip the next Reaction Turn. You stop being invisible when you lose 2 or more Grit in one hit, suffer any Condition, or choose to.'},
+  {name:'Jump',book:'osh',trigger:'Passive',adr:true,desc:'You flex your muscles and throw yourself on the enemy. You can make extremely long or high jumps, and you never lose Grit when falling from a height. Leap Attack: spend 1 Adrenaline to jump onto a distant or flying enemy and attack them as if you were in melee — gain +1 and a Free Re-roll for this attack.'},
+  {name:'Lord of the Seas',book:'osh',trigger:'Passive',adr:true,desc:'You can do more than talk to fish… but yes, you talk to fish. In water, gain a Free Re-roll to all rolls, plus a Help to swim, and you can breathe underwater just fine. You can communicate with fish and other sea-dwelling creatures. Call of the Sea [Quick Action]: spend 1 Adrenaline to call on one or several sea creatures to come to your side and Help however they can.'},
+  {name:'Mind Control',book:'osh',trigger:'Passive',adr:true,desc:'You can control other people with the force of your mind or magic. Gain a Free Re-roll to persuade someone to cooperate or help you. Puppet [Full Turn]: spend 1 Adrenaline to take control of a supporting character and move them however you like. You can’t ask the controlled person to do something that harms them, directly or indirectly. You lose control of the puppet when you lose Grit, suffer a Condition, or lose focus. To take control of an Enemy (or an individual in a group of Enemies), make an Action Roll with difficulty equal to the Enemy Defense.'},
+  {name:'Monster',book:'osh',trigger:'Passive',desc:'People look at you with fear or suspicion. Your inhuman appearance gives a Hindrance when you speak or interact with people who don’t know you, and grants a Help to all rolls to intimidate.'},
+  {name:'Multiple Hero',book:'osh',trigger:'Full Turn',desc:'You can split or multiply into copies of yourself at will. During a Time-Out, you can create copies of yourself to gain an extra action. Multiplication [Full Turn]: roll Smooth+Endure to multiply yourself — create 1 copy for every Basic Success, 3 copies for every Critical Success, and 9 copies for every Extreme Success. Each copy has limited strength and can only take a Quick Action each Turn. Each copy also counts as an additional point of Grit — every time you lose Grit, you can choose to sacrifice an equal number of copies to avoid the loss. Copies dissolve after being hit, when they get too far from you, when you dismiss them, when you suffer Powerless, or automatically at end of Scene. When all your copies dissolve, you become Tired; if already Tired, you become Broken.'},
+  {name:'New Powers',book:'osh',trigger:'Passive',desc:'You have just gained or discovered a new power. Gain a new Superpower of your choice, with the exception of Invincible or One of a Kind. You can choose this Feat only if it makes sense in the story and all Players agree to it.'},
+  {name:'Only Weakness',book:'osh',trigger:'Passive',desc:'If the enemy learns about your weakness, it’s over for you. You have a weakness — your powers could be tied to an artifact that can be stolen, or there’s a space crystal out there that can weaken you. You may choose your weakness, or leave it up to the Director. When you’re exposed to your weakness, you suffer the Powerless Condition. This Feat can be chosen only at character creation. If you do, you gain another Feat of your choice. If you gained this Feat from the Invincible Superpower, you do NOT gain an extra Feat.'},
+  {name:'Personal A.I.',book:'osh',trigger:'Passive',desc:'You have a personal A.I. based in your super-suit, in an accessory (perhaps your watch or stylish glasses), or you are a hyper-developed A.I. yourself. Access the A.I. database to ask questions about general knowledge, history, geography, and other topics. The A.I. also lets you track and get a lock on nearby enemies, and grants Help when you need to quickly analyze the layout of a city or the plan of a building to find an escape route.'},
+  {name:'PhD',book:'osh',trigger:'Passive',desc:'They don’t just hand out degrees like yours. Choose one field of study you specialize in (e.g. engineering, medicine, astrophysics). Gain a Free Re-roll for all rolls regarding your chosen degree.'},
+  {name:'Pint-Sized',book:'osh',trigger:'Passive',desc:'You’re about half as tall as a human, possibly less. Gain a Free Re-roll to all Stealth rolls and to dodge projectiles. Additionally, gain a Help to all rolls made to squeeze into narrow spaces or go unnoticed.'},
+  {name:'Power Absorption',book:'osh',trigger:'Full Turn',desc:'You can copy the powers of your friends or enemies. If you so much as touch someone with superpowers, you run the risk of hurting them and giving them the Powerless Condition. Stolen Power [Full Turn]: when you touch an ally with superpowers, you can steal their Superpower and all connected Feats until end of Scene — you gain all the stolen Superpowers, but your friend temporarily becomes Powerless. You can use this on an Enemy only if you manage to completely disable them for one Turn; if you succeed, the Director determines the extent of the powers you steal based on the Enemy Feats.'},
+  {name:'Power-Mirror',book:'osh',trigger:'Quick Action',adr:true,desc:'You can copy the powers of your friends or enemies. Thanks to your ability to copy other people’s powers, you can use one of your actions during a Time-Out to help a friend who is trying to Show Off their Superpower. Borrowed Power [Quick Action]: when you touch someone with superpowers, spend 1 Adrenaline to immediately use one of their special actions, or to temporarily gain the benefits of their Superpower.'},
+  {name:'Prep Time',book:'osh',trigger:'Passive',adr:true,desc:'No matter the situation, you always come prepared. Once per Session, ask the Director for information about a location or person. Prepared: once per combat, after an Enemy reveals one of their Feats, spend 1 Adrenaline to pull out an accessory or strategy to counteract it — the Enemy loses that Feat until end of Scene.'},
+  {name:'Regeneration',book:'osh',trigger:'Passive',adr:true,desc:'You have a regenerative factor that allows you to heal any wound easily. Whenever you would lose 3 or more Grit from an Enemy or another physical danger, you lose 1 less Grit. Fast Recovery [Quick Action]: spend 1 Adrenaline to recover 3 Grit or heal from the Tired or Hurt Condition.'},
+  {name:'Shrinkage',book:'osh',trigger:'Full Turn',adr:true,desc:'You can shrink all the way down to the size of a tiny ant without sacrificing physical strength. Shrinking requires a Full Turn. While shrunk, gain a Help to all rolls made to squeeze into narrow spaces or go unnoticed. Instant Miniaturization: spend 1 Adrenaline to shrink on the spot — break free from any grapple or restraints, automatically succeed a Reaction Roll during combat, or pass another Reaction Roll the Director deems relevant. Instant Enlargement: while shrunk, spend 1 Adrenaline to return to your original size on the spot and attack an Enemy with +1 and a Free Re-roll.'},
+  {name:'Sonic Boom',book:'osh',trigger:'Passive',desc:'Your voice has terrible destructive power. With the power of your voice or the sonic waves you emit, you can destroy objects and barriers. Gain the Sonic Wave super-weapon (Energy Weapon, Impact). You can choose this Feat twice — if you do, your Sonic Wave also gains the Maximum Power Feat.'},
+  {name:'Speak with Animals',book:'osh',trigger:'Passive',adr:true,desc:'You understand animals, and they understand you. You can speak with animals of all kinds and species. Call of the Wild [Quick Action]: spend 1 Adrenaline to call on the animals in the area — they come to you and Help to the best of their ability.'},
+  {name:'Super Senses',book:'osh',trigger:'Passive',adr:true,desc:'Nothing can elude your hyper-developed senses. Gain a Free Re-roll for all Reaction Rolls in combat and for all rolls made to sense danger, prevent an ambush, or spot lurking enemies. Attention: spend 1 Adrenaline to repeat a failed Detect or Awareness Roll.'},
+  {name:'Super-Ride',book:'osh',trigger:'Passive',adr:true,desc:'You can rely on a hyper-technological, magical, or alien ride at your beck and call. You have a super-ride of your choice (see Rides in Section 6: Weapons & Gear). Gain a Free Re-roll to all rolls made to drive your super-ride. Ride Recall [Quick Action]: spend 1 Adrenaline to recall or summon your super-ride — it reaches you, or comes as close as possible.'},
+  {name:'Team Leader',book:'osh',trigger:'Passive',desc:'Your comrades look to you to guide them and help them through the darkness. Gain a Free Re-roll to inspire and coordinate others, and to all rolls made to remove the Like a Fool and Defeated Conditions. When Heroes assemble, make a heartfelt speech to your group to raise the starting Teamwork to 2.'},
+  {name:'Trained Fighter',book:'osh',trigger:'Passive',desc:'You’ve been through your fair share of battles, but it’s not time to rest yet. Choose one fighting style or melee weapon (e.g. hand-to-hand combat, batons, katana). Gain a Free Re-roll for all Action and Reaction Rolls made with your chosen style or weapon.'},
+  {name:'Transformation',book:'osh',trigger:'Full Turn',adr:true,desc:'Your true powers only get revealed when you transform. You have two forms — one completely human, the other with incredible powers. While in human form you cannot access your Superpower or the Feats connected to it. When you transform, you regain access to all Superpowers and Feats on your Hero Sheet, and you may also move one Attribute Point of your choice (for example, from Focus to Brawn). Transformation requires a Full Turn. Quick Shift [Quick Action]: spend 1 Adrenaline to transform as a Quick Action and recover all Grit.'},
+  {name:'Unlimited Funds',book:'osh',trigger:'Passive',desc:'You’re not just rich, you are filthy rich. At character creation, you can spend 10$ on gear instead of 4, and then start the game with 5$. Once per Session, you can leverage your vast assets to gain access to exclusive services — a private jet, tickets to the most exclusive gala of the year, reserving a whole hotel, buying a restaurant to skip the line.',creationEffects:{cashOverride:5}},
+  {name:'Unstoppable Force',book:'osh',trigger:'Quick Action',adr:true,desc:'You can use the incredible strength of your muscles or a manifestation of your powers to strike the enemy where it truly hurts. When you run or throw something at great speed, nothing can stop you. Devastating Attack [Quick Action]: spend 1 Adrenaline to gain +1 to your next Action Roll during combat. If you hit the Enemy, they lose 1 extra Grit. This special action can also be activated in combination with other special actions, like Smash! or Explosive Force.'},
+  {name:'Wall-Climber',book:'osh',trigger:'Passive',desc:'You move like a spider, walking on walls and ceilings. You can climb and hang on any horizontal or vertical surface, and gain a Free Re-roll to all rolls made to climb.'}
 ];
 const SUPERPOWERS_OSH=[
   {id:'hyper_armor',name:'Hyper-technological Armor',book:'osh',roleIds:['armored'],
-   desc:'Suit makes Brawn 3, ignores Hurt penalties, grants Flight and space/underwater breathing, with Energy Beam. Recall (Quick Action): spend 1 Adrenaline to summon the armor onto your body.'},
+   desc:'A suit of hyper-technological armor. Donning it requires a Full Turn. While worn, your Brawn is always 3 and you ignore all Hurt penalties. The armor grants Flight and lets you breathe underwater and in outer space. Outfitted with the Energy Beam super-weapon (Energy Weapon, Maximum Power) built into the hands or chest plate. You may spend Cash to bolt on additional weapons (submachine guns, swords, missile launchers, etc.). Free Re-roll to shoot the Energy Beam and any ranged weapon added to the armor. Recall [Quick Action]: in the open or near your suit, spend 1 Adrenaline to make it fly onto your body.'},
   {id:'natural_predator',name:'Natural Predator',book:'osh',roleIds:['beast'],
-   desc:'Free Re-roll to Awareness/tracking. Claws super-weapon (Melee, Sharp, +1) plus Acrobat, Wall-Climber, or Bulletproof.'},
+   desc:'You are a wild creature and share some features of an animal’s appearance or behavior. Free Re-roll to all Awareness rolls and to rolls made to follow tracks. Gain the Claws super-weapon (Melee Weapon, Sharp, attack with +1), extracted or retracted at will. Choose one Feat to gain: Acrobat, Wall-Climber, or Bulletproof.'},
   {id:'elemental_control',name:'Elemental Control',book:'osh',roleIds:['elemental'],
-   desc:'Master one element. Immune to your element. Elemental Ray super-weapon. 1 Adrenaline: Elemental Form (fly + Free Re-roll).',
+   desc:'Master one element (chosen below). So long as you are not Powerless, you are immune to damage from your element. Small or simple uses (lighting a candle, shaping an ice flower) need no roll; complex actions roll at the Director’s difficulty. Especially grand uses (raising an ice wall, summoning a tropical storm) may require spending Adrenaline at the Director’s call. Gain the Elemental Ray super-weapon (Energy Weapon). Elemental Form [Quick Action]: spend 1 Adrenaline to wreathe yourself in your element. Until end of combat or Scene, you fly as if you had the Flight Feat and gain a Free Re-roll using both your element and your Elemental Ray.',
    variants:[
-     {id:'water',name:'Water',desc:'Push things, break barriers, douse fires.'},
-     {id:'electricity',name:'Electricity',desc:'Destroy obstacles and fry tech.'},
-     {id:'fire',name:'Fire',desc:'Burn wood/fabric, intimidate, repel enemies.'},
-     {id:'ice',name:'Ice',desc:'Freeze, slick surfaces, raise ice barriers.'},
-     {id:'storm',name:'Storm',desc:'Control weather and call lightning.'},
-     {id:'earth',name:'Earth',desc:'Raise platforms and walls.'},
-     {id:'wind',name:'Wind',desc:'Push objects and people; smother flames.'}
+     {id:'water',name:'Water',desc:'Pushes things, puts out fires, breaks barriers.'},
+     {id:'electricity',name:'Electricity',desc:'Destroys obstacles, overloads technological devices.'},
+     {id:'fire',name:'Fire',desc:'Burns wood and fabric, scares people, keeps enemies away.'},
+     {id:'ice',name:'Ice',desc:'Freezes targets, makes surfaces slippery, creates barriers.'},
+     {id:'storm',name:'Storm',desc:'Controls the weather and generates lightning.'},
+     {id:'earth',name:'Earth',desc:'Builds platforms and barriers.'},
+     {id:'wind',name:'Wind',desc:'Pushes objects and people away, blows out flames.'}
    ]},
   {id:'enhanced_body',name:'Enhanced Body',book:'osh',roleIds:['champion'],
-   desc:'Free Re-roll to all Brawn rolls; Trained Fighter free. Once per Scene, gain 1 Adrenaline on losing 3+ Grit.'},
+   desc:'You are in more than perfect physical shape. Free Re-roll to all Brawn rolls; automatically gain the Trained Fighter Feat. I Can Do This All Day: once per Scene, when you lose more than 3 Grit at once, you gain 1 Adrenaline. You don’t need to spend Adrenaline to use this special action.'},
   {id:'force_control',name:'Force Control',book:'osh',roleIds:['force_master'],
-   desc:'Telekinetically move objects, raise Partial-Cover shields, or command metals. Focus+Cool with Free Re-roll.',
+   desc:'Telekinetically perceive and control your chosen force (below). Complex or tiring uses roll Focus+Cool with a Free Re-roll. Simple uses (moving a fork, opening a window) need no roll. Moving heavy or anchored objects may require spending Adrenaline at the Director’s call.',
    variants:[
-     {id:'cosmic',name:'Cosmic Force',desc:'Invisible energy: flying platforms, telekinesis, Partial-Cover shields.'},
-     {id:'electromagnetic',name:'Electromagnetic Force',desc:'Control ferromagnetic metals at will.'}
+     {id:'cosmic',name:'Cosmic Force',desc:'An invisible energy surrounding everything. Create flying platforms strong enough to hold a person, telekinetically move small items, or open distant doors. Additionally, raise small shields as a Quick Action — they grant protection like Partial Cover.'},
+     {id:'electromagnetic',name:'Electromagnetic Force',desc:'Telekinetically control all ferromagnetic metals, like iron and steel.'}
    ]},
   {id:'incredible_strength',name:'Incredible Strength',book:'osh',roleIds:['tank'],
-   desc:'+1 Force/Endure; ignore -1 Brawn penalties unless Powerless. Smash! destroys an object or grants +2.'},
+   desc:'Tall as two people, just as wide, muscle on stone-thick skin. +1 to all Force and Endure rolls; ignore all penalties and Conditions imposing -1 to Brawn rolls (unless Powerless). Always Help when rolling to crash, lift, throw, or break things; always Hindrance to go unnoticed or squeeze into narrow spaces. If your Superpower is always-on, gain the Monster Feat; if it is a reversible transformation, gain the Transformation Feat instead. Smash!: destroy an object or ride, or gain +2 to a Brawn roll.'},
   {id:'kinetic_energy',name:'Kinetic Energy',book:'osh',roleIds:['blaster'],
-   desc:'Kinetic Ray super-weapon (Energy, Maximum Power, Impact) with +1 and Free Re-roll. Explosive Force grants Explosive temporarily.'},
+   desc:'Focus kinetic energy through a part of your body and release it as a devastating beam. Gain the Kinetic Ray super-weapon (Energy Weapon, Maximum Power, Impact); +1 and a Free Re-roll to shoot it. Explosive Force: +1 to rolls to attack with your Kinetic Ray, and your Kinetic Ray temporarily gains the Explosive Feat.'},
   {id:'mind_powers',name:'Mind Powers',book:'osh',roleIds:['psychic'],
-   desc:'Telepathy, telekinesis, illusions. Focus+Endure with Free Re-roll. 1 Adrenaline: Whisper to persuade or confuse.'},
+   desc:'Telepathy in any language, telekinesis, and mental illusions. Complex uses roll Focus+Endure with a Free Re-roll. Read someone’s thoughts or locate a known person via Focus+Detect. Small uses (lifting a book, finding your flatmate at home) need no roll. Moving heavy objects or forcing an opponent to cooperate may require spending Adrenaline at the Director’s call. Whisper [Quick Action]: spend 1 Adrenaline to persuade a non-hostile individual, or to confuse an Enemy and grant +1 to an ally during combat.'},
   {id:'shapeshift',name:'Shapeshift',book:'osh',roleIds:['shapeshifter'],
-   desc:'Choose one shapeshifter type. Transforming normally takes a Full Turn. Quick-Change as a Quick Action.',
+   desc:'Choose one shapeshifter type (below). Regardless of type, you also gain Quick-Change. Quick-Change [Quick Action]: transform without spending a Full Turn.',
    variants:[
-     {id:'humanoid',name:'Humanoid',desc:'Become any humanoid; voice and look change.'},
-     {id:'animal',name:'Animal',desc:'Become any animal.'},
-     {id:'elastic',name:'Elastic',desc:'Stretch and squish; +1 Quick Action per Turn; grow large with a Full Turn.'}
+     {id:'humanoid',name:'Humanoid Shapeshifter',desc:'Turn into any humanoid, changing your appearance and voice completely. Base Skills unaltered; the new form can be a Help or Hindrance contextually. Transformation normally requires a Full Turn.'},
+     {id:'animal',name:'Animal Shapeshifter',desc:'Turn into any animal. Base Skills unaltered; the form can be a Help or Hindrance contextually. Transformation normally requires a Full Turn.'},
+     {id:'elastic',name:'Elastic Shapeshifter',desc:'Stretch and shrink like rubber. Help to all rolls to squeeze into narrow spaces, to catch or trap others, or to dodge bullets. You also take one additional Quick Action every Turn. Spend a Full Turn to inflate or stretch your body and significantly increase your size.'}
    ]},
   {id:'super_speed',name:'Super-Speed',book:'osh',roleIds:['speedster'],
-   desc:'Free Re-roll to run; +2 to chase/flee/grab-first. +1 Quick Action per Turn. In a Flash! (1 Adrenaline) once per Turn.'},
+   desc:'Free Re-roll to run, and +2 to all rolls made to chase, run away, or catch something before others do. You also take one additional Quick Action every Turn. Be Right Back [Full Turn]: spend the Turn to reach a spot you can run to, retrieve or drop something, and come back. You don’t need to spend Adrenaline to use this special action. In a Flash! [Quick Action]: once per Turn, if you are free from obstacles and able to move, spend 1 Adrenaline to take one of the following — run to any known place to take or leave an object or person; abandon combat and exit Enemy range; change clothes or don your super-suit; auto-succeed a Reaction Roll without rolling; or take a second Action Roll at -1 without any Free Re-roll.'},
   {id:'teleportation',name:'Teleportation',book:'osh',roleIds:['teleporter'],
-   desc:'Teleport line-of-sight. Full Turn for global familiar locations. 1 Adrenaline: Round Trip / Group Teleport.'},
+   desc:'Teleport at will to any place you can see. Out of danger, focus for a Full Turn to teleport to any place on the planet you are familiar with or have visited before. Especially distant teleports may require spending Adrenaline at the Director’s call. Free Re-roll to all Reaction Rolls in combat, so long as you are not taken by surprise. Round Trip [Quick Action]: spend 1 Adrenaline to teleport to a place you know and can see, grab something, and come back right away. Group Teleport: spend 1 Adrenaline to teleport yourself and 1 other person.'},
   {id:'arcane_powers',name:'Arcane Powers',book:'osh',roleIds:['sorcerer'],
-   desc:'Start with 2 Adrenaline. Illusions, summons, telekinetic hands. Smooth+Leadership with Free Re-roll. Magical Weapon or Arcane Missile. Astral Projection (Full Turn): spend 1 Adrenaline to project an intangible body of light.'},
+   desc:'You start the game with 2 Adrenaline instead of 1; at 0 Adrenaline you feel out of energy and cannot use your arcane powers. Summon small everyday objects (a pan, a rose, a fountain pen), conjure illusions, and telekinetically move unanchored objects as if with two invisible flying hands. Complex or tiring uses roll Smooth+Leadership with a Free Re-roll. Simple uses (summoning clothing, stirring a pot) need no roll. Especially complex or dangerous spells may require spending Adrenaline at the Director’s call. Choose one super-weapon: Magical Weapon (Melee Weapon, Perfect) or Arcane Missile (Energy Weapon), made of pure light, summoned or dismissed at will. Astral Projection [Full Turn]: spend 1 Adrenaline to create a projection of your body made of light — it can float, turn invisible, pass through solid surfaces, see, hear, and speak, but cannot interact with physical objects. Your physical body must remain still; the projection dissolves on lost focus, when you are struck, or when you are wounded.'},
   {id:'dark_presence',name:'Dark Presence',book:'osh',roleIds:['shadow'],
-   desc:'Free Re-roll to all Crime rolls; +1 to ambush. Vanish (1 Adrenaline): hide, escape, reach cover.'},
+   desc:'A shadow in the alleys of your city — quiet as a cat, just as elusive. Free Re-roll to all Crime rolls, and +1 to all rolls made to ambush people or strike unaware Enemies. Vanish [Quick Action]: spend 1 Adrenaline to hide, get away from a thorny situation, break free from a grapple, or reach Partial or Total Cover. On the same Turn, you may spend an additional 1 Adrenaline to reappear in a nearby position you can see.'},
   {id:'battleborn',name:'Battleborn',book:'osh',roleIds:['weaponmaster'],
-   desc:'Choose Guns, Bows, or Melee. Free Re-roll using it, plus bonus weapons (2 Guns / 1 Bow + 24 arrows / Perfect melee).'},
+   desc:'Choose one weapon type: bows, guns, or melee weapons (below). Free Re-roll to use, repair, evaluate, or handle your chosen type of weapon. Plus the additional benefit listed under your chosen type.',
+   variants:[
+     {id:'guns',name:'Guns',desc:'You gain 2 Guns and 6 Mags for free. Once per Turn, reload a gun without using an action. When you shoot with two guns at the same time, you gain +1.'},
+     {id:'bows',name:'Bows',desc:'You gain one Bow and 24 arrows for free. +1 to all rolls to shoot arrows. If you spend a Turn taking aim, gain an additional +1 to your next roll to shoot arrows.'},
+     {id:'melee',name:'Melee Weapons',desc:'Choose one Melee Weapon (staff, katana, knives, etc.) and gain one weapon or a pair of weapons of your chosen type for free — they have the Perfect Feat. +1 to fight with your chosen weapon. When wielding a pair of melee weapons of the same type, gain +1 to dodge projectiles.'}
+   ]},
   {id:'invincible',name:'Invincible',book:'osh',roleIds:['marvel'],
-   desc:'Marvel only. Free Re-roll all Brawn. Free: Flight, Energy Manipulation, Bulletproof, Only Weakness. +6 free Skill Points.'},
+   desc:'Marvel only — a practically perfect being. Free Re-roll to all Brawn rolls. Automatically gain the Flight, Energy Manipulation, Bulletproof, and Only Weakness Feats. At creation, gain 6 extra free Skill Points to assign freely (in addition to the 2 all Heroes get, for a total of 8).'},
   {id:'one_of_a_kind',name:'One of a Kind',book:'osh',roleIds:['prodigy'],
-   desc:'Prodigy only. Choose 1 Superpower and 1 Feat (or 2 Feats) from anything available. +2 free Skill Points.'},
+   desc:'Prodigy only — no other Hero is like you. Choose 1 Superpower and 1 Feat (or 2 Feats) from anything available. You may NOT choose Invincible unless it is absolutely crucial to the story and all other Players agree. At creation, gain 2 extra free Skill Points to assign freely (in addition to the 2 all Heroes get, for a total of 4).'},
   {id:'specialty',name:'Specialty',book:'osh',roleIds:['maverick'],
-   desc:'No flashy powers — pick an extra Feat of any kind. Start with 2 Spotlights. Underdog: repeat any roll ignoring all Conditions except Powerless.'}
+   desc:'You have no flashy powers, but a specialty makes you essential to the team. Choose one extra Feat of any kind from the Feat list — that is your Superpower. You begin the game with 2 Spotlights instead of 1. Underdog: repeat one roll of any kind; for this roll, you ignore all penalties imposed by Conditions other than Powerless.'}
 ];
 const OSH_CONDITIONS=[
   {id:'Powerless',label:'Powerless',penalty:'Cannot spend Power or use Superpower/tied Feats'},
@@ -1108,8 +1116,9 @@ const BOOK_META={
     label:'Outgunned Superheroes', badge:'badge-osh', game:'osh',
     selectable:true, shortCode:'OSH',
     description:'17 Roles, 21 Tropes, 10 Origins, 17 Superpowers. Power (= Adrenaline if core). Heat, Villain dashboard, Assemble scenes, Time-Outs, Eternity Shards.',
-    // Terminology overrides — when this book is the core, displayed text gets these word-boundary swaps.
-    terms:{Adrenaline:'Power', adrenaline:'power', Adr:'Pow'},
+    // Terminology overrides specific to this core book. The Adrenaline ↔ ⚡ swap is
+    // handled by DEFAULT_TERMS so future books only need to declare what's unique to them.
+    terms:{},
     conditions:'OSH_CONDITIONS',
     sceneTypes:['assemble','timeout','heat','villain','shards'],
   },
@@ -1124,18 +1133,23 @@ function bookGame(book){return BOOK_META[book]?.game||book;}
 // Legacy: kept for any old callsites; routes through bookHas. `games` arg ignored.
 function bookEnabled(book){return bookHas(book,'roles');}
 
+// Universal default substitutions — applied for every core book unless that book's
+// own `terms` map explicitly overrides a key. The Adrenaline / Power resource is
+// rendered as ⚡ everywhere in the app because the rulebooks themselves use that
+// symbol in feat and superpower descriptions; this collapses a lot of word-swapping
+// (Adrenaline → Power, Adr → Pow, etc.) down to one canonical glyph.
+const DEFAULT_TERMS={Adrenaline:'⚡', adrenaline:'⚡', Adr:'⚡'};
+function activeTerms(){return Object.assign({},DEFAULT_TERMS,BOOK_META[getCoreBook()]?.terms||{});}
 // Resolve a single mechanic name. Use this for UI labels.
-//   term('Adrenaline') → 'Power' under OSH-core, 'Adrenaline' otherwise.
 function term(key){
-  const t=BOOK_META[getCoreBook()]?.terms||{};
-  return t[key]||key;
+  const t=activeTerms();
+  return (t[key]!=null)?t[key]:key;
 }
 // Apply all terminology swaps from the active core book to a string.
-// Use this when rendering free-form text (feat/enemy/superpower/origin descriptions).
-// Substitution is word-boundary so 'Adrenaline' swaps but 'Powerless' / 'Power Tier' stay intact.
+// Word-boundary substitution: 'Adrenaline' swaps but 'Powerless' / 'Power Tier' stay intact.
 function termSubst(text){
   if(text==null)return text;
-  const t=BOOK_META[getCoreBook()]?.terms||{};
+  const t=activeTerms();
   const keys=Object.keys(t);
   if(!keys.length)return text;
   let out=String(text);
@@ -1188,20 +1202,24 @@ function hasAdrCost(entry){
   if(entry.adr===true)return true;
   const d=entry.desc;if(!d)return false;
   // The rulebook uses several phrasings for an Adrenaline-spending activated ability:
-  //   "Spend 1 Adrenaline to …"     — feats
-  //   "Spend Adrenaline equal to …" — scaled (Foresight)
-  //   "1 Adrenaline: Effect"        — colon-led shorthand (Mind Powers, Teleportation)
-  //   "(1 Adrenaline)"              — parenthetical inline (Super-Speed In a Flash!)
-  // We deliberately ignore non-spend mentions like "Start with 2 Adrenaline" or
-  // "Recover Adrenaline" so passive gains don't get flagged.
-  return /\bspend(?:s)?\s+(?:\d+\s+)?adrenaline\b/i.test(d) ||
+  //   "Spend 1 Adrenaline to …"        — feats with a fixed cost
+  //   "Spend Adrenaline equal to …"    — scaled cost (Foresight)
+  //   "1 Adrenaline: Effect"           — colon-led shorthand (Mind Powers, Teleportation)
+  //   "(1 Adrenaline)"                 — parenthetical inline (Super-Speed In a Flash!)
+  // Phrasings deliberately ignored so we don't false-positive on:
+  //   "Start with 2 Adrenaline" / "Recover Adrenaline" / "gain 1 Adrenaline" — passive gains
+  //   "you don't need to spend Adrenaline" / "without spending Adrenaline" — explicit no-cost
+  // The numeric prefix or "equal" qualifier prevents matching generic "spend Adrenaline"
+  // phrases which can appear in either positive or negative context.
+  return /\bspend(?:s)?\s+\d+\s+adrenaline\b/i.test(d) ||
+         /\bspend(?:s)?\s+adrenaline\s+equal\b/i.test(d) ||
          /\b\d+\s+adrenaline\s*:/i.test(d) ||
          /\(\d+\s*adrenaline\)/i.test(d);
 }
 // Small chip rendered next to a feat/superpower header when it has an activated
-// resource cost. Auto-displays "Power" vs "Adrenaline" via the active term map.
+// resource cost. The ⚡ glyph stands in for Adrenaline/Power universally.
 function adrCostChip(){
-  return `<span class="adr-cost">⚡ Spends ${term('Adrenaline')}</span>`;
+  return `<span class="adr-cost">Spends ⚡</span>`;
 }
 
 const ROLES=[
@@ -1403,75 +1421,75 @@ const TROPES=[
 ];
 
 const FEATS=[
-  {name:'Always Prepared',book:'core',trigger:'Quick Action',desc:'Take out or retrieve a useful item, a piece of information, or a small, easy-to-hide weapon.'},
-  {name:'Archer',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll when using, repairing, evaluating, or handling a bow.'},
-  {name:'Artist',book:'core',trigger:'Passive',desc:'Choose an art-form. Gain a Free Re-roll for all rolls regarding your chosen art-form.'},
-  {name:'Bodybuilder',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll when lifting, carrying, or breaking something.'},
-  {name:'Car Jump',book:'core',trigger:'Full Turn',desc:'While driving, have your ride jump to automatically pass an obstacle or gain +2 Speed. Ride loses 1 Armor on landing.'},
-  {name:'Cash Flow',book:'core',trigger:'Passive',desc:'Start the game with 3 Cash. Gain 1 Cash at the beginning of each Session.',creationEffects:{cashOverride:3}},
-  {name:'Combo',book:'core',trigger:'Passive',adr:true,desc:'After hitting an Enemy, spend 1 Adrenaline to deal 1 additional Grit. Repeatable.'},
-  {name:'Counter',book:'core',trigger:'Passive',desc:'React against an Enemy by rolling Brawn+Fight instead of the required Skill. Ignore all -1s from Conditions.'},
-  {name:'Crazy Stunt',book:'core',trigger:'Full Turn',desc:'Destroy your ride and flip a coin. Heads: Director fills 1 Need box. Tails: Director fills 5 Need boxes.'},
-  {name:'Detective',book:'core',books:['core','osh'],trigger:'Passive',desc:'Gain a Free Re-roll when looking for clues, following trails, or searching a room.'},
-  {name:'Flying Kick',book:'core',trigger:'Passive',desc:'Attack an Enemy at Close/Medium Range with +1. Always attack at Close Range bare-handed without spending Adrenaline.'},
-  {name:'Full Throttle!',book:'core',trigger:'Passive',desc:'Ignore penalties from the Nervous Condition and Top Speed when driving. Once per chase, gain 1 Adrenaline at Top Speed.'},
-  {name:'Get Down!',book:'core',trigger:'Full Turn',desc:'You and another Hero quickly dodge bullets or avoid being run over — no roll needed.'},
-  {name:'Gunslinger',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll when using, repairing, evaluating, or handling a pistol or revolver.'},
-  {name:'Hacker',book:'core',books:['core','osh'],trigger:'Passive',desc:'Gain a Free Re-roll for all rolls about computers, hacking a system, or bypassing IT security.'},
-  {name:'Hard to Kill',book:'core',books:['core','osh'],trigger:'Passive',desc:'When you fill in your Bad Box, gain 1 Adrenaline and +1 to your next roll.'},
-  {name:'Head on a Swivel',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll when preempting dangers or ambushes, or trying to locate lurking enemies.'},
-  {name:'Heartbreaker',book:'core',books:['core','osh'],trigger:'Passive',desc:'Gain a Free Re-roll when seducing or making a good impression on others.'},
-  {name:'High Culture',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll for all rolls to recall information about general culture, literature, history, and geography.'},
-  {name:'Hunter',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll to follow or hunt an animal, find your bearings, or hide in the wilds.'},
-  {name:'Intimidation',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll when intimidating or interrogating somebody.'},
-  {name:'Intuition',book:'core',trigger:'Quick Action',desc:"Ask the Director for a clue or suggestion, or find an Enemy's Weak Spot."},
-  {name:"I'll Make a Phone Call",book:'core',trigger:'Full Turn',desc:'Call a contact for info, a favor, a ride, or up to 3 Cash. You get it during the next Time-Out.'},
-  {name:'Knife Thrower',book:'core',trigger:'Passive',desc:'+1 when using a throwing weapon (knives, axes, shuriken, etc.).'},
-  {name:'Lie to Me',book:'core',trigger:'Passive',desc:"Gain a Free Re-roll for all rolls to understand somebody's intentions or to spot lies."},
-  {name:'Lockpick',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll when trying to pick any lock, door, or closed container.'},
-  {name:'Marksman',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll when using, repairing, evaluating, or handling a rifle, shotgun, sub-machine, or machine gun.'},
-  {name:'Martial Arts',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll for all Action and Reaction Rolls made when fighting unarmed.'},
-  {name:'Master of Disguise',book:'core',trigger:'Passive',desc:"Gain a Free Re-roll for all rolls to disguise yourself, go unnoticed, or take on someone else's identity."},
-  {name:'Mastermind',book:'core',trigger:'Passive',desc:'Repeat one roll of any kind. Ignore all -1s from Conditions and circumstances.'},
-  {name:'Mechanic',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll when building or repairing Rides and other gear.'},
-  {name:'Military Background',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll for all rolls about military knowledge, coordinating a strategy, or recalling your training.'},
-  {name:'Outsmart',book:'core',trigger:'Passive',desc:'Make an Action or Reaction Roll of any kind using Know instead of the required Skill.'},
-  {name:'Parkour',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll when jumping, performing feats of acrobatics, or breaking a fall.'},
-  {name:'Pep Talk',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll when inspiring or coordinating others.'},
-  {name:'Physician',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll for all rolls to find a diagnosis, operate on someone, or remove physical Conditions.'},
-  {name:'Pickpocket',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll when stealing something from somebody.'},
-  {name:'Proven Driver',book:'core',books:['core','osh'],trigger:'Passive',desc:'Choose one type of ride. Gain a Free Re-roll when driving, repairing, or evaluating rides of your chosen type.'},
-  {name:'Punch Reload',book:'core',trigger:'Quick Action',desc:'Once per combat, after failing a Reaction Roll against an Enemy, stand back up and gain 1 Adrenaline.'},
-  {name:'Reporter',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll for all rolls to interview people, gain information, and find contacts.'},
-  {name:'Scientist',book:'core',trigger:'Passive',desc:'Choose a STEM discipline. Gain a Free Re-roll for all rolls regarding your chosen discipline.'},
-  {name:'Selfless',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll when defending or saving others, or when acting selflessly.'},
-  {name:'Shadow',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll when hiding, sneaking, or tailing someone.'},
-  {name:'Silver Tongue',book:'core',books:['core','osh'],trigger:'Passive',desc:'Gain a Free Re-roll for all rolls to lie, persuade others, find a compromise, or bargain.'},
-  {name:'Spinout',book:'core',trigger:'Full Turn',desc:'All Heroes on your ride skip their Reaction Turn during a Chase. Flip a coin: Heads -1 Speed, Tails +1 Speed.'},
-  {name:"That's All?",book:'core',trigger:'Passive',desc:'Gain a Free Re-roll for all rolls to show courage, withstand pain, and resist threats or interrogations.'},
-  {name:'Too Young to Die',book:'core',trigger:'Passive',desc:'When filling in the Bad Box, you suffer no Condition. Only available to Young Heroes.'},
+  {name:'Always Prepared',book:'core',trigger:'Quick Action',desc:'You always have an ace up your sleeve. [Quick Action] Take out or retrieve a useful item, a piece of information, or a small, easy-to-hide weapon.'},
+  {name:'Archer',book:'core',trigger:'Passive',desc:'You’re a modern-day Robin Hood; your arrows never miss. Gain a Free Re-roll when using, repairing, evaluating, or handling a bow.'},
+  {name:'Artist',book:'core',trigger:'Passive',desc:'Popular or misunderstood, you’re still an artist. The world is your stage. Choose an art-form (dancing, singing, painting, etc.). Gain a Free Re-roll for all rolls regarding your chosen art-form.'},
+  {name:'Bodybuilder',book:'core',trigger:'Passive',desc:'You’re big, strong, and muscular. How much can you bench? Gain a Free Re-roll when lifting, carrying, or breaking something.'},
+  {name:'Car Jump',book:'core',trigger:'Full Turn',desc:'You speed up an improvised ramp and make your ride jump in the air. Everyone holds their breath. [Full Turn] While driving, have your ride jump over something to automatically pass an obstacle or barrier, or to gain +2 Speed during a Chase. Upon landing, the ride loses 1 Armor. Usable with rides that travel on land or water, but not with flying Rides.'},
+  {name:'Cash Flow',book:'core',trigger:'Passive',desc:'You’re from old money, or simply have quite a lot of cash on hand. Either way, money is no problem! Start the game with 3 Cash, and gain 1 Cash at the beginning of each Session — unless you’re imprisoned or lost in the middle of nowhere.',creationEffects:{cashOverride:3}},
+  {name:'Combo',book:'core',trigger:'Passive',adr:true,desc:'After each strike, there is always another, faster than the first. One-two! Come on! After hitting an Enemy, spend 1 Adrenaline to deal 1 additional Grit. You can spend several Adrenaline to continue the combo and deal additional damage.'},
+  {name:'Counter',book:'core',trigger:'Passive',desc:'The best defense is always a good offense. React against an Enemy by rolling Brawn+Fight instead of the requested Skill. You ignore all -1s from Conditions and circumstances.'},
+  {name:'Crazy Stunt',book:'core',trigger:'Full Turn',desc:'You’re the reason why they invented those “Don’t try this at home” disclaimers. [Full Turn] While driving, make an absolutely crazy maneuver to win the chase. Destroy your ride and flip a coin — Heads: the Director fills in 1 Need box; Tails: the Director fills in 5 Need boxes. If, after this maneuver, all Need boxes are full, you’ve won the chase.'},
+  {name:'Detective',book:'core',books:['core','osh'],trigger:'Passive',desc:'The crime-scene speaks to you. Where others see chaos, you know how to spot a clue. Gain a Free Re-roll when looking for clues, following trails, or searching a room.'},
+  {name:'Flying Kick',book:'core',trigger:'Passive',desc:'No enemy is out of reach for your deadly kicks. Attack an Enemy within Close or Medium Range with +1 to the roll. Additionally, you can always attack an Enemy within Close Range bare-handed, and you don’t need to spend Adrenaline to do so.'},
+  {name:'Full Throttle!',book:'core',trigger:'Passive',desc:'You’re a speed junkie who lives life in the fast lane. When behind the wheel of a ride, ignore penalties from the Nervous Condition and from Top Speed. Once per chase, when you reach Top Speed, gain 1 Adrenaline.'},
+  {name:'Get Down!',book:'core',trigger:'Full Turn',desc:'You grab your friend and drag them away from danger one second before disaster. [Full Turn] You and another Hero quickly hide, dodge a hail of bullets, or avoid being run over — without needing to roll the dice.'},
+  {name:'Gunslinger',book:'core',trigger:'Passive',desc:'The gun is an extension of your arm. Every shot hits its mark. Gain a Free Re-roll when using, repairing, evaluating, or handling a pistol or revolver.'},
+  {name:'Hacker',book:'core',books:['core','osh'],trigger:'Passive',desc:'You’re a computer wizard. No firewall can stop you. Gain a Free Re-roll for all rolls about computers, to hack a system, or to bypass IT security measures.'},
+  {name:'Hard to Kill',book:'core',books:['core','osh'],trigger:'Passive',desc:'It doesn’t matter what they throw at you. You keep standing back up. When you fill in your Bad Box, gain 1 Adrenaline and +1 to your next roll.'},
+  {name:'Head on a Swivel',book:'core',trigger:'Passive',desc:'You’re always ready to spot what’s coming. Gain a Free Re-roll when preempting dangers or ambushes, or trying to locate lurking enemies.'},
+  {name:'Heartbreaker',book:'core',books:['core','osh'],trigger:'Passive',desc:'Nobody can resist your damned smile. Gain a Free Re-roll when seducing or making a good impression on others.'},
+  {name:'High Culture',book:'core',trigger:'Passive',desc:'You’ve studied and it shows. Gain a Free Re-roll for all rolls to recall information about general culture, literature, history, and geography.'},
+  {name:'Hunter',book:'core',trigger:'Passive',desc:'You have predator instincts and know how to move in the wilds. Gain a Free Re-roll for all rolls made to follow or hunt an animal, to find your bearings, or to hide while in the wilds.'},
+  {name:'Intimidation',book:'core',trigger:'Passive',desc:'You’re an ice-cold tough guy. You’re truly scary. Gain a Free Re-roll when intimidating or interrogating somebody.'},
+  {name:'Intuition',book:'core',trigger:'Quick Action',desc:'You notice hidden details other people miss. [Quick Action] Ask the Director to give you a clue or suggestion, or find the Weak Spot of an Enemy.'},
+  {name:"I'll Make a Phone Call",book:'core',trigger:'Full Turn',desc:'You have a contact, a friend, or a favor you can call in. It’s just a phone call away. [Full Turn] Call one of your contacts asking for a piece of information, a favor, a ride, or up to 3 Cash. You gain whatever you asked for during the next Time-Out.'},
+  {name:'Knife Thrower',book:'core',trigger:'Passive',desc:'Knives, axes, shuriken, or playing cards — if you can hold it, you can throw it. Gain +1 when using a throwing weapon.'},
+  {name:'Lie to Me',book:'core',trigger:'Passive',desc:'You can understand the person in front of you at a glance. Gain a Free Re-roll for all rolls made to understand somebody’s intentions or to spot lies.'},
+  {name:'Lockpick',book:'core',trigger:'Passive',desc:'Doors, safes, and vaults stand no chance against your surgically precise methods. Gain a Free Re-roll when trying to pick any lock, door, or closed container.'},
+  {name:'Marksman',book:'core',trigger:'Passive',desc:'There are many rifles like yours, but nobody uses a rifle like you do. Gain a Free Re-roll when using, repairing, evaluating, or handling a rifle, shotgun, sub-machine, or machine gun.'},
+  {name:'Martial Arts',book:'core',trigger:'Passive',desc:'You know kung fu, muay thai, boxing, or another fighting style. Gain a Free Re-roll for all Action and Reaction Rolls made when fighting unarmed.'},
+  {name:'Master of Disguise',book:'core',trigger:'Passive',desc:'You know how to change your appearance and hide your identity. Gain a Free Re-roll for all rolls made to disguise yourself, to go unnoticed, or to take on someone else’s identity.'},
+  {name:'Mastermind',book:'core',trigger:'Passive',desc:'Your brilliant ideas allow you to always come out on top. Repeat one roll of any kind. Ignore all -1s from Conditions and circumstances.'},
+  {name:'Mechanic',book:'core',trigger:'Passive',desc:'You grew up in a workshop and know everything about engines. Gain a Free Re-roll when building or repairing Rides and other gear.'},
+  {name:'Military Background',book:'core',trigger:'Passive',desc:'You’re a soldier. You know military hierarchy and protocol. Gain a Free Re-roll for all rolls about military knowledge, for coordinating a strategy, or when recalling your training.'},
+  {name:'Outsmart',book:'core',trigger:'Passive',desc:'As you always say: work smart, not hard! Make an Action or Reaction Roll of any kind using Know instead of the required Skill.'},
+  {name:'Parkour',book:'core',trigger:'Passive',desc:'You’re a free runner or an expert acrobat. You don’t go down the stairs, you jump the whole ramp. Gain a Free Re-roll when jumping, performing feats of acrobatics, or breaking a fall.'},
+  {name:'Pep Talk',book:'core',trigger:'Passive',desc:'When the game gets hard, everyone gathers around you, and you always know just what to say. Gain a Free Re-roll when inspiring or coordinating others.'},
+  {name:'Physician',book:'core',trigger:'Passive',desc:'You’re a nurse, medical doctor, or paramedic. You’re certainly not squeamish about blood. Gain a Free Re-roll for all rolls made to find a diagnosis, to operate on someone, or to remove physical Conditions such as the Hurt Condition.'},
+  {name:'Pickpocket',book:'core',trigger:'Passive',desc:'You’re no mere thief, you’re a theft artist. Gain a Free Re-roll when stealing something from somebody.'},
+  {name:'Proven Driver',book:'core',books:['core','osh'],trigger:'Passive',desc:'Engines are your passion. You’re unrivaled at the wheel. Choose one type of ride (cars, bikes, flying, etc.). Gain a Free Re-roll when driving, repairing, or evaluating rides of your chosen type.'},
+  {name:'Punch Reload',book:'core',trigger:'Quick Action',desc:'After suffering a big hit, you clench your fists and keep on fighting. [Quick Action] Once per combat, after failing a Reaction Roll against an Enemy, stand back up and immediately gain 1 Adrenaline.'},
+  {name:'Reporter',book:'core',trigger:'Passive',desc:'You’re always on the hunt for truth. Your pen is mightier than a gun. Gain a Free Re-roll for all rolls made to interview people, gain information, and find contacts.'},
+  {name:'Scientist',book:'core',trigger:'Passive',desc:'It could work! And you know exactly how. Choose a STEM discipline (engineering, chemistry, botany, etc.). Gain a Free Re-roll for all rolls regarding your chosen discipline.'},
+  {name:'Selfless',book:'core',trigger:'Passive',desc:'You always defend other people with your life. You’re a true hero! Gain a Free Re-roll when defending or saving others, or when acting selflessly.'},
+  {name:'Shadow',book:'core',trigger:'Passive',desc:'Nobody can catch you. You’re quick and quiet as a shadow. Gain a Free Re-roll when hiding, sneaking, or tailing someone.'},
+  {name:'Silver Tongue',book:'core',books:['core','osh'],trigger:'Passive',desc:'Your words speak louder than actions, and you certainly know how to talk your way out of trouble. Gain a Free Re-roll for all rolls made to lie, to persuade others, to find a compromise, or to bargain.'},
+  {name:'Spinout',book:'core',trigger:'Full Turn',desc:'You pull the brake and quickly turn the wheel. Everyone better hold on tight. [Full Turn] All Heroes on the ride you are driving skip their Reaction Turn during a Chase. Flip a coin — Heads: -1 Speed; Tails: +1 Speed.'},
+  {name:"That's All?",book:'core',trigger:'Passive',desc:'You are hard to persuade and even harder to impress. Gain a Free Re-roll for all rolls made to show courage, to withstand pain, and to resist threats or interrogations.'},
+  {name:'Too Young to Die',book:'core',trigger:'Passive',desc:'You’re young and carefree. You feel like nothing can stop you. When filling in the Bad Box, you suffer no Condition. You can only gain this Feat when creating a Young Hero.'},
   // WoK Feats
-  {name:'Ambush',book:'wok',trigger:'Passive',desc:'Gain a Free Re-roll for all Action Rolls made to attack unaware targets with melee weapons or bare hands.'},
-  {name:'Attack Dog',book:'wok',trigger:'Passive',desc:'When fighting with your Trained Dog, Free Re-roll for all Action and Reaction Rolls at Melee/Close Range.'},
+  {name:'Ambush',book:'wok',trigger:'Passive',desc:'When they notice you, it’s already too late. Gain a Free Re-roll for all Action Rolls made to attack unaware targets with melee weapons or bare hands.'},
+  {name:'Attack Dog',book:'wok',trigger:'Passive',desc:'Your dog never barks, they only bite. When fighting side by side with your Trained Dog, gain a Free Re-roll for all Action and Reaction Rolls made to fight Enemies in Melee or Close Range.'},
   {name:'Bad Name',book:'wok',trigger:'Passive',desc:'Your reputation precedes you. Immediately gain a Reputation, 1 Gold, 1$, and 1 Spotlight.',creationEffects:{goldBonus:1,cashBonus:1,spotlightBonus:1}},
-  {name:'Beware of the Owner',book:'wok',trigger:'Quick Action',desc:'Once per combat, after your Trained Dog loses 1 Grit, immediately gain 1 Adrenaline.'},
-  {name:'Catch!',book:'wok',trigger:'Quick Action',desc:'Your Trained Dog bites a target within Close Range, losing 1 Grit, or gain +1 Speed during a foot chase.'},
-  {name:'Deflect Bullets',book:'wok',trigger:'Passive',desc:'Requires Sword Fighter. Using your sword, deflect a hail of bullets without rolling. Flip a coin: Heads, ricochet 1 bullet back.'},
-  {name:'Determination',book:'wok',trigger:'Passive',desc:'Make a Reaction Roll of any kind using Endure+1 instead of the required Skill.'},
-  {name:'Elegance',book:'wok',trigger:'Passive',desc:'Gain a Free Re-roll for all rolls involving high society, refined manners, or recalling rules of etiquette.'},
-  {name:'Endure Pain',book:'wok',trigger:'Quick Action',desc:'Remove one Condition from yourself. You cannot remove the Broken Condition this way.'},
-  {name:'Expedient',book:'wok',trigger:'Passive',desc:'Make an Action or Reaction Roll of any kind using Streetwise instead of the required Skill.'},
-  {name:'Feint',book:'wok',trigger:'Passive',desc:'Repeat an Action Roll against an Enemy, ignore all Conditions.'},
-  {name:'Gun Fu',book:'wok',trigger:'Passive',desc:'When fighting with a loaded pistol or revolver, Free Re-roll for all Action and Reaction Rolls at Melee/Close Range.'},
-  {name:'Leap',book:'wok',trigger:'Passive',desc:'Jump from any height and land without consequences. When jumping onto enemies from above, always +1.'},
-  {name:'Live and Learn',book:'wok',trigger:'Passive',desc:"After another Hero fails a roll, automatically succeed in the same roll without rolling."},
-  {name:'Pass the Buck',book:'wok',trigger:'Passive',desc:'A friend suffers the consequences of a failure instead of you.'},
-  {name:'Rescue',book:'wok',trigger:'Passive',desc:"Your Trained Dog prevents a Hero from suffering the Broken Condition, or saves a Hero who lost their Death Roulette spin."},
-  {name:'Savoir Faire',book:'wok',trigger:'Passive',desc:'Make an Action or Reaction Roll of any kind using Style instead of the required Skill.'},
-  {name:'Sniffer',book:'wok',trigger:'Passive',desc:"Free Re-roll to follow a trail or locate an ambush with your Trained Dog. Quick Action: Find Enemy's Weak Spot."},
-  {name:'Sword Fighter',book:'wok',trigger:'Passive',desc:'Gain a Free Re-roll when using, repairing, evaluating, or handling a sword or another melee weapon.'},
-  {name:'Vanish',book:'wok',trigger:'Quick Action',adr:true,desc:'Leave a dangerous situation or abandon a chase/combat without rolling. Spend 1 extra Adrenaline to reappear within Medium Range.'},
-  {name:'Whirlwind',book:'wok',trigger:'Passive',desc:'Requires Sword Fighter. After striking an Enemy with a melee weapon, make a second Action Roll at -1 (no Free Re-roll).'},
+  {name:'Beware of the Owner',book:'wok',trigger:'Quick Action',desc:'They can do anything to you, but they better not touch your dog. [Quick Action] Once per combat or scene, after your Trained Dog has lost 1 Grit, immediately gain 1 Adrenaline.'},
+  {name:'Catch!',book:'wok',trigger:'Quick Action',desc:'You flick your hand, and your dog leaps to attack. [Quick Action] Your Trained Dog bites a target within Close Range — the target loses 1 Grit, or you gain +1 Speed during a chase on foot.'},
+  {name:'Deflect Bullets',book:'wok',trigger:'Passive',desc:'You are so fast that you can cut bullets in half mid-flight. Requires the Sword Fighter Feat. Using your sword, deflect a hail of bullets without rolling. Flip a coin — Heads: you ricochet one bullet back to the shooter and the Enemy loses 1 Grit.'},
+  {name:'Determination',book:'wok',trigger:'Passive',desc:'Your inner strength cannot be shaken. Make a Reaction Roll of any kind using Endure +1 instead of the required Skill.'},
+  {name:'Elegance',book:'wok',trigger:'Passive',desc:'When you walk by, everyone stops to look. Such class! Gain a Free Re-roll for all rolls involving high society, showing off your refined manners, or recalling the rules of etiquette.'},
+  {name:'Endure Pain',book:'wok',trigger:'Quick Action',desc:'No pain! Remove one Condition from yourself. You cannot remove the Broken Condition this way.'},
+  {name:'Expedient',book:'wok',trigger:'Passive',desc:'You always know how to get by. Make an Action or Reaction Roll of any kind using Streetwise instead of the required Skill.'},
+  {name:'Feint',book:'wok',trigger:'Passive',desc:'You fight using your head, not just your hands. Repeat an Action Roll against an Enemy and ignore all Conditions.'},
+  {name:'Gun Fu',book:'wok',trigger:'Passive',desc:'Your unique fighting style is a mixture of point-blank gunshots and martial arts. When fighting with a loaded pistol or revolver, gain a Free Re-roll for all Action and Reaction Rolls made to fight Enemies in Melee or Close Range.'},
+  {name:'Leap',book:'wok',trigger:'Passive',desc:'You somehow always manage to land on a soft surface. Jump from any height and land without consequences. Additionally, when you jump onto your Enemies to attack them from up high, you always gain +1.'},
+  {name:'Live and Learn',book:'wok',trigger:'Passive',desc:'You know how to learn from mistakes — especially other people’s. After another Hero has failed a roll, automatically succeed in the same roll without rolling the dice.'},
+  {name:'Pass the Buck',book:'wok',trigger:'Passive',desc:'To err is human, but only suckers pay their own consequences. A friend suffers the consequences of a failure instead of you.'},
+  {name:'Rescue',book:'wok',trigger:'Passive',desc:'Your dog always swoops in to get you out of trouble at the very last second. Your Trained Dog prevents a Hero from suffering the Broken Condition, or saves a Hero who lost their spin on the Death Roulette. The rescued Hero adds a Lethal Bullet to their roulette as usual.'},
+  {name:'Savoir Faire',book:'wok',trigger:'Passive',desc:'You can get through all hardships with grace and good manners. Make an Action or Reaction Roll of any kind using Style instead of the required Skill.'},
+  {name:'Sniffer',book:'wok',trigger:'Passive',adr:true,desc:'Nothing can escape the hyper-trained nose of your dog. Gain a Free Re-roll for all rolls made to follow a trail or locate an enemy ambush while you’re with your Trained Dog. [Quick Action] You may spend 1 Adrenaline to find an Enemy’s Weak Spot.'},
+  {name:'Sword Fighter',book:'wok',trigger:'Passive',desc:'In a world filled with guns, you decided to be the guy with a sword. Gain a Free Re-roll when using, repairing, evaluating, or handling a sword or another melee weapon.'},
+  {name:'Vanish',book:'wok',trigger:'Quick Action',adr:true,desc:'Now they see you. Now they don’t. [Quick Action] Get out of a dangerous or uncomfortable situation, or abandon a chase or combat without needing to roll the dice. You may spend 1 additional Adrenaline to reappear in another position within Medium Range.'},
+  {name:'Whirlwind',book:'wok',trigger:'Passive',desc:'When the going gets tough, the tough start spinning their blades. Requires the Sword Fighter Feat. After striking an Enemy with a melee weapon, make a second Action Roll at -1. You do not have a Free Re-roll for this roll.'},
   ...FEATS_OSH
 ];
 
@@ -1784,9 +1802,10 @@ function hudBroadcast(extra){
     const coreB=getCoreBook();
     _hudChannel.postMessage(Object.assign({
       type:'state',
-      // coreBook + terms: HUD applies these via its own termSubst() so future books inherit the swap for free.
+      // coreBook + merged terms (DEFAULT_TERMS + the active book's overrides). The HUD
+      // applies these via its own termSubst() so future books inherit any swap for free.
       coreBook:coreB,
-      terms:(BOOK_META[coreB]?.terms)||{},
+      terms:activeTerms(),
       char:ch?{name:ch.name,grit:ch.grit,adrenaline:ch.adrenaline,deathBullets:ch.deathBullets,cash:ch.cash,gold:ch.gold,conditions:ch.conditions,attrs:ch.attrs,skills:ch.skills,rides:ch.rides||[],feats:ch.feats||[]}:null,
       creation:!ch?S.creation:null,
       enemies:S.activeEnemies||[],
@@ -3057,14 +3076,17 @@ function renderSheet(){
     </button>`;
   });
 
-  // Skills section — each attribute heading shows the attribute name on the left and
-  // its value as a pill on the right, so the separate Attributes card is no longer needed.
+  // Skills section — each attribute group (heading + its 4 skills) is wrapped in a
+  // `.skill-group` so the .skills-section grid lays out one column = one attribute,
+  // never splitting an attribute's skills across two columns.
   let skillHtml='';
   ATTRS.forEach(attr=>{
-    skillHtml+=`<div class="skill-attr-label"><span>${attr}</span><span class="attr-pill">${ch.attrs[attr]}</span></div>`;
+    skillHtml+=`<div class="skill-group">
+      <div class="skill-attr-label"><span>${attr}</span><span class="attr-pill">${ch.attrs[attr]}</span></div>`;
     ATTR_SKILLS[attr].forEach(skill=>{
       skillHtml+=`<div class="skill-row"><span class="skill-name">${skill}</span><span class="skill-val">${ch.skills[skill]}</span></div>`;
     });
+    skillHtml+=`</div>`;
   });
 
   let featHtml='';
@@ -3106,7 +3128,7 @@ function renderSheet(){
 
     <div class="resource-row">
       <div class="resource-box">
-        <div class="resource-label">${adrName}${adrName==='Power'?' ⚡':''}</div>
+        <div class="resource-label">${adrName}</div>
         <div class="resource-val" style="color:var(--accent)">${ch.adrenaline}</div>
         <div class="resource-btns"><button class="r-btn" onclick="adjRes('adrenaline',-1)">−</button><button class="r-btn" onclick="adjRes('adrenaline',1)">+</button></div>
       </div>
