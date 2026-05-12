@@ -663,11 +663,28 @@
     }
     if(!inParty){ panel.style.display='none'; return; }
     panel.style.display='';
-    panel.innerHTML='<div style="font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:6px">PARTY HEROES</div>';
-    const members = lastRemote.members||{};
-    const chars   = lastRemote.chars||{};
-    const myUid   = MP.currentUid();
-    Object.keys(members).forEach(uid=>{
+    panel.innerHTML='';
+    const members      = lastRemote.members||{};
+    const chars        = lastRemote.chars||{};
+    const myUid        = MP.currentUid();
+    const directorUid  = (lastRemote.meta && lastRemote.meta.directorUid) || null;
+
+    // Director header — the Director isn't a hero, so they get a row of
+    // their own at the top and are excluded from the PARTY HEROES list below.
+    if(directorUid && members[directorUid]){
+      const dirRow = el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'4px 0 8px 0',borderBottom:'1px solid var(--border)',marginBottom:'8px'}});
+      dirRow.appendChild(el('span',{style:{fontWeight:'700'}},[(members[directorUid].name||'Director'),directorUid===myUid?' (you)':'']));
+      dirRow.appendChild(el('span',{class:'badge',style:{background:'var(--accent)',color:'#000',padding:'2px 6px',borderRadius:'4px',fontWeight:'700',fontSize:'10px'}},['DIRECTOR']));
+      panel.appendChild(dirRow);
+    }
+
+    panel.appendChild(el('div',{style:{fontSize:'11px',color:'var(--muted)',letterSpacing:'2px',marginBottom:'6px'}},['PARTY HEROES']));
+    const heroUids = Object.keys(members).filter(uid=>uid!==directorUid);
+    if(!heroUids.length){
+      panel.appendChild(el('div',{style:{color:'var(--muted)',fontSize:'12px'}},['No players have joined yet.']));
+      return;
+    }
+    heroUids.forEach(uid=>{
       const m = members[uid];
       const ch = chars[m.charId] || chars[uid] || null;
       const row = el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 0',borderBottom:'1px dashed var(--border)'}});

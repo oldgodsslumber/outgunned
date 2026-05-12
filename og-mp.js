@@ -124,6 +124,11 @@ window.MP = (function(){
     code = String(code).padStart(4,'0');
     const metaSnap = await db.ref('parties/'+code+'/meta').get();
     if(!metaSnap.exists()) throw new Error('No party with code '+code+'.');
+    const meta = metaSnap.val();
+    // Determine the saved-list role from meta. A Director rejoining via this
+    // path must stay "director" — otherwise the lobby menu mis-labels them
+    // after the create→join flow.
+    const role = (meta.directorUid===user.uid) ? 'director' : 'player';
     await db.ref('parties/'+code+'/members/'+user.uid).set({
       name: user.displayName||'Player',
       photoURL: user.photoURL||null,
@@ -131,10 +136,10 @@ window.MP = (function(){
       charId: null
     });
     await db.ref('users/'+user.uid+'/parties/'+code).set({
-      title: metaSnap.val().title||'', role:'player',
+      title: meta.title||'', role:role,
       joinedAt: firebase.database.ServerValue.TIMESTAMP
     });
-    return metaSnap.val();
+    return meta;
   }
   // Stop syncing the current party locally. Keeps the user's membership and
   // their `users/{uid}/parties/{code}` entry intact so the party still appears
