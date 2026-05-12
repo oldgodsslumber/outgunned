@@ -73,6 +73,14 @@
     if(typeof origRCS!=='function') return;
     _rcsWrapped = true;
     window.renderCreationStep = function(){
+      // Self-heal: if the lobby host has been removed from the document but
+      // its reference was never cleared (e.g. the lobby was dismissed by a
+      // path we didn't anticipate), drop the stale ref so renders flow back
+      // to #hero-creation. Without this, every click on the creation page
+      // would render into a detached node and the UI would feel frozen.
+      if(_lobbyCreationHost && !document.body.contains(_lobbyCreationHost)){
+        _lobbyCreationHost = null;
+      }
       if(_lobbyCreationHost){ _renderLobbyPicker(); return; }
       if(inParty && !MP.isDirector() && S.creation){
         const m = lastRemote.meta||{};
