@@ -25,6 +25,7 @@ window.MP = (function(){
   //                      !data.exists() ||
   //                      data.child('meta/directorUid').val() === auth.uid
   //                    )",
+  //         "meta":    { ".read": "auth != null" },   // needed for the join flow (read before becoming a member)
   //         "members": {
   //           "$uid": {
   //             ".write": "auth != null && (auth.uid === $uid ||

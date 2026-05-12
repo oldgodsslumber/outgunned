@@ -32,6 +32,12 @@ This repo now has two playable pages and four shared JS modules:
       "$code": {
         ".read":  "auth != null && data.child('members').child(auth.uid).exists()",
         ".write": "auth != null && (!data.exists() || data.child('meta/directorUid').val() === auth.uid)",
+        "meta": {
+          // Joining a party needs to read meta before the user is a member yet
+          // (chicken-and-egg with the parent .read rule), so open meta to any
+          // authenticated user. Other subtrees stay member-only.
+          ".read": "auth != null"
+        },
         "members": {
           "$uid": {
             ".write": "auth != null && (auth.uid === $uid || data.parent().parent().child('meta/directorUid').val() === auth.uid)"
