@@ -180,6 +180,45 @@ textarea{resize:vertical;min-height:70px}
   border-bottom:1px solid var(--border)}
 .skill-name{font-size:13px}
 .skill-val{font-size:16px;font-weight:700;color:var(--text);min-width:20px;text-align:center}
+
+/* Dice picker — tap-driven replacement for the old dropdown form */
+.dice-attr-row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:4px}
+.dice-attr-tile{display:flex;flex-direction:column;align-items:center;padding:8px 4px;
+  border:1.5px solid var(--border);border-radius:8px;background:var(--surface2);cursor:pointer;
+  transition:background .12s,border-color .12s,color .12s}
+.dice-attr-tile .dat-name{font-size:10px;font-weight:800;letter-spacing:.7px;color:var(--fg2);text-transform:uppercase}
+.dice-attr-tile .dat-val{font-size:18px;font-weight:800;color:var(--accent);margin-top:2px;line-height:1}
+.dice-attr-tile.on{background:rgba(230,57,70,.12);border-color:var(--accent);color:var(--accent)}
+.dice-attr-tile.on .dat-name{color:var(--accent)}
+.dice-skill-section{display:grid;grid-template-columns:1fr 1fr;column-gap:14px;align-items:start;margin-bottom:4px}
+.dice-skill-group{display:flex;flex-direction:column;margin-top:8px}
+.dice-skill-group:first-child,.dice-skill-group:nth-child(2){margin-top:0}
+.dice-skill-head{display:flex;align-items:center;justify-content:flex-start;gap:8px;padding:4px 0 6px;
+  font-size:10px;font-weight:800;letter-spacing:1px;color:var(--accent);text-transform:uppercase;
+  border-bottom:1px solid var(--border);cursor:pointer}
+.dice-skill-head.on{color:var(--accent)}
+.dice-skill-head .attr-pill{margin-left:2px}
+.dice-skill-tile{display:flex;align-items:center;justify-content:flex-start;gap:8px;padding:5px 6px;
+  border-radius:6px;cursor:pointer;transition:background .1s,color .1s}
+.dice-skill-tile:hover{background:var(--surface2)}
+.dice-skill-tile.on{background:rgba(230,57,70,.14);color:var(--accent);font-weight:700}
+.dice-skill-tile .dst-name{font-size:13px}
+.dice-skill-tile .dst-val{font-size:14px;font-weight:700;min-width:18px;text-align:center}
+.dice-mod-row{display:flex;gap:10px;align-items:stretch;margin-top:12px;padding:10px;
+  border:1px solid var(--border);border-radius:10px;background:var(--surface2)}
+.dice-mod-block{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.dice-mod-ctrls{display:flex;align-items:center;gap:8px}
+.dice-mod-val{font-size:22px;font-weight:800;min-width:34px;text-align:center}
+.dice-pool-block{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.dice-pool-val{font-size:32px;font-weight:800;color:var(--accent);line-height:1}
+.dice-pool-formula{font-size:10px;color:var(--muted)}
+.dice-feats-list{display:flex;flex-direction:column;gap:6px}
+.dice-feat-tile{padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);cursor:pointer}
+.dice-feat-tile.on{border-color:var(--accent);background:rgba(230,57,70,.10)}
+.dice-feat-tile .dft-head{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.dice-feat-tile .dft-name{font-size:12px;font-weight:700}
+.dice-feat-tile .dft-trig{font-size:9px;color:var(--yellow)}
+.dice-feat-tile .dft-desc{font-size:11px;color:var(--fg2);margin-top:3px;line-height:1.35}
 .dice-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:14px 0;min-height:56px}
 .die{width:50px;height:50px;border-radius:10px;display:flex;align-items:center;justify-content:center;
   font-size:22px;font-weight:700;border:2px solid var(--border);background:var(--surface2);transition:all .2s}
@@ -469,47 +508,8 @@ textarea{resize:vertical;min-height:70px}
   <div id="dice-layout">
     <div id="dice-roller-col">
       <div class="pg-title">Dice Roller</div>
-      <div class="pg-sub">Roll, Re-roll, Go All-In</div>
-      <div class="card">
-        <div class="row">
-          <div class="form-group">
-            <label>Attribute</label>
-            <select id="dice-attr" onchange="updateDiceCount()">
-              <option>BRAWN</option><option>NERVES</option><option>SMOOTH</option><option>FOCUS</option><option>CRIME</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Skill</label>
-            <select id="dice-skill" onchange="updateDiceCount()">
-              <option>Endure</option><option>Fight</option><option>Force</option><option>Stunt</option>
-              <option>Cool</option><option>Drive</option><option>Shoot</option><option>Survival</option>
-              <option>Flirt</option><option>Leadership</option><option>Speech</option><option>Style</option>
-              <option>Detect</option><option>Heal</option><option>Fix</option><option>Know</option>
-              <option>Awareness</option><option>Dexterity</option><option>Stealth</option><option>Streetwise</option>
-            </select>
-          </div>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
-          <div class="form-group" style="flex:1;margin:0">
-            <label>Modifier</label>
-            <select id="dice-mod" onchange="updateDiceCount()">
-              <option value="-2">-2</option><option value="-1">-1</option>
-              <option value="0" selected>+0</option>
-              <option value="1">+1</option><option value="2">+2</option><option value="3">+3</option>
-            </select>
-          </div>
-          <div style="text-align:center;padding-top:18px">
-            <div class="label">Pool</div>
-            <div style="font-size:28px;font-weight:800;color:var(--accent)" id="dice-count">3</div>
-          </div>
-        </div>
-        <div style="display:flex;justify-content:center;margin:14px 0">
-          <button class="roll-btn" onclick="doRoll()">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="20" rx="4"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/></svg>
-            ROLL
-          </button>
-        </div>
-      </div>
+      <div class="pg-sub">Tap an attribute and a skill — your pool is shown live</div>
+      <div class="card" id="dice-picker-card"><!-- renderDicePicker() fills this --></div>
       <div id="dice-result-area"></div>
       <div id="dice-action-btns" style="display:none">
         <div style="display:flex;gap:8px;margin-bottom:6px">
@@ -4679,12 +4679,122 @@ function getCharVals(attr,skill){
   return{attrVal:S.char.attrs[attr]||2,skillVal:S.char.skills[skill]||1};
 }
 
-function updateDiceCount(){
-  const attr=document.getElementById('dice-attr').value;
-  const skill=document.getElementById('dice-skill').value;
-  const mod=parseInt(document.getElementById('dice-mod').value)||0;
-  const{attrVal,skillVal}=getCharVals(attr,skill);
-  document.getElementById('dice-count').textContent=Math.max(1,attrVal+skillVal+mod);
+// === Dice picker state ===
+// Holds the active selection independent of the roll-result state in S.dice.
+// Persists across renders / saves so a hero coming back to the page keeps their pick.
+function diceSel(){
+  if(!S.diceSel)S.diceSel={attr:'BRAWN',skill:'Endure',mod:0,activeFeats:[]};
+  return S.diceSel;
+}
+function setDiceAttr(a){diceSel().attr=a;save();renderDicePicker();}
+function setDiceSkill(s){
+  const sel=diceSel();
+  sel.skill=s;
+  // Auto-lock the attribute that "owns" this skill if the user hasn't manually
+  // overridden it. Pairing the natural attribute is the right answer ~95% of the
+  // time; the user can still click a different attribute pill afterwards.
+  for(const[a,list]of Object.entries(ATTR_SKILLS)){
+    if(list.includes(s)){sel.attr=a;break;}
+  }
+  save();renderDicePicker();
+}
+function adjDiceMod(d){
+  const sel=diceSel();
+  sel.mod=Math.max(-3,Math.min(3,(sel.mod||0)+d));
+  save();renderDicePicker();
+}
+function toggleDiceFeat(name){
+  const sel=diceSel();
+  if(!sel.activeFeats)sel.activeFeats=[];
+  const i=sel.activeFeats.indexOf(name);
+  if(i>=0)sel.activeFeats.splice(i,1);else sel.activeFeats.push(name);
+  save();renderDicePicker();
+}
+function updateDiceCount(){renderDicePicker();}
+
+function renderDicePicker(){
+  const el=document.getElementById('dice-picker-card');
+  if(!el)return;
+  const sel=diceSel();
+  const ch=S.char;
+  const {attrVal,skillVal}=getCharVals(sel.attr,sel.skill);
+  const pool=Math.max(1,attrVal+skillVal+(sel.mod||0));
+  const modSign=sel.mod>0?'+'+sel.mod:String(sel.mod||0);
+  let html='';
+  // Attributes row
+  html+=`<div class="label" style="margin-bottom:6px">Attribute</div>`;
+  html+=`<div class="dice-attr-row">`;
+  ATTRS.forEach(a=>{
+    const v=ch?ch.attrs[a]:2;
+    const on=sel.attr===a;
+    html+=`<div class="dice-attr-tile${on?' on':''}" onclick="setDiceAttr('${a}')">
+      <div class="dat-name">${a}</div><div class="dat-val">${v}</div>
+    </div>`;
+  });
+  html+=`</div>`;
+  // Skills grouped 2 columns, just like the sheet
+  html+=`<div class="label" style="margin-top:10px;margin-bottom:6px">Skill</div>`;
+  html+=`<div class="dice-skill-section">`;
+  ATTRS.forEach(attr=>{
+    const v=ch?ch.attrs[attr]:2;
+    html+=`<div class="dice-skill-group">
+      <div class="dice-skill-head${sel.attr===attr?' on':''}" onclick="setDiceAttr('${attr}')">
+        <span>${attr}</span><span class="attr-pill">${v}</span>
+      </div>`;
+    ATTR_SKILLS[attr].forEach(s=>{
+      const sv=ch?ch.skills[s]:1;
+      const on=sel.skill===s;
+      html+=`<div class="dice-skill-tile${on?' on':''}" onclick="setDiceSkill('${s}')">
+        <span class="dst-name">${s}</span><span class="dst-val">${sv}</span>
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+  html+=`</div>`;
+  // Modifier + Pool row + Roll
+  html+=`<div class="dice-mod-row">
+    <div class="dice-mod-block">
+      <div class="label">Modifier</div>
+      <div class="dice-mod-ctrls">
+        <button class="r-btn" onclick="adjDiceMod(-1)">−</button>
+        <div class="dice-mod-val">${modSign}</div>
+        <button class="r-btn" onclick="adjDiceMod(1)">+</button>
+      </div>
+    </div>
+    <div class="dice-pool-block">
+      <div class="label">Pool</div>
+      <div class="dice-pool-val">${pool}</div>
+      <div class="dice-pool-formula">${attrVal} + ${skillVal}${sel.mod?` ${modSign}`:''}</div>
+    </div>
+  </div>`;
+  html+=`<div style="display:flex;justify-content:center;margin:14px 0 4px">
+    <button class="roll-btn" onclick="doRoll()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="20" rx="4"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/></svg>
+      ROLL ${sel.attr} + ${sel.skill}
+    </button>
+  </div>`;
+  // Feats — click to mark as applied to this roll (visual reminder for Free Re-rolls etc.)
+  if(ch&&(ch.feats||[]).length){
+    html+=`<div class="label" style="margin-top:14px;margin-bottom:6px">Feats <span style="font-weight:400;font-size:10px;color:var(--muted)">— tap any that apply to this roll</span></div>`;
+    html+=`<div class="dice-feats-list">`;
+    (ch.feats||[]).forEach(fname=>{
+      const feat=FEATS.find(f=>f.name===fname);
+      const on=(sel.activeFeats||[]).includes(fname);
+      html+=`<div class="dice-feat-tile${on?' on':''}" onclick="toggleDiceFeat('${escq(fname)}')">
+        <div class="dft-head">
+          <span class="dft-name">${fname}</span>
+          ${feat?.trigger&&feat.trigger!=='Passive'?`<span class="dft-trig">[${feat.trigger}]</span>`:''}
+          ${hasAdrCost(feat)?adrCostChip():''}
+        </div>
+        <div class="dft-desc">${termSubst(feat?.desc||'')}</div>
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+  el.innerHTML=html;
+  // Keep the result area's hidden buttons / history rendering in sync if needed
+  const hidden=document.getElementById('dice-count');
+  if(hidden)hidden.textContent=pool;
 }
 
 function rollN(n){return Array.from({length:n},()=>Math.floor(Math.random()*6)+1);}
@@ -4708,15 +4818,14 @@ function successLevel(matchCount){
 }
 
 function doRoll(){
-  const attr=document.getElementById('dice-attr').value;
-  const skill=document.getElementById('dice-skill').value;
-  const mod=parseInt(document.getElementById('dice-mod').value)||0;
-  const{attrVal,skillVal}=getCharVals(attr,skill);
+  const sel=diceSel();
+  const{attrVal,skillVal}=getCharVals(sel.attr,sel.skill);
+  const mod=sel.mod||0;
   const count=Math.max(1,attrVal+skillVal+mod);
   const dice=rollN(count);
   const{face,count:mc}=bestMatch(dice);
   const lvl=successLevel(mc);
-  S.dice={attr,skill,mod,dice,matchFace:face,matchCount:mc,level:lvl.level,lvlNum:lvl.lvlNum,phase:'initial',rerollBetter:false,history:S.dice?.history||[]};
+  S.dice={attr:sel.attr,skill:sel.skill,mod,activeFeats:[...(sel.activeFeats||[])],dice,matchFace:face,matchCount:mc,level:lvl.level,lvlNum:lvl.lvlNum,phase:'initial',rerollBetter:false,history:S.dice?.history||[]};
   save();renderDiceResult();
 }
 
@@ -4763,6 +4872,7 @@ function doAllIn(){
 function maybeDicePage(){if(document.getElementById('page-dice')?.classList.contains('active'))renderDicePage();}
 
 function renderDicePage(){
+  renderDicePicker();
   // Hero grit
   const gritEl=document.getElementById('dice-grit');
   const npcEl=document.getElementById('dice-npcs');
