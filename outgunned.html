@@ -2900,16 +2900,53 @@ function swipeNote(id){
   renderNotes();
 }
 
+// Sort modes for the journal: 'newest' (ts desc, default) and 'oldest' (ts asc).
+// Manual reorder is achieved by swapping ts values between adjacent entries
+// — that way the order persists naturally through the multiplayer sync (which
+// is keyed off ts) without needing a separate `order` field.
+function _notesSorted(){
+  const notes=S.notes||[];
+  const mode=S.notesSort||'newest';
+  if(mode==='oldest') return notes.slice().sort((a,b)=>(a.ts||0)-(b.ts||0));
+  return                  notes.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+}
+function setNotesSort(mode){
+  S.notesSort = mode;
+  save(); renderNotes();
+}
+function moveNote(id, dir){
+  const sorted = _notesSorted();
+  const dispI = sorted.findIndex(n=>n.id===id);
+  if(dispI<0) return;
+  const targetI = dispI + dir;
+  if(targetI<0 || targetI>=sorted.length) return;
+  // Swap ts values between the two notes — display sort updates automatically.
+  const a = sorted[dispI], b = sorted[targetI];
+  const tmp = a.ts; a.ts = b.ts; b.ts = tmp;
+  save(); renderNotes();
+  // MP hook: push both notes so the new ts values reach other clients.
+  if(typeof window.OG_AFTER_NOTE_MOVE === 'function'){
+    try{ window.OG_AFTER_NOTE_MOVE(a, b); }catch(_){}
+  }
+}
+
 function renderNotes(){
   const el=document.getElementById('notes-timeline');
   if(!el)return;
-  const notes=S.notes||[];
+  const notes=_notesSorted();
+  const mode = S.notesSort||'newest';
+  const toolbar = `<div style="display:flex;gap:6px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
+    <span style="font-size:10px;color:var(--muted);letter-spacing:1.5px">SORT</span>
+    <button class="btn btn-xs ${mode==='newest'?'btn-primary':'btn-secondary'}" onclick="setNotesSort('newest')">Newest first</button>
+    <button class="btn btn-xs ${mode==='oldest'?'btn-primary':'btn-secondary'}" onclick="setNotesSort('oldest')">Oldest first</button>
+    <span style="font-size:10px;color:var(--muted);margin-left:auto">↑↓ to reorder</span>
+  </div>`;
   if(!notes.length){
-    el.innerHTML='<div style="text-align:center;padding:40px 20px;color:var(--fg2)"><div style="font-size:36px;margin-bottom:12px">📖</div><div style="font-size:14px">No notes yet.<br>Tap + to add your first entry.</div></div>';
+    el.innerHTML=toolbar+'<div style="text-align:center;padding:40px 20px;color:var(--fg2)"><div style="font-size:36px;margin-bottom:12px">📖</div><div style="font-size:14px">No notes yet.<br>Tap + to add your first entry.</div></div>';
     return;
   }
 
-  let html='<div style="padding-top:4px">';
+  let html=toolbar+'<div style="padding-top:4px">';
 
   notes.forEach((note,idx)=>{
     const nt=NOTE_TYPES.find(t=>t.id===note.type)||{emoji:'📝',label:'Note',size:'sm'};
@@ -2939,8 +2976,12 @@ function renderNotes(){
     html+=`<div style="flex:1;min-width:0;margin-left:6px;margin-left:${cardMarginLeft}">`;
     html+=`<div style="position:relative;overflow:hidden;border-radius:12px">`;
 
-    // Buttons revealed behind
+    // Buttons revealed behind. Up/down arrows let the user reorder entries
+    // manually; they switch the sort mode to 'custom' on first use.
+    const canUp = idx>0, canDown = idx<notes.length-1;
     html+=`<div style="position:absolute;right:0;top:0;bottom:0;display:flex;align-items:stretch">
+      <button onclick="event.stopPropagation();moveNote(${note.id},-1)" ${canUp?'':'disabled'} style="background:var(--surface3);border:none;color:var(--fg);padding:0 10px;cursor:pointer;font-size:14px;font-weight:700;opacity:${canUp?1:.35}" title="Move up">↑</button>
+      <button onclick="event.stopPropagation();moveNote(${note.id},1)" ${canDown?'':'disabled'} style="background:var(--surface3);border:none;color:var(--fg);padding:0 10px;cursor:pointer;font-size:14px;font-weight:700;opacity:${canDown?1:.35}" title="Move down">↓</button>
       <button onclick="startEditNote(${note.id})" style="background:var(--yellow);border:none;color:#000;padding:0 14px;cursor:pointer;font-size:11px;font-weight:700">Edit</button>
       <button onclick="deleteNote(${note.id})" style="background:var(--accent);border:none;color:#fff;padding:0 14px;cursor:pointer;font-size:11px;font-weight:700">Delete</button>
     </div>`;

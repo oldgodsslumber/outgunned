@@ -494,9 +494,28 @@
   function _installFunctionWraps(){
     if(wrapsInstalled) return; wrapsInstalled=true;
 
-    // save() — debounce a character push.
+    // save() — debounce a character push, and (for the Director) push the
+    // whole enemies + NPCs maps. Every enemy/NPC mutation in the offline app
+    // calls save(), so this single hook covers deploy/remove/grit/feat/SA
+    // edits without per-function wraps that could race with subscriptions.
     const origSave = window.save;
     let pushT=null;
+    function _pushEnemiesNpcs(){
+      if(!inParty || !MP.isDirector()) return;
+      const code = MP.currentParty().code;
+      const eMap={}; (S.activeEnemies||[]).forEach((e,i)=>{
+        const key = e._id || (e.id!=null?String(e.id):('e'+i));
+        const copy = Object.assign({}, e); delete copy._id;
+        eMap[key] = copy;
+      });
+      firebase.database().ref('parties/'+code+'/enemies').set(eMap).catch(console.error);
+      const nMap={}; (S.npcs||[]).forEach((n,i)=>{
+        const key = n._id || (n.id!=null?String(n.id):('n'+i));
+        const copy = Object.assign({}, n); delete copy._id;
+        nMap[key] = copy;
+      });
+      firebase.database().ref('parties/'+code+'/npcs').set(nMap).catch(console.error);
+    }
     window.save = function(){
       origSave.apply(this, arguments);
       if(!inParty) return;
@@ -504,16 +523,21 @@
       pushT = setTimeout(()=>{
         if(S.char) MP.writeChar(myCharId, S.char).catch(console.error);
       }, 300);
+      _pushEnemiesNpcs();
     };
 
-    // doRoll() — append to the shared feed after the original runs.
+    // doRoll() — append to the shared feed after the original runs. Use the
+    // CHARACTER's name (not the player's Google display name) so the feed
+    // reflects who rolled in fiction.
     const origRoll = window.doRoll;
     if(typeof origRoll==='function'){
       window.doRoll = function(){
         origRoll.apply(this, arguments);
         if(!inParty || !S.dice) return;
         const sel = (typeof diceSel==='function') ? diceSel() : {};
+        const heroName = (S.char && S.char.name) || (MP.currentUser()&&MP.currentUser().displayName) || 'Player';
         MP.appendRoll({
+          name:   heroName,
           attr:   sel.attr || S.dice.attr,
           skill:  sel.skill|| S.dice.skill,
           mod:    sel.mod || S.dice.mod || 0,
@@ -531,15 +555,25 @@
     // re-render mid-typing and wipe the textarea; deferring the push until
     // save means other clients only see the note once it has content.
     function _notesRef(){ return firebase.database().ref('parties/'+MP.currentParty().code+'/notes'); }
-    function _pushNote(note){
+    function _pushNote(note, preserveTs){
       if(!note) return;
+      // Reorder uses preserveTs=true so the swapped timestamps reach Firebase
+      // verbatim. Normal saves use the server-side timestamp.
       return _notesRef().child(String(note.id)).set({
         type: note.type, text: note.text||'',
-        authorUid: MP.currentUid(),
-        authorName: (MP.currentUser()&&MP.currentUser().displayName)||'Player',
-        ts: firebase.database.ServerValue.TIMESTAMP
+        authorUid: note.authorUid || MP.currentUid(),
+        authorName: note.authorName || (MP.currentUser()&&MP.currentUser().displayName)||'Player',
+        ts: preserveTs ? note.ts : firebase.database.ServerValue.TIMESTAMP
       });
     }
+    // Hook called by outgunned.html's moveNote(): two adjacent notes have
+    // already had their ts values swapped locally; push both so the new
+    // ordering is reflected for other clients.
+    window.OG_AFTER_NOTE_MOVE = function(a, b){
+      if(!inParty) return;
+      if(a) _pushNote(a, true);
+      if(b) _pushNote(b, true);
+    };
 
     const origAdd = window.addNote;
     if(typeof origAdd==='function'){
@@ -578,38 +612,11 @@
       };
     }
 
-    // Enemies — Director writes go through MP; players' calls are no-ops.
-    ['confirmDeploy','removeEnemy','enemyToggleGrit','adjEGrit','clearEGrit','toggleEnemyFeat','toggleEnemySA'].forEach(fn=>{
-      const orig = window[fn]; if(typeof orig!=='function') return;
-      window[fn] = function(){
-        const r = orig.apply(this, arguments);
-        if(!inParty) return r;
-        if(!MP.isDirector()){ alert('Only the Director can edit enemies.'); return; }
-        // Push the entire activeEnemies set (cheap; small array).
-        const map={};
-        (S.activeEnemies||[]).forEach((e,i)=>{ map[e._id||('e'+i)] = Object.assign({},e); });
-        // Wipe + rewrite — keeps remote in sync with local list operations.
-        MP.writeMeta({lastEnemyEdit:Date.now()}).catch(()=>{});
-        // Direct push:
-        const baseRef = firebase.database().ref('parties/'+MP.currentParty().code+'/enemies');
-        baseRef.set(map).catch(console.error);
-        return r;
-      };
-    });
-
-    // NPCs — Director only.
-    ['saveNPC','deleteNPC','npcToggleGrit','npcClearGrit'].forEach(fn=>{
-      const orig = window[fn]; if(typeof orig!=='function') return;
-      window[fn] = function(){
-        const r = orig.apply(this, arguments);
-        if(!inParty) return r;
-        if(!MP.isDirector()){ alert('Only the Director can edit NPCs.'); return; }
-        const map={};
-        (S.npcs||[]).forEach((n,i)=>{ map[n._id||('n'+i)] = Object.assign({},n); });
-        firebase.database().ref('parties/'+MP.currentParty().code+'/npcs').set(map).catch(console.error);
-        return r;
-      };
-    });
+    // Enemies + NPCs are pushed by the save() wrap above; no per-function
+    // wraps here. The Director's mutations all call save(), which routes
+    // through the single _pushEnemiesNpcs() helper. Players' offline writes
+    // happen locally but Firebase rules reject the push, so their changes
+    // are reverted by the next subscription tick — correct behavior.
 
     // renderCreationStep is wrapped at boot in _installCreationStepWrap so the
     // lobby's book-picker works before joining any party. We only need the
@@ -622,13 +629,26 @@
       };
     }
 
-    // Render hooks — add the roll feed + team-augment + enemy strip.
+    // Render hooks — context panel at the top of Dice, then the roll feed
+    // and enemy strip below. Apply Director gating (Directors don't have a
+    // hero, so the attribute/skill picker is hidden for them).
     const origDicePage = window.renderDicePage;
     if(typeof origDicePage==='function'){
       window.renderDicePage = function(){
         origDicePage.apply(this, arguments);
+        _renderSceneContext();
         _renderRollFeed();
         _renderEnemyStripOnDice();
+        _applyDirectorDiceGating();
+      };
+    }
+    // The notes subscription also triggers a dice-page context refresh so the
+    // Scene/Objective row stays current when other players edit notes.
+    const origRenderNotes = window.renderNotes;
+    if(typeof origRenderNotes==='function'){
+      window.renderNotes = function(){
+        origRenderNotes.apply(this, arguments);
+        _renderSceneContext();
       };
     }
     const origRenderParty = window.renderParty;
@@ -641,6 +661,59 @@
   }
 
   // ---- Augmentations ------------------------------------------------------
+  // Directors have no hero, so hide the attribute/skill picker, the dice
+  // result + history, and the Hero-grit card on the Dice screen. Keep the
+  // shared bits (enemy strip, NPC strip, roll feed, scene/objective).
+  function _applyDirectorDiceGating(){
+    if(!inParty) return;
+    const dir = MP.isDirector();
+    ['dice-picker-card','dice-result-area','dice-action-btns','dice-history','dice-grit']
+      .forEach(id=>{ const e = $(id); if(e) e.style.display = dir ? 'none' : ''; });
+    // Title and subtitle also become misleading for a Director.
+    const titleRow = document.querySelector('#dice-roller-col .pg-title');
+    const subRow   = document.querySelector('#dice-roller-col .pg-sub');
+    if(dir){
+      if(titleRow) titleRow.textContent = 'Director Board';
+      if(subRow)   subRow.textContent = 'Live table view — rolls, enemies, and the current scene.';
+    }
+  }
+
+  // Top-of-dice context: the most recent Scene + Objective notes, so players
+  // (and the Director) can see where they are without flipping tabs.
+  function _renderSceneContext(){
+    const page = $('page-dice'); if(!page) return;
+    let panel = $('og-mp-scene-context');
+    const notes = S.notes||[];
+    // S.notes is sorted newest-first in MP; offline it's insertion order so
+    // we re-sort defensively.
+    const sorted = [...notes].sort((a,b)=>(b.ts||0)-(a.ts||0));
+    const scene = sorted.find(n=>n.type==='scene' && n.text);
+    const obj   = sorted.find(n=>n.type==='objective' && n.text);
+    if(!scene && !obj){
+      if(panel) panel.style.display='none';
+      return;
+    }
+    if(!panel){
+      panel = el('div',{id:'og-mp-scene-context',class:'card',style:{marginBottom:'10px',padding:'10px'}});
+      page.insertBefore(panel, page.firstChild);
+    }
+    panel.style.display='';
+    panel.innerHTML='';
+    panel.appendChild(el('div',{style:{fontSize:'11px',color:'var(--muted)',letterSpacing:'2px',marginBottom:'6px'}},['NOW PLAYING']));
+    if(scene){
+      const row = el('div',{style:{marginBottom:obj?'6px':'0'}});
+      row.appendChild(el('span',{style:{fontWeight:'700',color:'var(--yellow)',fontSize:'12px'}},['📍 SCENE — ']));
+      row.appendChild(el('span',{style:{fontSize:'13px'}},[scene.text]));
+      panel.appendChild(row);
+    }
+    if(obj){
+      const row = el('div',{});
+      row.appendChild(el('span',{style:{fontWeight:'700',color:'var(--accent)',fontSize:'12px'}},['🎯 OBJECTIVE — ']));
+      row.appendChild(el('span',{style:{fontSize:'13px'}},[obj.text]));
+      panel.appendChild(row);
+    }
+  }
+
   function _renderRollFeed(){
     const page = $('page-dice'); if(!page) return;
     let feed = $('og-mp-rollfeed');

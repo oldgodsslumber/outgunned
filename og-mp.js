@@ -233,9 +233,12 @@ window.MP = (function(){
   async function appendRoll(roll){
     _need();
     const ref = _ref('rolls');
-    const payload = Object.assign({}, roll, {
+    // Caller's fields win — they may pass the character name as `name`. Only
+    // uid and ts are forced by the server side.
+    const payload = Object.assign({
+      name: user.displayName || 'Player'
+    }, roll, {
       uid: user.uid,
-      name: user.displayName || 'Player',
       ts: firebase.database.ServerValue.TIMESTAMP
     });
     await ref.push(payload);
