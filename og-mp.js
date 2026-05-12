@@ -151,13 +151,40 @@ window.MP = (function(){
     currentCode = null; currentMeta = null;
   }
   // Explicitly remove yourself from a party and drop it from your saved list.
-  // Used by the lobby's "× Forget" action on a party row.
+  // Used by the lobby's "× Forget" action on a Player's party row.
   async function forgetParty(code){
     if(!user) return;
     code = String(code).padStart(4,'0');
     if(currentCode===code){ unbind(); currentCode=null; currentMeta=null; }
     try{ await db.ref('parties/'+code+'/members/'+user.uid).remove(); }catch(_){}
     try{ await db.ref('users/'+user.uid+'/parties/'+code).remove(); }catch(_){}
+  }
+  // Director-only: tear down the whole party. Removes the parties/{code}
+  // subtree, releases the 4-digit code, and removes the Director's own
+  // saved-list entry. Other members still have orphan entries pointing here;
+  // listMyParties self-cleans those on next read (and active players are
+  // kicked out via the _onMetaChange subscription seeing meta go null).
+  async function deleteParty(code){
+    if(!user) throw new Error('Sign in first.');
+    code = String(code).padStart(4,'0');
+    const metaSnap = await db.ref('parties/'+code+'/meta').get();
+    if(!metaSnap.exists()) throw new Error('No party with code '+code+'.');
+    if(metaSnap.val().directorUid !== user.uid){
+      throw new Error('Only the Director can delete this party.');
+    }
+    if(currentCode===code){ unbind(); currentCode=null; currentMeta=null; }
+    await db.ref('parties/'+code).remove();
+    try{ await db.ref('codes/'+code).remove(); }catch(_){}
+    try{ await db.ref('users/'+user.uid+'/parties/'+code).remove(); }catch(_){}
+  }
+  // Lightweight existence check used by listMyParties auto-cleanup.
+  async function partyExists(code){
+    if(!user) return false;
+    code = String(code).padStart(4,'0');
+    try{
+      const s = await db.ref('parties/'+code+'/meta').get();
+      return s.exists();
+    }catch(_){ return true; /* probably a transient error; don't drop the row */ }
   }
   async function listMyParties(){
     if(!user) return [];
@@ -296,7 +323,7 @@ window.MP = (function(){
   return {
     init, onAuth,
     signInGoogle, signOut, currentUser, currentUid,
-    createParty, joinParty, leaveParty, forgetParty, listMyParties,
+    createParty, joinParty, leaveParty, forgetParty, deleteParty, partyExists, listMyParties,
     bind, unbind,
     isDirector, currentParty,
     setMyCharId, writeChar, deleteChar,

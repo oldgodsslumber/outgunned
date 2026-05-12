@@ -241,25 +241,46 @@
     // Signed-in view: existing parties, plus create/join.
     let parties=[];
     try{ parties = await MP.listMyParties(); }catch(e){ /* network may be down */ }
+    // Self-clean orphan entries: if the underlying party has been deleted by
+    // its Director, drop our saved-list row silently so we don't try to
+    // rejoin a ghost.
+    if(parties.length){
+      const alive = [];
+      await Promise.all(parties.map(async p=>{
+        const ok = await MP.partyExists(p.code);
+        if(ok) alive.push(p);
+        else MP.forgetParty(p.code).catch(()=>{});
+      }));
+      parties = alive;
+    }
     if(parties.length){
       card.appendChild(el('h3',{style:{margin:'18px 0 8px 0',fontSize:'13px',letterSpacing:'2px',color:'var(--muted)',textTransform:'uppercase'}},['Your parties']));
       const list = el('div',{style:{display:'flex',flexDirection:'column',gap:'6px',marginBottom:'14px'}});
       parties.forEach(p=>{
+        const isDirector = p.role==='director';
         const wrap = el('div',{style:{display:'flex',gap:'4px'}});
         const row=el('button',{class:'btn btn-secondary',style:{flex:'1',justifyContent:'space-between',display:'flex',padding:'10px 12px',textAlign:'left'},onclick:()=>_joinByCode(p.code)});
         row.appendChild(el('span',{},[p.title||'(untitled)','  ',el('span',{style:{color:'var(--muted)',fontSize:'11px'}},['#'+p.code])]));
-        row.appendChild(el('span',{style:{color:'var(--accent)',fontSize:'11px'}},[p.role==='director'?'Director':'Player']));
+        row.appendChild(el('span',{style:{color:'var(--accent)',fontSize:'11px'}},[isDirector?'Director':'Player']));
         wrap.appendChild(row);
+        // For Directors, the × button tears down the WHOLE party (affects all
+        // players). For Players, × just removes the row from their own list.
         wrap.appendChild(el('button',{
           class:'btn btn-secondary',
-          title:'Forget this party',
-          style:{padding:'10px 10px',color:'var(--muted)'},
+          title: isDirector ? 'Delete this party for ALL players' : 'Remove from my list',
+          style:{padding:'10px 10px',color:isDirector?'var(--red)':'var(--muted)'},
           onclick:async()=>{
-            if(!confirm('Remove "'+(p.title||'this party')+'" from your list? You can rejoin with the code.')) return;
-            try{ await MP.forgetParty(p.code); }catch(e){alert(e.message);}
+            const prompt = isDirector
+              ? 'Delete "'+(p.title||'this party')+'" for EVERYONE?\n\nThis cannot be undone — all players will lose access and the 4-digit code will be released.'
+              : 'Remove "'+(p.title||'this party')+'" from your list? You can rejoin with the code.';
+            if(!confirm(prompt)) return;
+            try{
+              if(isDirector) await MP.deleteParty(p.code);
+              else           await MP.forgetParty(p.code);
+            }catch(e){ alert(e.message); }
             const r = $('og-mp-lobby'); if(r) _renderLobbyContent(r.firstChild);
           }
-        },['×']));
+        },[isDirector?'Delete':'×']));
         list.appendChild(wrap);
       });
       card.appendChild(list);
@@ -432,6 +453,14 @@
     // joined before the meta arrived inherits the right coreBook/include now.
     if(!prevMeta && meta && typeof renderHero==='function' && !MP.isDirector() && !S.char){
       try{ renderHero(); }catch(_){}
+    }
+    // Director deleted the party while we were active — meta goes from
+    // existing → null. Drop the row from our own saved list and kick to lobby.
+    if(prevMeta && !meta && inParty){
+      const code = MP.currentParty().code;
+      alert('The Director ended this game.');
+      MP.forgetParty(code).catch(()=>{});
+      _leaveParty();
     }
   }
   function _onMembersChange(members){
