@@ -243,6 +243,8 @@ textarea{resize:vertical;min-height:70px}
 .badge-core{background:rgba(59,130,246,.2);color:var(--blue)}
 .badge-wok{background:rgba(155,89,182,.2);color:var(--purple)}
 .badge-special{background:rgba(241,196,15,.2);color:var(--gold)}
+.badge-osh{background:rgba(230,57,70,.2);color:var(--accent)}
+.adr-cost{display:inline-flex;align-items:center;gap:2px;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;background:rgba(255,196,0,.18);color:#ffcc33;border:1px solid rgba(255,196,0,.35);letter-spacing:.3px;white-space:nowrap}
 .empty-state{text-align:center;padding:40px 20px;color:var(--muted)}
 .empty-icon{font-size:40px;margin-bottom:10px}
 .death-roulette{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
@@ -414,11 +416,13 @@ textarea{resize:vertical;min-height:70px}
 <div class="page" id="page-enemies">
   <div class="pg-title">Enemies</div>
   <div class="pg-sub">Deploy enemy groups into the fight</div>
+  <div id="osh-campaign-panel"></div>
   <div class="tabs">
     <button class="tab-btn active" onclick="switchEnemyTab('goons',this)">Goons</button>
     <button class="tab-btn" onclick="switchEnemyTab('badguys',this)">Bad Guys</button>
     <button class="tab-btn" onclick="switchEnemyTab('bosses',this)">Bosses</button>
     <button class="tab-btn" onclick="switchEnemyTab('wok',this)"><span class="badge badge-wok" style="font-size:8px">WoK</span></button>
+    <button class="tab-btn" onclick="switchEnemyTab('osh',this)"><span class="badge badge-osh" style="font-size:8px">OSH</span></button>
     <button class="tab-btn" onclick="switchEnemyTab('active',this)">Active</button>
   </div>
   <div id="enemy-templates"></div>
@@ -664,17 +668,508 @@ const ATTR_SKILLS={
 };
 const ALL_SKILLS=Object.values(ATTR_SKILLS).flat();
 
+// ============================================================
+// OUTGUNNED SUPERHEROES (OSH) EXPANSION DATA
+// All entries tagged book:'osh'. Spread into the main arrays below.
+// ============================================================
+const ROLES_OSH=[
+  {id:'armored',name:'Armored',book:'osh',attr:'NERVES',
+   desc:'A billionaire in a powered suit, an elite soldier, or a teen bonded with a tech parasite.',
+   skills:['Endure','Fight','Stunt','Cool','Drive','Shoot','Speech','Style','Detect','Fix'],
+   feats:['Barrier','Bulletproof','Personal A.I.','PhD','Unlimited Funds','Unstoppable Force'],
+   gear:'Hyper-technological Armor with Energy Beam', superpowerId:'hyper_armor'},
+  {id:'beast',name:'Beast',book:'osh',attr:'BRAWN',
+   desc:'A lone predator who lives apart from civilization — savage, diffident, and unpredictable.',
+   skills:['Endure','Fight','Stunt','Cool','Survival','Leadership','Detect','Awareness','Stealth','Streetwise'],
+   feats:['Jump','Monster','Pint-Sized','Regeneration','Super Senses','Trained Fighter'],
+   gear:'Claws (Sharp), one 1$ item of choice', superpowerId:'natural_predator'},
+  {id:'blaster',name:'Blaster',book:'osh',attr:'BRAWN',
+   desc:'A leader who shoots lasers from their eyes, a charged cyborg, or a cosmic-ray battery.',
+   skills:['Endure','Fight','Cool','Shoot','Leadership','Speech','Fix','Heal','Awareness','Stealth'],
+   feats:['Barrier','Cyborg','Flight','Hard to Kill','Trained Fighter','Unstoppable Force'],
+   gear:'Kinetic Ray super-weapon', superpowerId:'kinetic_energy'},
+  {id:'champion',name:'Champion',book:'osh',attr:'BRAWN',
+   desc:'The quintessential superhero: strong, brave, ready to fight, and usually leading the team.',
+   skills:['Endure','Fight','Force','Stunt','Cool','Flirt','Leadership','Awareness','Dexterity','Survival'],
+   feats:['Flight','Gadget','Jump','Hard to Kill','Lord of the Seas','Team Leader'],
+   gear:'Enhanced Body grants Trained Fighter; one 1$ item of choice', superpowerId:'enhanced_body'},
+  {id:'elemental',name:'Elemental',book:'osh',attr:'NERVES',
+   desc:'One with their element — water, fire, ice, storm, earth, or wind.',
+   skills:['Endure','Fight','Shoot','Survival','Flirt','Leadership','Style','Know','Stealth','Streetwise'],
+   feats:['Barrier','Bulletproof','Flight','Incorporeal','Lord of the Seas','Unstoppable Force'],
+   gear:'Elemental Ray super-weapon', superpowerId:'elemental_control'},
+  {id:'force_master',name:'Force Master',book:'osh',attr:'NERVES',
+   desc:'A rebel who controls metals with their mind, or an adept who bends cosmic force.',
+   skills:['Endure','Force','Cool','Shoot','Survival','Flirt','Leadership','Fix','Heal','Know'],
+   feats:['Barrier','Energy Manipulation','Gadget','Invisible','PhD','Unstoppable Force'],
+   gear:'Choice of focus item (talisman, helmet, glove)', superpowerId:'force_control'},
+  {id:'maverick',name:'Maverick',book:'osh',attr:'NERVES',
+   desc:'A roguish gambler, a charming crook, or a P.I. with a smirk — no flashy powers, just a specialty.',
+   skills:['Fight','Stunt','Drive','Shoot','Flirt','Speech','Fix','Dexterity','Stealth','Streetwise'],
+   feats:['Bullseye','Energy Manipulation','Gadget','Heartbreaker','Silver Tongue','Super-Ride'],
+   gear:'One 1$ item of choice, Pistol', superpowerId:'specialty'},
+  {id:'psychic',name:'Psychic',book:'osh',attr:'SMOOTH',
+   desc:'A telepath, telekinetic, or mind-bender — sharp intuition and a knack for influencing others.',
+   skills:['Endure','Cool','Flirt','Leadership','Speech','Style','Detect','Heal','Know','Awareness'],
+   feats:['Detective','Energy Manipulation','Flight','Foresight','Mind Control','Speak with Animals'],
+   gear:'One 1$ item of choice', superpowerId:'mind_powers'},
+  {id:'shadow',name:'Shadow',book:'osh',attr:'FOCUS',
+   desc:'A vigilante who watches the city from the rooftops, striking from the dark and vanishing.',
+   skills:['Fight','Stunt','Cool','Leadership','Detect','Fix','Heal','Awareness','Dexterity','Stealth'],
+   feats:['Detective','Gadget','Invisible','Prep Time','Super Senses','Trained Fighter'],
+   gear:'One 1$ item of choice, grappling line', superpowerId:'dark_presence'},
+  {id:'shapeshifter',name:'Shapeshifter',book:'osh',attr:'SMOOTH',
+   desc:'A face-changer, beast-morpher, or rubber-limbed contortionist.',
+   skills:['Stunt','Drive','Flirt','Speech','Style','Detect','Know','Dexterity','Stealth','Streetwise'],
+   feats:['Heartbreaker','Monster','PhD','Power-Mirror','Regeneration','Speak with Animals'],
+   gear:'One 1$ item of choice', superpowerId:'shapeshift'},
+  {id:'sorcerer',name:'Sorcerer',book:'osh',attr:'SMOOTH',
+   desc:'A wielder of arcane forces from another dimension.',
+   skills:['Cool','Shoot','Flirt','Leadership','Speech','Style','Detect','Know','Dexterity','Stealth'],
+   feats:['Barrier','Familiar','Flight','Gadget','Mind Control','Multiple Hero'],
+   gear:'Magical Weapon or Arcane Missile super-weapon', superpowerId:'arcane_powers'},
+  {id:'speedster',name:'Speedster',book:'osh',attr:'BRAWN',
+   desc:'Maybe not faster than light, but fast enough to make breakfast, save a city, and be home for dinner.',
+   skills:['Fight','Stunt','Flirt','Speech','Style','Detect','Fix','Awareness','Dexterity','Stealth'],
+   feats:['Hacker','Incorporeal','Sonic Boom','Super Senses','Trained Fighter','Wall-Climber'],
+   gear:'One 1$ item of choice, running shoes', superpowerId:'super_speed'},
+  {id:'tank',name:'Tank',book:'osh',attr:'BRAWN',
+   desc:'A gentle giant of stone, a grumpy behemoth, or a scientist with anger issues.',
+   skills:['Endure','Fight','Force','Stunt','Cool','Survival','Detect','Fix','Heal','Awareness'],
+   feats:['Bulletproof','Immortality','Jump','Lord of the Seas','Trained Fighter','Unstoppable Force'],
+   gear:'Nothing — you are the weapon', superpowerId:'incredible_strength'},
+  {id:'teleporter',name:'Teleporter',book:'osh',attr:'BRAWN',
+   desc:'A vagabond who is always somewhere else — vanishing in a puff of smoke and reappearing in a blink.',
+   skills:['Stunt','Shoot','Survival','Speech','Detect','Heal','Awareness','Dexterity','Stealth','Streetwise'],
+   feats:['Acrobat','Detective','Energy Manipulation','Familiar','Foresight','Hacker'],
+   gear:'One 1$ item of choice', superpowerId:'teleportation'},
+  {id:'weaponmaster',name:'Weaponmaster',book:'osh',attr:'BRAWN',
+   desc:'An archer who never misses, a gunslinger with infallible aim, or a sword saint.',
+   skills:['Fight','Stunt','Drive','Shoot','Speech','Style','Heal','Awareness','Dexterity','Stealth'],
+   feats:['Acrobat','Cyborg','Gadget','Jump','Regeneration','Super Senses'],
+   gear:'Chosen weapon (Bow, Guns, or Melee) from Battleborn', superpowerId:'battleborn'},
+  {id:'marvel',name:'Marvel',book:'osh',attr:'BRAWN+SMOOTH',
+   desc:'An invincible alien, a god among mortals, an avatar of an Eternity Shard.',
+   skills:['Endure','Fight','Force','Stunt','Cool','Shoot','Flirt','Leadership','Detect','Know','Awareness','Dexterity'],
+   feats:['Bullseye','Detective','Foresight','Jump','Heartbreaker','Hard to Kill','Immortality','Sonic Boom','Super Senses','Regeneration','Team Leader','Unstoppable Force'],
+   gear:'Invincible Superpower (Flight, Energy Manipulation, Bulletproof, Only Weakness)',
+   isSpecial:true,freeSkillPts:6,featChoices:3,attrBonuses:['BRAWN','SMOOTH'], superpowerId:'invincible'},
+  {id:'prodigy',name:'Prodigy',book:'osh',attr:'(Tropes)',
+   desc:'A one-of-a-kind Hero. Pick two Tropes — one as Trope, one as Role — and any Superpower.',
+   skills:[],
+   feats:[],
+   gear:'One of a Kind Superpower (1 Superpower + 1 Feat or 2 Feats free)',
+   isSpecial:true,tropeChoices:2,freeSkillPts:2, superpowerId:'one_of_a_kind'}
+];
+const TROPES_OSH=[
+  {id:'anti_hero',name:'Anti-hero',book:'osh',attrs:['NERVES','CRIME'],
+   desc:'Maybe going against the bad guys makes you good, maybe it doesn’t. Deep down, you care.',
+   skills:['Fight','Stunt','Cool','Drive','Shoot','Flirt','Stealth','Streetwise'],
+   feats:['Energy Manipulation','Immortality','Trained Fighter','Unstoppable Force']},
+  {id:'billionaire_genius',name:'Billionaire Genius',book:'osh',attrs:['SMOOTH','FOCUS'],
+   desc:'Genius, playboy, billionaire, philanthropist. You have it all — and you let everyone know it.',
+   skills:['Shoot','Flirt','Speech','Style','Detect','Fix','Know','Stealth'],
+   feats:['Heartbreaker','Personal A.I.','PhD','Unlimited Funds']},
+  {id:'charming_misfit',name:'Charming Misfit',book:'osh',attrs:['NERVES','SMOOTH'],
+   desc:'Not the coolest or strongest — yet somehow indispensable. And you have a great playlist.',
+   skills:['Stunt','Drive','Shoot','Speech','Style','Dexterity','Stealth','Streetwise'],
+   feats:['Gadget','Prep Time','Silver Tongue','Super-Ride']},
+  {id:'chatty_mercenary',name:'Chatty Mercenary',book:'osh',attrs:['NERVES','SMOOTH'],
+   desc:'Thankless job, sharp tongue, maximum effort. You never shut up — and never miss.',
+   skills:['Endure','Fight','Stunt','Drive','Shoot','Speech','Dexterity','Streetwise'],
+   feats:['Bullseye','Monster','Regeneration','Trained Fighter']},
+  {id:'country_boy_girl',name:'Country Boy/Girl',book:'osh',attrs:['BRAWN','SMOOTH'],
+   desc:'Raised on a small farm, polite and earnest. The city is strange, but you’ll help.',
+   skills:['Fight','Force','Stunt','Survival','Flirt','Speech','Heal','Awareness'],
+   feats:['Bulletproof','Flight','Team Leader','Unstoppable Force']},
+  {id:'cynical_tinkerer',name:'Cynical Tinkerer',book:'osh',attrs:['FOCUS','CRIME'],
+   desc:'You can fix anything broken and break anything working. People annoy you.',
+   skills:['Drive','Shoot','Survival','Leadership','Fix','Dexterity','Stealth','Streetwise'],
+   feats:['Cyborg','Hacker','PhD','Pint-Sized']},
+  {id:'dark_knight',name:'Dark Knight',book:'osh',attrs:['BRAWN','CRIME'],
+   desc:'A grim avenger over a corrupt city. Maybe not the cure it deserves, but the one it needs.',
+   skills:['Fight','Stunt','Cool','Leadership','Detect','Fix','Awareness','Stealth'],
+   feats:['Gadget','Super-Ride','Trained Fighter','Unlimited Funds']},
+  {id:'deadly_beauty',name:'Deadly Beauty',book:'osh',attrs:['SMOOTH','CRIME'],
+   desc:'Drop-dead gorgeous — and a drop-kick that lives up to the name.',
+   skills:['Fight','Shoot','Flirt','Style','Detect','Know','Dexterity','Stealth'],
+   feats:['Bulletproof','Heartbreaker','Mind Control','Trained Fighter']},
+  {id:'good_advisor',name:'Good Advisor',book:'osh',attrs:['SMOOTH','FOCUS'],
+   desc:'The wise older sibling. People trust your judgment — and you tell things how they are.',
+   skills:['Cool','Leadership','Speech','Detect','Heal','Know','Stealth','Streetwise'],
+   feats:['Barrier','Mind Control','Prep Time','Team Leader']},
+  {id:'hot_mess',name:'Hot Mess',book:'osh',attrs:['BRAWN','SMOOTH'],
+   desc:'Funny, charming, and exhaustingly full of yourself.',
+   skills:['Fight','Stunt','Drive','Shoot','Flirt','Style','Dexterity','Streetwise'],
+   feats:['Energy Manipulation','Heartbreaker','Multiple Hero','Unstoppable Force']},
+  {id:'humorless_grouch',name:'Humorless Grouch',book:'osh',attrs:['BRAWN','FOCUS'],
+   desc:'Cool under pressure, intolerable at parties.',
+   skills:['Endure','Fight','Cool','Drive','Shoot','Leadership','Know','Awareness'],
+   feats:['Cyborg','Gadget','Hard to Kill','Team Leader']},
+  {id:'most_dangerous',name:'Most Dangerous',book:'osh',attrs:['NERVES','FOCUS'],
+   desc:'Nobody is tougher. Your name carries weight, and underestimating you is a mistake.',
+   skills:['Endure','Cool','Leadership','Heal','Know','Awareness','Dexterity','Streetwise'],
+   feats:['Energy Manipulation','Familiar','Trained Fighter','Unstoppable Force']},
+  {id:'nosy_four_eyes',name:'Nosy Four-eyes',book:'osh',attrs:['FOCUS','CRIME'],
+   desc:'Nose in a comic book, camera at the ready. Fighting for truth, justice, and a good story.',
+   skills:['Speech','Detect','Fix','Heal','Know','Awareness','Dexterity','Stealth'],
+   feats:['Detective','Gadget','Hacker','PhD']},
+  {id:'of_few_words',name:'Of Few Words',book:'osh',attrs:['BRAWN','CRIME'],
+   desc:'A big quiet type. If it needs doing, you do it.',
+   skills:['Endure','Fight','Force','Cool','Survival','Leadership','Heal','Awareness'],
+   feats:['Barrier','Bulletproof','Monster','Unstoppable Force']},
+  {id:'sassy_genius',name:'Sassy Genius',book:'osh',attrs:['NERVES','FOCUS'],
+   desc:'A mind for science, no patience for emotions.',
+   skills:['Stunt','Drive','Shoot','Leadership','Speech','Fix','Heal','Know'],
+   feats:['PhD','Gadget','Pint-Sized','Shrinkage']},
+  {id:'sentimental_rebel',name:'Sentimental Rebel',book:'osh',attrs:['NERVES','SMOOTH'],
+   desc:'Driven by ideals — freedom, justice, love. You’d give your life for them.',
+   skills:['Endure','Cool','Shoot','Survival','Flirt','Leadership','Know','Streetwise'],
+   feats:['Heartbreaker','Familiar','Flight','Silver Tongue']},
+  {id:'super_soldier',name:'Super Soldier',book:'osh',attrs:['BRAWN','NERVES'],
+   desc:'A model of discipline with a moral compass. Always picks themselves up — and minds their language.',
+   skills:['Endure','Fight','Stunt','Cool','Drive','Shoot','Leadership','Stealth'],
+   feats:['Bulletproof','Gadget','Team Leader','Trained Fighter']},
+  {id:'tough_exterior',name:'Tough Exterior',book:'osh',attrs:['BRAWN','NERVES'],
+   desc:'A loner who pretends not to care — until your friends get hurt.',
+   skills:['Endure','Fight','Stunt','Cool','Drive','Survival','Leadership','Streetwise'],
+   feats:['Bulletproof','Hard to Kill','Immortality','Regeneration']},
+  {id:'tragic_past',name:'Tragic Past',book:'osh',attrs:['NERVES','CRIME'],
+   desc:'You carry a heavy weight. Cynical, uneasy, and unmistakably blue.',
+   skills:['Stunt','Survival','Fix','Heal','Awareness','Dexterity','Stealth','Streetwise'],
+   feats:['Cyborg','Incorporeal','Pint-Sized','Sonic Boom']},
+  {id:'walking_hazard',name:'Walking Hazard',book:'osh',attrs:['FOCUS','CRIME'],
+   desc:'Your powers are terrifying — even to you.',
+   skills:['Fight','Cool','Drive','Detect','Heal','Awareness','Stealth','Streetwise'],
+   feats:['PhD','Power Absorption','Sonic Boom','Unstoppable Force']},
+  {id:'working_class_hero',name:'Working-class Hero',book:'osh',attrs:['BRAWN','CRIME'],
+   desc:'A regular person who decided to be a hero. Simple tastes, plenty of guts, cheesy one-liner ready.',
+   skills:['Fight','Stunt','Drive','Shoot','Speech','Fix','Stealth','Streetwise'],
+   feats:['Acrobat','Trained Fighter','Silver Tongue','Super Senses']}
+];
+const ORIGINS_OSH=[
+  {id:'alien',name:'Alien',book:'osh',desc:'You are an alien, or you carry an alien parasite within your body.',effect:'Narrative: Help with alien lore; Hindrance with hostile aliens of your kin.'},
+  {id:'arcane',name:'Arcane',book:'osh',desc:'You were born with, taught, or granted mystical powers.',effect:'Narrative: Help with magical knowledge and rituals.'},
+  {id:'divine',name:'Divine',book:'osh',desc:'You are the avatar of a god, or hold divine powers.',effect:'Narrative: Help with sacred matters; you draw divine attention.'},
+  {id:'eternal',name:'Eternal',book:'osh',desc:'Your power comes straight from one of the Eternity Shards.',effect:'Narrative: tied to a Shard’s nature; Villains will hunt you for it.'},
+  {id:'evolved',name:'Evolved',book:'osh',desc:'Your powers developed naturally during puberty.',effect:'Narrative: blend in with humans; powers may flare under stress.'},
+  {id:'experiment',name:'Experiment',book:'osh',desc:'You are the result of a scientific experiment.',effect:'Narrative: someone, somewhere, still owns your file.'},
+  {id:'mutation',name:'Mutation',book:'osh',desc:'Powers from a mutation caused by an extraordinary creature or accident.',effect:'Narrative: visible mutations grant Help intimidating or Hindrance fitting in.'},
+  {id:'myth',name:'Myth',book:'osh',desc:'Your powers are connected to a legend or folk tradition.',effect:'Narrative: Help recalling related lore; mythic enemies recognize you.'},
+  {id:'prototype',name:'Prototype',book:'osh',desc:'You rely on experimental technology, or are a robot yourself.',effect:'Narrative: Help with tech analysis; your gear may need maintenance.'},
+  {id:'simple_human',name:'Simple Human',book:'osh',desc:'You are only human, with no innate power.',effect:'Take the Specialty Superpower; begin with 2 Spotlights instead of 1.'}
+];
+const FEATS_OSH=[
+  {name:'Acrobat',book:'osh',trigger:'Passive',desc:'Gain a Free Re-roll to run, jump, balance, and perform feats of acrobatics.'},
+  {name:'Barrier',book:'osh',trigger:'Full Turn',adr:true,desc:'Spend 1 Adrenaline to create a barrier giving Total Cover to you and 4 others while you remain still.'},
+  {name:'Bulletproof',book:'osh',trigger:'Passive',desc:'Immune to firearm damage (not energy or explosive). A friend may use you as Partial Cover.'},
+  {name:'Bullseye',book:'osh',trigger:'Passive',desc:'Free Re-roll to hit a target with precision using a small object or ranged weapon.'},
+  {name:'Cyborg',book:'osh',trigger:'Passive',adr:true,desc:'Free Re-roll to Fix; Fix instead of Heal to remove Hurt. Spend 1 Adrenaline to repeat a failed Reaction Roll.'},
+  // Detective: unified core/osh entry lives in the main FEATS array (tagged books:['core','osh']).
+  {name:'Energy Manipulation',book:'osh',trigger:'Passive',desc:'Gain the Energy Blade (Melee, Perfect) and Energy Bolt super-weapons. Take twice to add Maximum Power.'},
+  {name:'Familiar',book:'osh',trigger:'Passive',desc:'A small animal, magical creature, robot, or other ally. Helps as a Quick Action; shares your Grit.'},
+  {name:'Flight',book:'osh',trigger:'Passive',desc:'You can fly freely and hover. Stunt is used to fly fast or with agility.'},
+  {name:'Foresight',book:'osh',trigger:'Passive',adr:true,desc:'Once per Session, rewind an action and choose a different course. Spend Adrenaline equal to an Enemy SA level to stop it.'},
+  {name:'Gadget',book:'osh',trigger:'Passive',desc:'Gain one Gadget of any kind from the gadget list. May be chosen more than once.'},
+  {name:'Giant Growth',book:'osh',trigger:'Full Turn',adr:true,desc:'Spend 1 Adrenaline to become a giant: Brawn 3 (5 effective), halve Grit losses, auto-fail Crime, act every other Action Turn.'},
+  // Hacker: unified core/osh entry lives in the main FEATS array (tagged books:['core','osh']).
+  {name:'Immortality',book:'osh',trigger:'Passive',desc:'When Left for Dead, flip each Turn; on Tails revive with 1 Grit and shrug off one Condition.'},
+  {name:'Incorporeal',book:'osh',trigger:'Passive',adr:true,desc:'Full Turn to pass through walls. Spend 1 Adrenaline to phase instantly or dodge a melee attack without rolling.'},
+  {name:'Invisible',book:'osh',trigger:'Quick Action',desc:'Turn fully invisible. Drop on 2+ Grit lost, suffering a Condition, or choice.'},
+  {name:'Jump',book:'osh',trigger:'Passive',adr:true,desc:'Make impossibly long or high jumps; never lose Grit from falls. Spend 1 Adrenaline to leap with +1 and a Free Re-roll.'},
+  {name:'Lord of the Seas',book:'osh',trigger:'Passive',adr:true,desc:'In water, Free Re-roll to all rolls, Help to swim, breathe underwater. Spend 1 Adrenaline to call sea creatures.'},
+  {name:'Mind Control',book:'osh',trigger:'Passive',adr:true,desc:'Free Re-roll to persuade. Spend 1 Adrenaline: control a supporting character or an Enemy (Action vs Defense).'},
+  {name:'Monster',book:'osh',trigger:'Passive',desc:'Inhuman appearance: Hindrance with strangers, Help intimidating.'},
+  {name:'Multiple Hero',book:'osh',trigger:'Full Turn',desc:'Smooth+Endure roll multiplies you: 1/3/9 copies per Basic/Crit/Extreme. Each takes a Quick Action; extra Grit.'},
+  {name:'New Powers',book:'osh',trigger:'Passive',desc:'Gain a new Superpower of your choice (except Invincible or One of a Kind), with story support.'},
+  {name:'Only Weakness',book:'osh',trigger:'Passive',desc:'A single fatal weakness. Exposure causes Powerless. Taken at creation only; grants an extra Feat.'},
+  {name:'Personal A.I.',book:'osh',trigger:'Passive',desc:'A.I. companion answers questions, tracks enemies, grants Help analyzing layouts.'},
+  {name:'PhD',book:'osh',trigger:'Passive',desc:'Choose one field of study. Free Re-roll for all rolls in your specialization.'},
+  {name:'Pint-Sized',book:'osh',trigger:'Passive',desc:'About half human-height. Free Re-roll to Stealth or dodging projectiles; Help to squeeze into narrow spaces.'},
+  {name:'Power Absorption',book:'osh',trigger:'Full Turn',desc:'Touch risks Powerless on a powered being. Full Turn to steal an ally’s Superpower until end of Scene (they go Powerless).'},
+  {name:'Power-Mirror',book:'osh',trigger:'Quick Action',adr:true,desc:'Help a friend Show Off during Time-Out. Spend 1 Adrenaline on touch to use one of their special actions or briefly gain their Superpower.'},
+  {name:'Prep Time',book:'osh',trigger:'Passive',adr:true,desc:'Once per Session, ask for info on a location/person. Once per combat, spend 1 Adrenaline to negate a revealed Enemy Feat for the Scene.'},
+  {name:'Regeneration',book:'osh',trigger:'Passive',adr:true,desc:'Lose 1 less Grit whenever you would lose 3+. Spend 1 Adrenaline to recover 3 Grit or remove Tired/Hurt.'},
+  {name:'Shrinkage',book:'osh',trigger:'Full Turn',adr:true,desc:'Shrink to ant-size as a Full Turn. Spend 1 Adrenaline to shrink instantly or enlarge instantly with +1 and Free Re-roll.'},
+  {name:'Sonic Boom',book:'osh',trigger:'Passive',desc:'Gain the Sonic Wave super-weapon (Energy, Impact). Take twice to add Maximum Power.'},
+  {name:'Speak with Animals',book:'osh',trigger:'Passive',adr:true,desc:'Speak with all animals. Spend 1 Adrenaline to call nearby animals to Help.'},
+  {name:'Super Senses',book:'osh',trigger:'Passive',adr:true,desc:'Free Re-roll for all Reaction Rolls in combat and for sensing danger. Spend 1 Adrenaline to repeat a failed Detect/Awareness.'},
+  {name:'Super-Ride',book:'osh',trigger:'Passive',adr:true,desc:'A super-ride at your beck and call; Free Re-roll to drive it. Spend 1 Adrenaline as a Quick Action to recall it.'},
+  {name:'Team Leader',book:'osh',trigger:'Passive',desc:'Free Re-roll to inspire and coordinate, and to remove Like a Fool and Defeated. Starting Teamwork 2 when Heroes assemble.'},
+  {name:'Trained Fighter',book:'osh',trigger:'Passive',desc:'Choose one fighting style or melee weapon. Free Re-roll for Action and Reaction Rolls with it.'},
+  {name:'Transformation',book:'osh',trigger:'Full Turn',adr:true,desc:'Human form (no Superpower/tied Feats) and powered form. Spend 1 Adrenaline to transform as a Quick Action and recover all Grit.'},
+  {name:'Unlimited Funds',book:'osh',trigger:'Passive',desc:'At creation, spend 10$ on gear (instead of 4) and start with 5$. Once per Session, access an exclusive service.',creationEffects:{cashOverride:5}},
+  {name:'Unstoppable Force',book:'osh',trigger:'Quick Action',adr:true,desc:'Spend 1 Adrenaline for +1 to your next Action Roll in combat; on a hit, the Enemy loses 1 extra Grit.'},
+  {name:'Wall-Climber',book:'osh',trigger:'Passive',desc:'Climb any surface; Free Re-roll for all climbing rolls.'}
+];
+const SUPERPOWERS_OSH=[
+  {id:'hyper_armor',name:'Hyper-technological Armor',book:'osh',roleIds:['armored'],
+   desc:'Suit makes Brawn 3, ignores Hurt penalties, grants Flight and space/underwater breathing, with Energy Beam. Recall (Quick Action): spend 1 Adrenaline to summon the armor onto your body.'},
+  {id:'natural_predator',name:'Natural Predator',book:'osh',roleIds:['beast'],
+   desc:'Free Re-roll to Awareness/tracking. Claws super-weapon (Melee, Sharp, +1) plus Acrobat, Wall-Climber, or Bulletproof.'},
+  {id:'elemental_control',name:'Elemental Control',book:'osh',roleIds:['elemental'],
+   desc:'Master one element. Immune to your element. Elemental Ray super-weapon. 1 Adrenaline: Elemental Form (fly + Free Re-roll).',
+   variants:[
+     {id:'water',name:'Water',desc:'Push things, break barriers, douse fires.'},
+     {id:'electricity',name:'Electricity',desc:'Destroy obstacles and fry tech.'},
+     {id:'fire',name:'Fire',desc:'Burn wood/fabric, intimidate, repel enemies.'},
+     {id:'ice',name:'Ice',desc:'Freeze, slick surfaces, raise ice barriers.'},
+     {id:'storm',name:'Storm',desc:'Control weather and call lightning.'},
+     {id:'earth',name:'Earth',desc:'Raise platforms and walls.'},
+     {id:'wind',name:'Wind',desc:'Push objects and people; smother flames.'}
+   ]},
+  {id:'enhanced_body',name:'Enhanced Body',book:'osh',roleIds:['champion'],
+   desc:'Free Re-roll to all Brawn rolls; Trained Fighter free. Once per Scene, gain 1 Adrenaline on losing 3+ Grit.'},
+  {id:'force_control',name:'Force Control',book:'osh',roleIds:['force_master'],
+   desc:'Telekinetically move objects, raise Partial-Cover shields, or command metals. Focus+Cool with Free Re-roll.',
+   variants:[
+     {id:'cosmic',name:'Cosmic Force',desc:'Invisible energy: flying platforms, telekinesis, Partial-Cover shields.'},
+     {id:'electromagnetic',name:'Electromagnetic Force',desc:'Control ferromagnetic metals at will.'}
+   ]},
+  {id:'incredible_strength',name:'Incredible Strength',book:'osh',roleIds:['tank'],
+   desc:'+1 Force/Endure; ignore -1 Brawn penalties unless Powerless. Smash! destroys an object or grants +2.'},
+  {id:'kinetic_energy',name:'Kinetic Energy',book:'osh',roleIds:['blaster'],
+   desc:'Kinetic Ray super-weapon (Energy, Maximum Power, Impact) with +1 and Free Re-roll. Explosive Force grants Explosive temporarily.'},
+  {id:'mind_powers',name:'Mind Powers',book:'osh',roleIds:['psychic'],
+   desc:'Telepathy, telekinesis, illusions. Focus+Endure with Free Re-roll. 1 Adrenaline: Whisper to persuade or confuse.'},
+  {id:'shapeshift',name:'Shapeshift',book:'osh',roleIds:['shapeshifter'],
+   desc:'Choose one shapeshifter type. Transforming normally takes a Full Turn. Quick-Change as a Quick Action.',
+   variants:[
+     {id:'humanoid',name:'Humanoid',desc:'Become any humanoid; voice and look change.'},
+     {id:'animal',name:'Animal',desc:'Become any animal.'},
+     {id:'elastic',name:'Elastic',desc:'Stretch and squish; +1 Quick Action per Turn; grow large with a Full Turn.'}
+   ]},
+  {id:'super_speed',name:'Super-Speed',book:'osh',roleIds:['speedster'],
+   desc:'Free Re-roll to run; +2 to chase/flee/grab-first. +1 Quick Action per Turn. In a Flash! (1 Adrenaline) once per Turn.'},
+  {id:'teleportation',name:'Teleportation',book:'osh',roleIds:['teleporter'],
+   desc:'Teleport line-of-sight. Full Turn for global familiar locations. 1 Adrenaline: Round Trip / Group Teleport.'},
+  {id:'arcane_powers',name:'Arcane Powers',book:'osh',roleIds:['sorcerer'],
+   desc:'Start with 2 Adrenaline. Illusions, summons, telekinetic hands. Smooth+Leadership with Free Re-roll. Magical Weapon or Arcane Missile. Astral Projection (Full Turn): spend 1 Adrenaline to project an intangible body of light.'},
+  {id:'dark_presence',name:'Dark Presence',book:'osh',roleIds:['shadow'],
+   desc:'Free Re-roll to all Crime rolls; +1 to ambush. Vanish (1 Adrenaline): hide, escape, reach cover.'},
+  {id:'battleborn',name:'Battleborn',book:'osh',roleIds:['weaponmaster'],
+   desc:'Choose Guns, Bows, or Melee. Free Re-roll using it, plus bonus weapons (2 Guns / 1 Bow + 24 arrows / Perfect melee).'},
+  {id:'invincible',name:'Invincible',book:'osh',roleIds:['marvel'],
+   desc:'Marvel only. Free Re-roll all Brawn. Free: Flight, Energy Manipulation, Bulletproof, Only Weakness. +6 free Skill Points.'},
+  {id:'one_of_a_kind',name:'One of a Kind',book:'osh',roleIds:['prodigy'],
+   desc:'Prodigy only. Choose 1 Superpower and 1 Feat (or 2 Feats) from anything available. +2 free Skill Points.'},
+  {id:'specialty',name:'Specialty',book:'osh',roleIds:['maverick'],
+   desc:'No flashy powers — pick an extra Feat of any kind. Start with 2 Spotlights. Underdog: repeat any roll ignoring all Conditions except Powerless.'}
+];
+const OSH_CONDITIONS=[
+  {id:'Powerless',label:'Powerless',penalty:'Cannot spend Power or use Superpower/tied Feats'},
+  {id:'Exhausted',label:'Exhausted',penalty:'Cannot gain or spend Power; no super-weapons'},
+  {id:'Defeated',label:'Defeated',penalty:'-1 to withstand pain/fear and to encourage others'},
+  {id:'Blocked',label:'Blocked',penalty:'-1 to move your body; -3 to walk or run'}
+];
+const ENEMY_TEMPLATES_OSH=[
+  {name:'Street Thugs',book:'osh',template:'Goons 1',atk:'Basic',def:'Basic',grit:3,hotBoxes:[],featPts:0,feats:[],specialActions:[]},
+  {name:'Armed Criminals',book:'osh',template:'Goons 2',atk:'2× Basic',def:'Basic',grit:4,hotBoxes:[],featPts:2,feats:['Warrior'],specialActions:[]},
+  {name:'Slippery Lowlife',book:'osh',template:'Bad Guys 1',atk:'Critical',def:'Basic',grit:5,hotBoxes:[],featPts:4,feats:['Teleporter','Wall-Climber'],specialActions:[]},
+  {name:'Elemental Menace',book:'osh',template:'Bad Guys 2',atk:'Critical',def:'Critical',grit:6,hotBoxes:[6],featPts:2,feats:['Elemental','Flying'],specialActions:[]},
+  {name:'Angry Telekinetic',book:'osh',template:'Bad Guys 2',atk:'Critical',def:'Critical',grit:6,hotBoxes:[6],featPts:6,feats:['Mind Reader','Shapeshifter','Telekinetic'],specialActions:['Seize','Counter']},
+  {name:'Beast Warrior',book:'osh',template:'Bad Guys 2',atk:'Critical',def:'Critical',grit:7,hotBoxes:[4,7],featPts:5,feats:['Regeneration','Warrior'],specialActions:['Foul Play']},
+  {name:'Soldiers with Laser Rifles',book:'osh',template:'Bad Guys 2',atk:'Critical',def:'Critical',grit:6,hotBoxes:[6],featPts:1,feats:['Energy Shots'],specialActions:[]},
+  {name:'Out of Control Robots',book:'osh',template:'Bad Guys 3',atk:'Critical',def:'Critical',grit:7,hotBoxes:[4,7],featPts:4,feats:['Energy Shots','Flying','Indestructible'],specialActions:['Disarm']},
+  {name:'Dependable Blaster',book:'osh',template:'Bad Guys 3',atk:'2× Critical',def:'Critical',grit:7,hotBoxes:[7],featPts:3,feats:['Energy Shots','Sniper'],specialActions:['Foul Play']},
+  {name:'Hyper-Tech Soldiers',book:'osh',template:'Bad Guys 3',atk:'2× Critical',def:'Critical',grit:8,hotBoxes:[4,8],featPts:3,feats:['Energy Shots','Indestructible'],specialActions:['Seize','Counter']},
+  {name:'Evil Sorcerers',book:'osh',template:'Bad Guys 4',atk:'2× Critical',def:'Critical',grit:8,hotBoxes:[4,8],featPts:4,feats:['Elemental','Energy Shots','Sorcerer','Wall-Climber'],specialActions:['Fury','Interfere']},
+  {name:'Big Guy with an Axe',book:'osh',template:'Bad Guys 4',atk:'2× Critical',def:'Critical',grit:9,hotBoxes:[5,9],featPts:5,feats:['Super-Strength','Warrior'],specialActions:['Foul Play','Counter']},
+  {name:'Giant Robot',book:'osh',template:'Boss 1',atk:'Extreme',def:'Critical',grit:10,hotBoxes:[5,10],featPts:6,feats:['Energy Shots','Giant','Indestructible'],specialActions:['Fury','Secret Weapon']},
+  {name:'Elusive Speedster',book:'osh',template:'Boss 2',atk:'Critical',def:'Extreme',grit:8,hotBoxes:[4,8],featPts:5,feats:['Super-Speed','Wall-Climber'],specialActions:['Disengage','Butt In']},
+  {name:'Multidimensional Squid',book:'osh',template:'Boss 2',atk:'Critical',def:'Extreme',grit:10,hotBoxes:[5,10],featPts:6,feats:['Giant','Tentacles'],specialActions:['Seize','Counter']},
+  {name:'Army of Angry Aliens',book:'osh',template:'Boss 3',atk:'2× Critical',def:'Extreme',grit:12,hotBoxes:[4,8,12],featPts:6,feats:['Numbers Advantage','Wall-Climber','Warrior'],specialActions:['Fury','Power Explosion']},
+  {name:'Insane Titan',book:'osh',template:'Boss 4',atk:'Extreme',def:'Extreme',grit:14,hotBoxes:[5,10,14],featPts:5,feats:['Indestructible','Super-Strength'],specialActions:['Invulnerability','Take Down']},
+  {name:'Fallen Hero',book:'osh',template:'Boss 5',atk:'Extreme',def:'Extreme',grit:16,hotBoxes:[4,8,12,16],featPts:7,feats:['Energy Shots','Flying','Super-Strength'],specialActions:['Counter','Interrupt','Power Explosion']},
+  {name:'Omega Threat',book:'osh',template:'Boss 5',atk:'Extreme',def:'Extreme',grit:20,hotBoxes:[5,10,15,20],featPts:9,feats:['Omega Threat'],specialActions:['Invulnerability','Deflect','Power Explosion']},
+  {name:'Power-Mirror Doppelganger',book:'osh',template:'Boss 4',atk:'Extreme',def:'Critical',grit:12,hotBoxes:[4,8,12],featPts:6,feats:['Power-Mirror'],specialActions:['Counter','Secret Weapon']},
+  {name:'Telekinetic Tyrant',book:'osh',template:'Boss 3',atk:'Extreme',def:'Critical',grit:12,hotBoxes:[6,12],featPts:5,feats:['Mind Reader','Telekinetic','Sorcerer'],specialActions:['Seize','Interfere']}
+];
+const ENEMY_FEATS_OSH=[
+  {name:'Elemental',book:'osh',cost:1,desc:'Immune to own element. Heroes failing a Basic Reaction suffer an elemental Condition (Distracted/Hurt/Blocked/Scared).'},
+  {name:'Energy Shots',book:'osh',cost:1,desc:'Bulletproof gives no benefit. Heroes failing a Basic Reaction become Tired; if already Tired, lose 1 extra Grit.'},
+  {name:'Flying',book:'osh',cost:1,desc:'The Enemy can fly and hover. Heroes without Flight cannot reach melee while the Enemy flies.'},
+  {name:'Sea Dweller',book:'osh',cost:1,desc:'In water, Heroes get no Free Re-rolls. Lord of the Seas ignores this Feat.'},
+  {name:'Sorcerer (Enemy)',book:'osh',cost:1,desc:'Summons magical weapons. Once per combat, gains the effect of one Feat (not Power-Mirror/Omega).'},
+  {name:'Wall-Climber (Enemy)',book:'osh',cost:1,desc:'After a Hero misses, the Enemy climbs out of reach; only Flight or Wall-Climber Heroes can reach melee.'},
+  {name:'Indestructible',book:'osh',cost:2,desc:'Heroes attacking suffer -1. Explosive, Maximum Power, or Perfect ignore this Feat.'},
+  {name:'Mind Reader',book:'osh',cost:2,desc:'Heroes suffer -1 unless attacking by surprise/from behind. Mind Powers or Psychic Helmet ignore this.'},
+  {name:'Miniature',book:'osh',cost:2,desc:'Hides easily. Ranged attacks suffer -1 unless Heroes have Bullseye.'},
+  {name:'Numbers Advantage',book:'osh',cost:2,desc:'When losing Grit, flip: Heads, lose 1 less Grit. May stack.'},
+  {name:'Shapeshifter',book:'osh',cost:2,desc:'Once per Reaction, takes a Hero’s appearance. Failure to spot it: hit a friend for 3 Grit.'},
+  {name:'Sniper',book:'osh',cost:2,desc:'No Free Re-rolls or Partial Cover bonus against this Enemy’s ranged attacks. Take twice for additional -1.'},
+  {name:'Telekinetic',book:'osh',cost:2,desc:'Once per Action Turn, move a ride/cover, fetch unheld items, or disarm a Hero.'},
+  {name:'Warrior',book:'osh',cost:2,desc:'Heroes without a Melee Weapon or shield suffer -1 to defend.'},
+  {name:'Giant',book:'osh',cost:3,desc:'Destroys barriers/cover. Without Explosive or Maximum Power, Heroes need Help to land hits.'},
+  {name:'Regeneration (Enemy)',book:'osh',cost:3,desc:'Start of Reaction, flip: Heads, recover 1 Grit. Once per combat, ignore all damage from one attack.'},
+  {name:'Super-Speed (Enemy)',book:'osh',cost:3,desc:'Heroes suffer -1 to Nerves rolls vs the Enemy. Director may impose -1 to a Hero’s ranged attack.'},
+  {name:'Super-Strength',book:'osh',cost:3,desc:'Heroes suffer -1 to all Brawn rolls. Incredible Strength does not bypass.'},
+  {name:'Teleporter (Enemy)',book:'osh',cost:3,desc:'Heroes suffer -1 to all Crime rolls. Director may impose -1 to a melee attack against the Enemy.'},
+  {name:'Tentacles',book:'osh',cost:3,desc:'A Hero must distract the tentacles each Turn or attacks suffer -2.'},
+  {name:'Power-Mirror (Enemy)',book:'osh',cost:6,desc:'Copy another character’s power, gaining new Feats (never new Grit). Cannot reuse until next Turn.'},
+  {name:'Omega Threat',book:'osh',cost:9,desc:'A perfect being. Fly, breathe anywhere, break any material but Duramantium. Hits suffer -3 unless the weakness is found.'}
+];
+const ENEMY_SPECIAL_ACTIONS_OSH=[
+  {name:'Stop',book:'osh',cost:1,desc:'The Enemy throws away or pins a Hero, who loses their next Action Turn.'},
+  {name:'Foul Play (OSH)',book:'osh',cost:1,desc:'A Hero who fails a Critical Reaction becomes Tired (or Hurt if already Tired).'},
+  {name:'Disarm (OSH)',book:'osh',cost:1,desc:'The Enemy disarms the Hero who just hit them or sabotages their weapon.'},
+  {name:'Seize',book:'osh',cost:1,desc:'A Hero who fails a Critical Crime+Awareness becomes Blocked.'},
+  {name:'Disengage',book:'osh',cost:1,desc:'The Enemy breaks restraints or escapes; Heroes attacking in melee suffer -1 until end of Turn.'},
+  {name:'Collect Power',book:'osh',cost:1,desc:'The Director gains 1 Adrenaline to save for a higher-level Special Action later.'},
+  {name:'Invulnerability',book:'osh',cost:2,desc:'The next strike against the Enemy deals no Grit at all.'},
+  {name:'Fury',book:'osh',cost:2,desc:'All Heroes suffer -1 to rolls during a Reaction Turn.'},
+  {name:'Interfere',book:'osh',cost:2,desc:'Ends prolonged effects of a Superpower or Feat.'},
+  {name:'Counter (OSH)',book:'osh',cost:2,desc:'The next Hero who strikes also loses the same amount of Grit.'},
+  {name:'Butt In',book:'osh',cost:2,desc:'The next time a Hero spends 1 Adrenaline, they lose it without benefit (and the action it powered).'},
+  {name:'Deflect',book:'osh',cost:3,desc:'The next Hero attack is redirected at an ally, who loses 6 Grit.'},
+  {name:'Secret Weapon (OSH)',book:'osh',cost:3,desc:'The Enemy gains an Enemy Feat worth up to 3 FP.'},
+  {name:'Interrupt',book:'osh',cost:3,desc:'Heroes who haven’t acted lose their Turn; Reaction Turn starts immediately.'},
+  {name:'Deceit',book:'osh',cost:3,desc:'Once before end of combat, disregard a Hero’s roll and have them roll again.'},
+  {name:'Take Down',book:'osh',cost:3,desc:'A Hero must pass an Extreme Reaction or become Broken (Powerless if already Broken).'},
+  {name:'Power Explosion',book:'osh',cost:3,desc:'Fill in up to 10 Grit boxes across the Heroes, split as desired.'}
+];
+const VILLAIN_STRONG_SPOTS_OSH=[
+  {id:'incredible_powers',name:'Incredible Powers',desc:'Out-of-scale abilities. +3 Feat Points on the Enemy Sheet (needed for Omega Threat).'},
+  {id:'eternity_shard',name:'Eternity Shard',desc:'The Villain wields an Eternity Shard. May be chosen multiple times.'},
+  {id:'dangerous_secret',name:'Dangerous Secret',desc:'They know a terrible secret — a Hero’s identity, only weakness, or a key to the Mission.'},
+  {id:'unlimited_funding',name:'Unlimited Funding',desc:'Bottomless wealth; they can buy anything money can buy.'},
+  {id:'private_army',name:'Private Army',desc:'They lead a loyal private army or have paid off a mercenary force.'},
+  {id:'cutting_edge_tech',name:'Cutting-edge Tech',desc:'Sci-fi-grade technology; can build almost anything they imagine.'},
+  {id:'crime_lord',name:'Crime Lord',desc:'They run a major criminal organization or secret sect with informers everywhere.'},
+  {id:'judge_and_jury',name:'Judge and Jury',desc:'A powerful political figure with law-enforcement allies.'},
+  {id:'loyal_herald',name:'Loyal Herald',desc:'A right hand acting as a separate Enemy with +1 FP; only defeated in a Crisis or Endgame Shot.'}
+];
+
+// Aliases used by the OSH-aware rendering code below. OSH is the only book
+// that contributes Origins / Superpowers / Villain Strong Spots today, so the
+// canonical arrays are the OSH ones. Future books can append via these.
+const ORIGINS=[...ORIGINS_OSH];
+const SUPERPOWERS=[...SUPERPOWERS_OSH];
+const VILLAIN_STRONG_SPOTS=[...VILLAIN_STRONG_SPOTS_OSH];
+
 // Registry of all books/expansions. Add a new entry here when importing new content.
 // game: which game ID must be enabled for this book's content to appear.
 const BOOK_META={
-  core:    {label:'Outgunned Core',   badge:'badge-core',    game:'core'},
-  wok:     {label:'World of Killers', badge:'badge-wok',     game:'wok'},
-  special: {label:'Special Roles',    badge:'badge-special', game:'wok'},
+  core: {
+    label:'Outgunned Core', badge:'badge-core', game:'core',
+    selectable:true, shortCode:'Core',
+    description:'Classic action-movie heroes. Chases (Need for Speed). Adrenaline + Spotlight resources.',
+    terms:{},
+    conditions:null,           // null → use the canonical CONDITIONS array
+    sceneTypes:['chase'],
+  },
+  wok: {
+    label:'World of Killers', badge:'badge-wok', game:'wok',
+    selectable:true, shortCode:'WoK',
+    description:'Assassins & samurai. Gold currency, Trained Dogs, extra Conditions. Hunts.',
+    terms:{},
+    conditions:'WOK_CONDITIONS',
+    sceneTypes:['hunt'],
+  },
+  special: {
+    label:'Special Roles', badge:'badge-special', game:'wok',
+    selectable:false, shortCode:'Special',
+    terms:{},
+  },
+  osh: {
+    label:'Outgunned Superheroes', badge:'badge-osh', game:'osh',
+    selectable:true, shortCode:'OSH',
+    description:'17 Roles, 21 Tropes, 10 Origins, 17 Superpowers. Power (= Adrenaline if core). Heat, Villain dashboard, Assemble scenes, Time-Outs, Eternity Shards.',
+    // Terminology overrides — when this book is the core, displayed text gets these word-boundary swaps.
+    terms:{Adrenaline:'Power', adrenaline:'power', Adr:'Pow'},
+    conditions:'OSH_CONDITIONS',
+    sceneTypes:['assemble','timeout','heat','villain','shards'],
+  },
 };
+
+// Selectable books that appear as core options on the new-game screen, in order.
+function selectableBooks(){return Object.keys(BOOK_META).filter(b=>BOOK_META[b].selectable);}
 function bookBadge(book){return BOOK_META[book]?.badge||'badge-core';}
 function bookLabel(book){return BOOK_META[book]?.label||book;}
+function bookShort(book){return BOOK_META[book]?.shortCode||(book||'').toUpperCase();}
 function bookGame(book){return BOOK_META[book]?.game||book;}
-function bookEnabled(book,games){return (games||['core']).includes(bookGame(book));}
+// Legacy: kept for any old callsites; routes through bookHas. `games` arg ignored.
+function bookEnabled(book){return bookHas(book,'roles');}
+
+// Resolve a single mechanic name. Use this for UI labels.
+//   term('Adrenaline') → 'Power' under OSH-core, 'Adrenaline' otherwise.
+function term(key){
+  const t=BOOK_META[getCoreBook()]?.terms||{};
+  return t[key]||key;
+}
+// Apply all terminology swaps from the active core book to a string.
+// Use this when rendering free-form text (feat/enemy/superpower/origin descriptions).
+// Substitution is word-boundary so 'Adrenaline' swaps but 'Powerless' / 'Power Tier' stay intact.
+function termSubst(text){
+  if(text==null)return text;
+  const t=BOOK_META[getCoreBook()]?.terms||{};
+  const keys=Object.keys(t);
+  if(!keys.length)return text;
+  let out=String(text);
+  keys.forEach(k=>{
+    let esc='';
+    for(let i=0;i<k.length;i++){const c=k.charAt(i);esc+=(/[a-zA-Z0-9]/.test(c)?c:'\\'+c);}
+    out=out.replace(new RegExp('\\b'+esc+'\\b','g'),t[k]);
+  });
+  return out;
+}
+// Legacy alias for the Adrenaline label.
+function adrenalineName(){return term('Adrenaline');}
+
+// Returns the list of books a content entry belongs to. Supports two shapes:
+//   {book:'core'}             → ['core']
+//   {books:['core','osh']}    → ['core','osh']   (entry exists in both books)
+// If neither is set, returns an empty array.
+function entryBooks(entry){
+  if(!entry)return [];
+  if(Array.isArray(entry.books)&&entry.books.length)return entry.books;
+  if(entry.book)return [entry.book];
+  return [];
+}
+// Is this entry (feat / enemy feat / SA / etc.) currently available under any
+// of the books that contribute the given category? Single source of truth for
+// "should this card show up in the picker?"
+function entryInScope(entry,category){
+  const books=entryBooks(entry);
+  if(!books.length)return true;
+  return books.some(b=>bookHas(b,category));
+}
+// Convenience alias
+function featInScope(f,category){return entryInScope(f,category||'feats');}
+// Render small badges for each of an entry's books except 'core' (which is the default).
+// Multi-book feats display all of their non-core tags so players know the feat counts
+// against either book's catalog.
+function entryBadgesHtml(entry){
+  const books=entryBooks(entry).filter(b=>b!=='core');
+  if(!books.length)return '';
+  return books.map(b=>`<span class="badge ${bookBadge(b)}">${bookLabel(b)}</span>`).join('');
+}
+
+// Detect whether an entry has a "Spend N Adrenaline" / "Spend Adrenaline equal" cost
+// somewhere in its description, or carries an explicit `adr:true` flag. Used by feat
+// and superpower renderers to surface an at-a-glance "Spends Power/Adrenaline" badge.
+// Future expansions automatically inherit detection as long as their canonical descriptions
+// use the word "Adrenaline" (the substitution swaps display labels per core book).
+function hasAdrCost(entry){
+  if(!entry)return false;
+  if(entry.adr===true)return true;
+  const d=entry.desc;if(!d)return false;
+  // The rulebook uses several phrasings for an Adrenaline-spending activated ability:
+  //   "Spend 1 Adrenaline to …"     — feats
+  //   "Spend Adrenaline equal to …" — scaled (Foresight)
+  //   "1 Adrenaline: Effect"        — colon-led shorthand (Mind Powers, Teleportation)
+  //   "(1 Adrenaline)"              — parenthetical inline (Super-Speed In a Flash!)
+  // We deliberately ignore non-spend mentions like "Start with 2 Adrenaline" or
+  // "Recover Adrenaline" so passive gains don't get flagged.
+  return /\bspend(?:s)?\s+(?:\d+\s+)?adrenaline\b/i.test(d) ||
+         /\b\d+\s+adrenaline\s*:/i.test(d) ||
+         /\(\d+\s*adrenaline\)/i.test(d);
+}
+// Small chip rendered next to a feat/superpower header when it has an activated
+// resource cost. Auto-displays "Power" vs "Adrenaline" via the active term map.
+function adrCostChip(){
+  return `<span class="adr-cost">⚡ Spends ${term('Adrenaline')}</span>`;
+}
 
 const ROLES=[
   {id:'commando',name:'Commando',book:'core',attr:'BRAWN',
@@ -758,7 +1253,8 @@ const ROLES=[
    desc:'Hidden blades in the shadows. Moves across rooftops like a cat. Strikes without warning, then vanishes.',
    skills:['Endure','Fight','Force','Stunt','Cool','Drive','Shoot','Leadership','Detect','Fix','Heal','Awareness','Dexterity','Stealth'],
    feats:['Always Prepared','Ambush','Bad Name','Counter','Expedient','Feint','Knife Thrower','Leap','Parkour','Pickpocket','Shadow','Vanish'],
-   gear:'Concealed Blade',isSpecial:true,freeSkillPts:6,featChoices:3,attrBonuses:['BRAWN','CRIME']}
+   gear:'Concealed Blade',isSpecial:true,freeSkillPts:6,featChoices:3,attrBonuses:['BRAWN','CRIME']},
+  ...ROLES_OSH
 ];
 
 const TROPES=[
@@ -869,7 +1365,8 @@ const TROPES=[
   {id:'saint',name:'Saint',book:'wok',attrs:['FOCUS','SMOOTH'],
    desc:"Calm, poised, tranquil. You quote scripture from memory. But behind this front hides a warrior.",
    skills:['Cool','Drive','Shoot','Leadership','Speech','Style','Heal','Know'],
-   feats:['Determination','Gun Fu','Pep Talk','Silver Tongue']}
+   feats:['Determination','Gun Fu','Pep Talk','Silver Tongue']},
+  ...TROPES_OSH
 ];
 
 const FEATS=[
@@ -882,15 +1379,15 @@ const FEATS=[
   {name:'Combo',book:'core',trigger:'Passive',adr:true,desc:'After hitting an Enemy, spend 1 Adrenaline to deal 1 additional Grit. Repeatable.'},
   {name:'Counter',book:'core',trigger:'Passive',desc:'React against an Enemy by rolling Brawn+Fight instead of the required Skill. Ignore all -1s from Conditions.'},
   {name:'Crazy Stunt',book:'core',trigger:'Full Turn',desc:'Destroy your ride and flip a coin. Heads: Director fills 1 Need box. Tails: Director fills 5 Need boxes.'},
-  {name:'Detective',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll when looking for clues, following trails, or searching a room.'},
+  {name:'Detective',book:'core',books:['core','osh'],trigger:'Passive',desc:'Gain a Free Re-roll when looking for clues, following trails, or searching a room.'},
   {name:'Flying Kick',book:'core',trigger:'Passive',desc:'Attack an Enemy at Close/Medium Range with +1. Always attack at Close Range bare-handed without spending Adrenaline.'},
   {name:'Full Throttle!',book:'core',trigger:'Passive',desc:'Ignore penalties from the Nervous Condition and Top Speed when driving. Once per chase, gain 1 Adrenaline at Top Speed.'},
   {name:'Get Down!',book:'core',trigger:'Full Turn',desc:'You and another Hero quickly dodge bullets or avoid being run over — no roll needed.'},
   {name:'Gunslinger',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll when using, repairing, evaluating, or handling a pistol or revolver.'},
-  {name:'Hacker',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll for all rolls about computers, hacking a system, or bypassing IT security.'},
-  {name:'Hard to Kill',book:'core',trigger:'Passive',desc:'When you fill in your Bad Box, gain 1 Adrenaline and +1 to your next roll.'},
+  {name:'Hacker',book:'core',books:['core','osh'],trigger:'Passive',desc:'Gain a Free Re-roll for all rolls about computers, hacking a system, or bypassing IT security.'},
+  {name:'Hard to Kill',book:'core',books:['core','osh'],trigger:'Passive',desc:'When you fill in your Bad Box, gain 1 Adrenaline and +1 to your next roll.'},
   {name:'Head on a Swivel',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll when preempting dangers or ambushes, or trying to locate lurking enemies.'},
-  {name:'Heartbreaker',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll when seducing or making a good impression on others.'},
+  {name:'Heartbreaker',book:'core',books:['core','osh'],trigger:'Passive',desc:'Gain a Free Re-roll when seducing or making a good impression on others.'},
   {name:'High Culture',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll for all rolls to recall information about general culture, literature, history, and geography.'},
   {name:'Hunter',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll to follow or hunt an animal, find your bearings, or hide in the wilds.'},
   {name:'Intimidation',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll when intimidating or interrogating somebody.'},
@@ -910,13 +1407,13 @@ const FEATS=[
   {name:'Pep Talk',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll when inspiring or coordinating others.'},
   {name:'Physician',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll for all rolls to find a diagnosis, operate on someone, or remove physical Conditions.'},
   {name:'Pickpocket',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll when stealing something from somebody.'},
-  {name:'Proven Driver',book:'core',trigger:'Passive',desc:'Choose one type of ride. Gain a Free Re-roll when driving, repairing, or evaluating rides of your chosen type.'},
+  {name:'Proven Driver',book:'core',books:['core','osh'],trigger:'Passive',desc:'Choose one type of ride. Gain a Free Re-roll when driving, repairing, or evaluating rides of your chosen type.'},
   {name:'Punch Reload',book:'core',trigger:'Quick Action',desc:'Once per combat, after failing a Reaction Roll against an Enemy, stand back up and gain 1 Adrenaline.'},
   {name:'Reporter',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll for all rolls to interview people, gain information, and find contacts.'},
   {name:'Scientist',book:'core',trigger:'Passive',desc:'Choose a STEM discipline. Gain a Free Re-roll for all rolls regarding your chosen discipline.'},
   {name:'Selfless',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll when defending or saving others, or when acting selflessly.'},
   {name:'Shadow',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll when hiding, sneaking, or tailing someone.'},
-  {name:'Silver Tongue',book:'core',trigger:'Passive',desc:'Gain a Free Re-roll for all rolls to lie, persuade others, find a compromise, or bargain.'},
+  {name:'Silver Tongue',book:'core',books:['core','osh'],trigger:'Passive',desc:'Gain a Free Re-roll for all rolls to lie, persuade others, find a compromise, or bargain.'},
   {name:'Spinout',book:'core',trigger:'Full Turn',desc:'All Heroes on your ride skip their Reaction Turn during a Chase. Flip a coin: Heads -1 Speed, Tails +1 Speed.'},
   {name:"That's All?",book:'core',trigger:'Passive',desc:'Gain a Free Re-roll for all rolls to show courage, withstand pain, and resist threats or interrogations.'},
   {name:'Too Young to Die',book:'core',trigger:'Passive',desc:'When filling in the Bad Box, you suffer no Condition. Only available to Young Heroes.'},
@@ -941,7 +1438,8 @@ const FEATS=[
   {name:'Sniffer',book:'wok',trigger:'Passive',desc:"Free Re-roll to follow a trail or locate an ambush with your Trained Dog. Quick Action: Find Enemy's Weak Spot."},
   {name:'Sword Fighter',book:'wok',trigger:'Passive',desc:'Gain a Free Re-roll when using, repairing, evaluating, or handling a sword or another melee weapon.'},
   {name:'Vanish',book:'wok',trigger:'Quick Action',adr:true,desc:'Leave a dangerous situation or abandon a chase/combat without rolling. Spend 1 extra Adrenaline to reappear within Medium Range.'},
-  {name:'Whirlwind',book:'wok',trigger:'Passive',desc:'Requires Sword Fighter. After striking an Enemy with a melee weapon, make a second Action Roll at -1 (no Free Re-roll).'}
+  {name:'Whirlwind',book:'wok',trigger:'Passive',desc:'Requires Sword Fighter. After striking an Enemy with a melee weapon, make a second Action Roll at -1 (no Free Re-roll).'},
+  ...FEATS_OSH
 ];
 
 const ENEMY_TEMPLATES={
@@ -987,7 +1485,8 @@ const ENEMY_TEMPLATES={
      feats:['Poisoned Weapons','Samurai'],specialActions:['Counter','Disarm','Final Move','Parry','Weak Spot']},
     {name:'Baba Yaga',book:'wok',template:'Boss 5',atk:'Extreme',def:'Extreme',grit:20,hotBoxes:[5,10,15,20],featPts:5,
      feats:['Bulletproof Suit','Piercing Bullets','Tactics'],specialActions:['Counter','Disarm','I Don\'t Think So!','Parry','Weak Spot','You\'re Coming With Me']},
-  ]
+  ],
+  osh: ENEMY_TEMPLATES_OSH
 };
 
 const ENEMY_FEATS=[
@@ -1023,6 +1522,7 @@ const ENEMY_FEATS=[
   // 3-pt WoK
   {name:'Poisoned Weapons',book:'wok',cost:3,desc:'Heroes who fail a Basic Success during their Reaction Turn become Poisoned. If already Poisoned, lose 1 additional Grit. Trained Dogs lose 2 Grit instead of 1.'},
   {name:'Grapplers',book:'wok',cost:3,desc:'Heroes in Melee trying to move must pass a Critical Action Roll in Brawn+Dexterity or suffer -1 to their next Reaction Roll.'},
+  ...ENEMY_FEATS_OSH
 ];
 
 const ENEMY_SPECIAL_ACTIONS=[
@@ -1058,6 +1558,7 @@ const ENEMY_SPECIAL_ACTIONS=[
   // 3-Adr WoK
   {name:'Combat Drugs',book:'wok',cost:3,desc:'Enemy recovers 2 Grit, gains 1 Adrenaline, becomes immune to persuasion/intimidation, and gains Walking Hazard and Relentless.'},
   {name:"You're Coming With Me",book:'wok',cost:3,desc:"After the last Grit box is filled, if the Hero fails an Extreme Reaction Roll, they immediately spin the Death Roulette."},
+  ...ENEMY_SPECIAL_ACTIONS_OSH
 ];
 
 const CONDITIONS=[
@@ -1078,20 +1579,78 @@ const WOK_CONDITIONS=[
 // ============================================================
 // STATE
 // ============================================================
-function buildDefaultConditions(games){
-  const all=[...CONDITIONS,...((games||[]).includes('wok')?WOK_CONDITIONS:[])];
-  const obj={};all.forEach(c=>obj[c.id]=false);return obj;
+// === Game model helpers ===
+// Each book may contribute three categories of content:
+//   'roles'  → Roles, Tropes, and book-tagged Conditions
+//   'feats'  → Hero Feats (and book-tagged Enemy Feats / Special Actions)
+//   'scenes' → Director scene types (Chase, Hunt, Assemble), enemy archetypes,
+//              and book-level dashboards (Heat, Villain, Shards, Time-Out)
+// The selected core book is always included for all three categories.
+const ALL_BOOKS=['core','wok','osh'];
+function getCtx(){return S.char||S.creation||{coreBook:'core',include:{}};}
+function getCoreBook(){return getCtx().coreBook||'core';}
+function getInclude(){return getCtx().include||{};}
+function bookHas(book,category){
+  // Resolve content book (e.g. 'special') to its game
+  const game=BOOK_META[book]?.game||book;
+  if(game===getCoreBook())return true;
+  return !!(getInclude()[game]?.[category]);
+}
+function isOSHCore(){return getCoreBook()==='osh';}
+// adrenalineName / term / termSubst are defined alongside BOOK_META above.
+
+// Maps a book's optional `conditions` registry-key (e.g. 'WOK_CONDITIONS') to its array.
+// Future books simply add an entry here. Returns [] if the book contributes no conditions.
+function conditionsForBook(book){
+  const key=BOOK_META[book]?.conditions;
+  if(!key)return [];
+  const lookup={WOK_CONDITIONS:typeof WOK_CONDITIONS!=='undefined'?WOK_CONDITIONS:[],
+                OSH_CONDITIONS:typeof OSH_CONDITIONS!=='undefined'?OSH_CONDITIONS:[]};
+  return lookup[key]||[];
+}
+// Build the per-character condition flags from every book whose 'roles' content is active.
+function buildDefaultConditions(){
+  let all=[...CONDITIONS];
+  Object.keys(BOOK_META).forEach(b=>{
+    if(b===getCoreBook())return; // core conditions come from CONDITIONS itself
+    if(bookHas(b,'roles'))all=all.concat(conditionsForBook(b));
+  });
+  // Also include core book's own conditions if it has any registered (future-proof for non-Outgunned core)
+  const coreExtra=conditionsForBook(getCoreBook());
+  if(coreExtra.length)all=all.concat(coreExtra);
+  // De-dupe by id
+  const seen=new Set(),out=[];
+  all.forEach(c=>{if(!seen.has(c.id)){seen.add(c.id);out.push(c);}});
+  const obj={};out.forEach(c=>obj[c.id]=false);return obj;
+}
+// Build the per-creation 'include' map from every selectable, non-core book.
+function defaultInclude(){
+  const r={};
+  selectableBooks().forEach(b=>{if(b!=='core')r[b]={roles:false,feats:false,scenes:false};});
+  return r;
+}
+function defaultCreation(){
+  return {step:0,name:'',job:'',age:'Adult',catchphrase:'',flaw:'',roleId:null,tropeId:null,tropeAttr:null,freeSkills:{},roleFeatsSelected:[],tropeFeatsSelected:[],
+    coreBook:'core',include:defaultInclude(),
+    solo:false,soloAttr:null,soloSkills:{},
+    originId:null,superpowerVariants:{},powerTier:null,
+    tropeId2:null,tropeAttr2:null,tropeFeatsSelected2:[]};
 }
 function defaultState(){
   return {
     char:null,
-    creation:{step:0,name:'',job:'',age:'Adult',catchphrase:'',flaw:'',roleId:null,tropeId:null,tropeAttr:null,freeSkills:{},roleFeatsSelected:[],tropeFeatsSelected:[],games:['core'],solo:false,soloAttr:null,soloSkills:{}},
+    creation:defaultCreation(),
     npcs:[],
     activeEnemies:[],
     chase:{active:false,needMax:12,speed:1,filled:0,round:1,log:[]},
     hunt:{active:false,needMax:10,kill:1,filled:0,turn:1,target:'',log:[]},
+    assemble:{active:false,needMax:12,filled:0,teamwork:1,turn:1,countdown:0,powerBoxes:[],log:[]},
+    timeout:{active:false,actions:[]},
+    shards:{change:'',force:'',mind:'',space:'',spirit:'',time:''},
     dice:null,
-    notes:[]
+    notes:[],
+    heat:0,
+    villain:{name:'',evilPlan:'',strongSpots:[],weakSpots:'',herald:'',appt6:'',appt9:'',appt12:''}
   };
 }
 function toggleSolo(){
@@ -1100,18 +1659,38 @@ function toggleSolo(){
   renderCreationStep();
 }
 
-function toggleGame(book){
+function setCoreBook(book){
   const c=S.creation;
-  if(!c.games)c.games=['core'];
-  const idx=c.games.indexOf(book);
-  if(idx>=0)c.games.splice(idx,1);else c.games.push(book);
-  // Reset role/trope if their book is no longer enabled
+  c.coreBook=book;
+  if(!c.include)c.include=defaultInclude();
+  // Reset role/trope if their book is no longer the core or an included roles-book
   const role=ROLES.find(r=>r.id===c.roleId);
-  if(role&&!bookEnabled(role.book,c.games)){c.roleId=null;c.tropeId=null;c.tropeAttr=null;c.roleFeatsSelected=[];c.tropeFeatsSelected=[];}
+  if(role&&!bookHas(role.book,'roles')){c.roleId=null;c.tropeId=null;c.tropeAttr=null;c.roleFeatsSelected=[];c.tropeFeatsSelected=[];c.tropeId2=null;c.tropeAttr2=null;c.tropeFeatsSelected2=[];c.originId=null;c.superpowerVariants={};}
   const trope=TROPES.find(t=>t.id===c.tropeId);
-  if(trope&&!bookEnabled(trope.book,c.games)){c.tropeId=null;c.tropeAttr=null;c.tropeFeatsSelected=[];}
+  if(trope&&!bookHas(trope.book,'roles')){c.tropeId=null;c.tropeAttr=null;c.tropeFeatsSelected=[];}
+  if(book!=='osh'){
+    // If OSH is not core and not even an enabled add-on for roles, clear OSH-only fields
+    if(!bookHas('osh','roles')){c.originId=null;c.superpowerVariants={};c.powerTier=null;}
+  }
   renderCreationStep();
 }
+
+function toggleInclude(book,category){
+  const c=S.creation;
+  if(!c.include)c.include=defaultInclude();
+  if(!c.include[book])c.include[book]={roles:false,feats:false,scenes:false};
+  c.include[book][category]=!c.include[book][category];
+  // Re-validate role/trope if removing roles inclusion
+  if(category==='roles'){
+    const role=ROLES.find(r=>r.id===c.roleId);
+    if(role&&!bookHas(role.book,'roles')){c.roleId=null;c.tropeId=null;c.tropeAttr=null;c.roleFeatsSelected=[];c.tropeFeatsSelected=[];c.tropeId2=null;c.tropeAttr2=null;c.tropeFeatsSelected2=[];}
+    const trope=TROPES.find(t=>t.id===c.tropeId);
+    if(trope&&!bookHas(trope.book,'roles')){c.tropeId=null;c.tropeAttr=null;c.tropeFeatsSelected=[];}
+  }
+  renderCreationStep();
+}
+
+function setPowerTier(t){S.creation.powerTier=t;renderCreationStep();}
 
 let S=defaultState();
 let currentSlot=null;
@@ -1169,8 +1748,12 @@ function hudBroadcast(extra){
   try{
     if(!_hudChannel)_hudChannel=new BroadcastChannel('outgunned-hud');
     const ch=S.char;
+    const coreB=getCoreBook();
     _hudChannel.postMessage(Object.assign({
       type:'state',
+      // coreBook + terms: HUD applies these via its own termSubst() so future books inherit the swap for free.
+      coreBook:coreB,
+      terms:(BOOK_META[coreB]?.terms)||{},
       char:ch?{name:ch.name,grit:ch.grit,adrenaline:ch.adrenaline,deathBullets:ch.deathBullets,cash:ch.cash,gold:ch.gold,conditions:ch.conditions,attrs:ch.attrs,skills:ch.skills,rides:ch.rides||[],feats:ch.feats||[]}:null,
       creation:!ch?S.creation:null,
       enemies:S.activeEnemies||[],
@@ -1334,7 +1917,7 @@ body{background:#000;color:#fff;font-family:Arial,Helvetica,sans-serif;width:100
   <div class="char-name" id="cn"></div>
   <div class="lbl" style="margin-bottom:3px">Grit</div>
   <div class="grit-row" id="grit"></div>
-  <div class="lbl" style="margin-top:9px;margin-bottom:3px">Adrenaline</div>
+  <div class="lbl" style="margin-top:9px;margin-bottom:3px" id="adr-label">Adrenaline</div>
   <div class="adr-row" id="adr"></div>
 </div>
 <div class="panel" id="p-dice">
@@ -1381,6 +1964,21 @@ body{background:#000;color:#fff;font-family:Arial,Helvetica,sans-serif;width:100
 <script>
 var _stream=null,_rec=null,_chunks=[],_recStart=null,_recTick=null,_lastScene='';
 var _vis={stats:true,health:true,dice:true,scene:true,journal:true};
+// Active core book's term overrides. Populated from each state broadcast so future
+// expansions inherit label swaps (e.g. Adrenaline → Power) automatically.
+var _terms={};
+function hudTerm(k){return _terms[k]||k;}
+function hudTermSubst(text){
+  if(text==null)return text;
+  var keys=Object.keys(_terms);if(!keys.length)return text;
+  var out=String(text);
+  keys.forEach(function(k){
+    // Keys are short words (e.g. "Adrenaline"); no regex-meta chars expected, but escape defensively.
+    var esc='';for(var ci=0;ci<k.length;ci++){var c=k.charAt(ci);esc+=(/[a-zA-Z0-9]/.test(c)?c:'\\'+c);}
+    out=out.replace(new RegExp('\\b'+esc+'\\b','g'),_terms[k]);
+  });
+  return out;
+}
 var HUD_FEATS=[
   {name:'Always Prepared',trigger:'Quick Action',desc:'Take out or retrieve a useful item, a piece of information, or a small, easy-to-hide weapon.'},
   {name:'Archer',trigger:'Passive',desc:'Gain a Free Re-roll when using, repairing, evaluating, or handling a bow.'},
@@ -1548,6 +2146,10 @@ function applyState(d){
     document.getElementById('stats-content').innerHTML=html;
     sp2.style.display='block';
   }
+  // Update terminology context from the message and swap any visible static labels
+  if(d.terms)_terms=d.terms;
+  var adrLabelEl=document.getElementById('adr-label');
+  if(adrLabelEl)adrLabelEl.textContent=hudTerm('Adrenaline');
   // Health
   if(d.char){
     document.getElementById('cn').textContent=d.char.name||'';
@@ -1640,7 +2242,7 @@ function applyState(d){
     if(fd){
       document.getElementById('feat-trigger').textContent=fd.trigger;
       document.getElementById('feat-nm').textContent=fd.name;
-      document.getElementById('feat-desc').textContent=fd.desc;
+      document.getElementById('feat-desc').textContent=hudTermSubst(fd.desc);
       fp.style.display='block';
       // Hide stats while feat is shown to avoid overlap
       var sp3=document.getElementById('p-stats');if(sp3)sp3.style.display='none';
@@ -1730,11 +2332,13 @@ function renderCreationStep(){
   const c=S.creation;
   const role=ROLES.find(r=>r.id===c.roleId);
   const isSpecial=role?.isSpecial;
-  // Steps: 0=Games, 1=Info, 2=Role, 3=Trope(or Skills if special), 4=Skills(or Feats if special), 5=Feats[, 6=Solo if solo]
+  const prodigyHere=role?.tropeChoices===2;
+  const usesTropeHere=!isSpecial||prodigyHere;
+  // Steps: 0=Games, 1=Info, 2=Role, 3=Trope(or Skills if special-non-prodigy), 4=Skills(or Feats if special-non-prodigy), 5=Feats[, 6=Solo if solo]
   const soloStep=c.solo;
-  const baseCount=isSpecial?5:6;
+  const baseCount=usesTropeHere?6:5;
   const stepCount=soloStep?baseCount+1:baseCount;
-  const baseLabels=['Games','Info','Role',isSpecial?'Skills':'Trope',isSpecial?'Feats':'Skills','Feats'];
+  const baseLabels=usesTropeHere?['Games','Info','Role','Trope','Skills','Feats']:['Games','Info','Role','Skills','Feats'];
   const allLabels=soloStep?[...baseLabels.slice(0,baseCount),'Solo']:baseLabels.slice(0,baseCount);
 
   let dots='';
@@ -1749,12 +2353,14 @@ function renderCreationStep(){
   <div style="display:flex;gap:6px;margin-bottom:16px;justify-content:center;align-items:center">${dots}</div>`;
 
   const soloStepNum=baseCount; // index of solo step when present
+  const prodigy=role?.tropeChoices===2;
+  const usesTropeStep=!isSpecial||prodigy;
   if(c.step===0) html+=renderStepGames();
   else if(c.step===1) html+=renderStep0();
   else if(c.step===2) html+=renderStep1();
-  else if(c.step===3) html+=(isSpecial?renderStepSkills():renderStep2());
-  else if(c.step===4) html+=(isSpecial?renderStepFeats():renderStepSkills());
-  else if(c.step===5&&!isSpecial) html+=renderStepFeats();
+  else if(c.step===3) html+=(usesTropeHere?renderStep2():renderStepSkills());
+  else if(c.step===4) html+=(usesTropeHere?renderStepSkills():renderStepFeats());
+  else if(c.step===5&&usesTropeHere) html+=renderStepFeats();
   else if(c.step===soloStepNum&&soloStep) html+=renderStepSolo();
   else if(c.step===5&&isSpecial&&soloStep) html+=renderStepSolo();
 
@@ -1764,32 +2370,57 @@ function renderCreationStep(){
 
 function renderStepGames(){
   const c=S.creation;
-  const games=c.games||['core'];
-  const wokOn=games.includes('wok');
-  return `<div class="card">
-    <h2>Select Your Games</h2>
-    <div class="muted" style="margin-bottom:12px">Choose which Outgunned books to play with. This shapes your available Roles, Tropes, Feats, and Conditions.</div>
-    <div class="game-option always-on" style="display:flex;align-items:center;gap:10px">
-      <div class="game-check on">✓</div>
-      <div><div style="font-weight:700">Outgunned Core</div>
-      <div class="muted" style="font-size:11px">Classic action-movie heroes. Always included.</div></div>
-    </div>
-    <div class="game-option${wokOn?' selected':''}" onclick="toggleGame('wok')" style="display:flex;align-items:center;gap:10px">
-      <div class="game-check${wokOn?' on':''}">${wokOn?'✓':''}</div>
-      <div style="flex:1">
-        <div style="display:flex;align-items:center;gap:8px;font-weight:700">World of Killers <span class="badge badge-wok">WoK</span></div>
-        <div class="muted" style="font-size:11px">Assassins &amp; samurai, Gold currency, Trained Dogs, new Conditions, on-demand WoK enemies.</div>
+  if(!c.coreBook)c.coreBook='core';
+  if(!c.include)c.include=defaultInclude();
+  const core=c.coreBook;
+  const tier=c.powerTier||'street';
+  const bookCard=(id,label,badgeCls,desc)=>{
+    const isCore=core===id;
+    const inc=c.include[id]||{roles:false,feats:false,scenes:false};
+    const checks=isCore?'':`
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;padding-left:34px">
+        <span class="hc-chip${inc.roles?' on':''}" onclick="toggleInclude('${id}','roles')">${inc.roles?'✓':'○'} Roles &amp; Tropes</span>
+        <span class="hc-chip${inc.feats?' on':''}" onclick="toggleInclude('${id}','feats')">${inc.feats?'✓':'○'} Feats</span>
+        <span class="hc-chip${inc.scenes?' on':''}" onclick="toggleInclude('${id}','scenes')">${inc.scenes?'✓':'○'} Special Scenes</span>
+      </div>`;
+    return `<div class="game-option${isCore?' selected':''}" style="display:flex;flex-direction:column;gap:0;margin-top:4px;padding:10px">
+      <div onclick="setCoreBook('${id}')" style="display:flex;align-items:center;gap:10px;cursor:pointer">
+        <div class="game-check${isCore?' on':''}" style="border-radius:50%">${isCore?'●':''}</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px;font-weight:700">${label} <span class="badge ${badgeCls}">${bookShort(id)}</span> ${isCore?'<span style="font-size:10px;color:var(--accent);font-weight:700">CORE</span>':''}</div>
+          <div class="muted" style="font-size:11px">${desc}</div>
+        </div>
       </div>
-    </div>
-  </div>
-  <div class="game-option${c.solo?' selected':''}" onclick="toggleSolo()" style="display:flex;align-items:center;gap:10px;margin-top:4px">
+      ${checks}
+    </div>`;
+  };
+  let html=`<div class="card">
+    <h2>Select Your Games</h2>
+    <div class="muted" style="margin-bottom:12px">Pick <strong>one core</strong> (its rules drive the game) and optionally include content from the others. Roles &amp; Tropes, Feats, and Special Scenes can be toggled separately per book.</div>`;
+  // Iterate every selectable book registered in BOOK_META. New expansions appear automatically.
+  selectableBooks().forEach(id=>{
+    const meta=BOOK_META[id];
+    html+=bookCard(id,meta.label,meta.badge,meta.description||'');
+  });
+  if(core==='osh'){
+    html+=`<div class="card card-accent" style="margin-top:10px;padding:10px">
+      <div class="label" style="margin-bottom:6px">Power Tier</div>
+      <div style="display:flex;gap:6px">
+        ${['street','world','cosmic'].map(t=>`<button class="btn ${tier===t?'btn-primary':'btn-secondary'}" style="flex:1;font-size:11px;text-transform:capitalize" onclick="setPowerTier('${t}')">${t}</button>`).join('')}
+      </div>
+      <div class="muted" style="font-size:10px;margin-top:6px">Sets the campaign’s scale: Street, World, or Cosmic Level. Narrative.</div>
+    </div>`;
+  }
+  html+='</div>';
+  html+=`<div class="game-option${c.solo?' selected':''}" onclick="toggleSolo()" style="display:flex;align-items:center;gap:10px;margin-top:4px">
     <div class="game-check${c.solo?' on':''}">${c.solo?'✓':''}</div>
     <div style="flex:1">
       <div style="font-weight:700">Solo Play</div>
-      <div class="muted" style="font-size:11px">Double Action, Second Wind, Solo Boosts (+1 Attr, +2 Skills, +1 Spotlight, $2 extra), and more.</div>
+      <div class="muted" style="font-size:11px">Double Action, Second Wind, Solo Boosts (+1 Attr, +2 Skills, +1 ${adrenalineName()==='Power'?'Spotlight':'Spotlight'}, $2 extra), and more.</div>
     </div>
   </div>
   <button class="btn btn-primary btn-full" style="margin-top:12px" onclick="creationNext()">Continue →</button>`;
+  return html;
 }
 
 function renderStep0(){
@@ -1814,13 +2445,19 @@ function renderStep0(){
 
 function renderStep1(){
   const c=S.creation;
-  const games=c.games||['core'];
   let html=`<h2>Choose Your Role</h2>
   <div class="muted" style="margin-bottom:10px">Gives +1 Attribute and +1 to 10 Skills. Choose 2 Feats (or 3 for Special Role).</div>`;
-  // Derive book list from actual role data — works automatically when new books are added
-  const roleBooks=[...new Set(ROLES.map(r=>r.book))];
+  // Derive book list from actual role data; show core book first
+  const allRoleBooks=[...new Set(ROLES.map(r=>r.book))];
+  const coreB=getCoreBook();
+  const roleBooks=[...allRoleBooks].sort((a,b)=>{
+    const ag=BOOK_META[a]?.game||a, bg=BOOK_META[b]?.game||b;
+    if(ag===coreB&&bg!==coreB)return -1;
+    if(bg===coreB&&ag!==coreB)return 1;
+    return 0;
+  });
   roleBooks.forEach(book=>{
-    if(!bookEnabled(book,games))return;
+    if(!bookHas(book,'roles'))return;
     const roles=ROLES.filter(r=>r.book===book);
     if(!roles.length)return;
     html+=`<div class="label" style="margin-top:10px">${bookLabel(book)}</div>`;
@@ -1839,47 +2476,119 @@ function renderStep1(){
       </div>`;
     });
   });
+  // OSH: Origin + Superpower-variant pickers after role selection
+  const chosenRole=ROLES.find(r=>r.id===c.roleId);
+  if(chosenRole&&chosenRole.book==='osh'){
+    html+=renderOSHRoleExtras(c,chosenRole);
+  }
   html+=`<button class="btn btn-primary btn-full" style="margin-top:8px" onclick="creationNext()">Continue →</button>`;
   return html;
 }
 
-function renderStep2(){
-  const c=S.creation;
-  const games=c.games||['core'];
-  const role=ROLES.find(r=>r.id===c.roleId);
-  let html=`<h2>Choose Your Trope</h2>
-  <div class="muted" style="margin-bottom:10px">Gives +1 to one of two Attributes and +1 to 8 Skills. Choose 1 Feat.
-  ${role?`If your Role already gave +1 to one of the Trope's Attributes, choose the other.`:''}</div>`;
-  const tropeBooks=[...new Set(TROPES.map(t=>t.book))];
-  tropeBooks.forEach(book=>{
-    if(!bookEnabled(book,games))return;
-    const tropes=TROPES.filter(t=>t.book===book);
-    if(!tropes.length)return;
-    html+=`<div class="label" style="margin-top:10px">${bookLabel(book)}</div>`;
-    tropes.forEach(trope=>{
-      const sel=c.tropeId===trope.id;
-      html+=`<div class="role-card${sel?' selected':''}" onclick="selectTrope('${trope.id}')">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-          <span class="role-card-title">${trope.name}</span>
-          <span class="badge ${bookBadge(book)}">${bookLabel(book)}</span>
+function renderOSHRoleExtras(c,role){
+  let html='';
+  // Origin picker
+  html+=`<div class="label" style="margin-top:14px">Origin <span class="badge badge-osh">OSH</span></div>`;
+  html+=`<div class="muted" style="font-size:11px;margin-bottom:6px">Choose how your hero got their powers. Mostly narrative.</div>`;
+  ORIGINS.forEach(o=>{
+    const sel=c.originId===o.id;
+    html+=`<div class="role-card${sel?' selected':''}" onclick="selectOrigin('${o.id}')" style="padding:8px 10px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+        <span class="role-card-title" style="font-size:13px">${o.name}</span>
+      </div>
+      <div class="role-card-sub" style="font-size:11px">${o.desc}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px">${o.effect}</div>
+    </div>`;
+  });
+  // Superpower variant picker (only for roles whose superpower has variants)
+  const sp=SUPERPOWERS.find(s=>s.id===role.superpowerId);
+  if(sp&&sp.variants?.length){
+    const chosen=(c.superpowerVariants||{})[sp.id]||null;
+    html+=`<div class="label" style="margin-top:14px">${sp.name} — Variant <span class="badge badge-osh">OSH</span></div>`;
+    html+=`<div class="muted" style="font-size:11px;margin-bottom:6px">${termSubst(sp.desc)}</div>`;
+    sp.variants.forEach(v=>{
+      const vs=chosen===v.id;
+      html+=`<div class="role-card${vs?' selected':''}" onclick="selectSuperpowerVariant('${sp.id}','${v.id}')" style="padding:8px 10px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+          <span class="role-card-title" style="font-size:13px">${v.name}</span>
         </div>
-        <div class="role-card-sub">${trope.desc}</div>
-        <div class="role-card-attr">+1 ${trope.attrs.join(' or ')}</div>
-        <div class="skill-chips">${trope.skills.map(s=>`<span class="skill-chip">+${s}</span>`).join('')}</div>
+        <div class="role-card-sub" style="font-size:11px">${termSubst(v.desc)}</div>
       </div>`;
     });
-  });
-  if(c.tropeId){
-    const trope=TROPES.find(t=>t.id===c.tropeId);
-    if(trope){
-      html+=`<div class="card card-accent" style="margin-top:6px">
-        <div class="label">Attribute Bonus for ${trope.name}</div>
-        <div style="display:flex;gap:8px;margin-top:6px">
-          ${trope.attrs.map(a=>`<button class="btn ${c.tropeAttr===a?'btn-primary':'btn-secondary'}" style="flex:1" onclick="setTropeAttr('${a}')">+1 ${a}</button>`).join('')}
-        </div>
-      </div>`;
-    }
+  } else if(sp){
+    html+=`<div class="card" style="margin-top:12px;padding:10px"><div class="label">Superpower</div>
+      <div style="font-weight:700;font-size:13px;margin-top:4px">${sp.name}</div>
+      <div class="muted" style="font-size:11px;margin-top:2px">${termSubst(sp.desc)}</div></div>`;
   }
+  return html;
+}
+
+function selectOrigin(id){S.creation.originId=id;renderCreationStep();}
+function selectSuperpowerVariant(spId,vId){
+  if(!S.creation.superpowerVariants)S.creation.superpowerVariants={};
+  S.creation.superpowerVariants[spId]=vId;
+  renderCreationStep();
+}
+
+function renderStep2(){
+  const c=S.creation;
+  const role=ROLES.find(r=>r.id===c.roleId);
+  const tropePicks=role?.tropeChoices||1;
+  let html=`<h2>Choose Your Trope${tropePicks===2?'s':''}</h2>
+  <div class="muted" style="margin-bottom:10px">${tropePicks===2
+    ?`Prodigy: pick <strong>two Tropes</strong>. One acts as your Role, one as your Trope. Each gives +1 to one of two Attributes, +1 to 8 Skills, and 1 Feat.`
+    :`Gives +1 to one of two Attributes and +1 to 8 Skills. Choose 1 Feat.${role?` If your Role already gave +1 to one of the Trope's Attributes, choose the other.`:''}`}</div>`;
+  const coreB=getCoreBook();
+  const allTropeBooks=[...new Set(TROPES.map(t=>t.book))];
+  const tropeBooks=[...allTropeBooks].sort((a,b)=>{
+    const ag=BOOK_META[a]?.game||a, bg=BOOK_META[b]?.game||b;
+    if(ag===coreB&&bg!==coreB)return -1;
+    if(bg===coreB&&ag!==coreB)return 1;
+    return 0;
+  });
+  const renderPicker=(slot)=>{
+    const idKey=slot===2?'tropeId2':'tropeId';
+    const attrKey=slot===2?'tropeAttr2':'tropeAttr';
+    let h='';
+    if(tropePicks===2){
+      h+=`<div class="label" style="margin-top:14px;color:var(--accent)">Trope #${slot} ${slot===1?'(acts as Role)':'(acts as Trope)'}</div>`;
+    }
+    tropeBooks.forEach(book=>{
+      if(!bookHas(book,'roles'))return;
+      const tropes=TROPES.filter(t=>t.book===book);
+      if(!tropes.length)return;
+      h+=`<div class="label" style="margin-top:10px">${bookLabel(book)}</div>`;
+      tropes.forEach(trope=>{
+        const sel=c[idKey]===trope.id;
+        const disabled=tropePicks===2&&trope.id===(slot===2?c.tropeId:c.tropeId2);
+        h+=`<div class="role-card${sel?' selected':''}" ${disabled?'style="opacity:.4;pointer-events:none"':`onclick="selectTrope('${trope.id}',${slot})"`}>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span class="role-card-title">${trope.name}</span>
+            <span class="badge ${bookBadge(book)}">${bookLabel(book)}</span>
+            ${disabled?'<span style="font-size:10px;color:var(--muted);margin-left:auto">already picked</span>':''}
+          </div>
+          <div class="role-card-sub">${trope.desc}</div>
+          <div class="role-card-attr">+1 ${trope.attrs.join(' or ')}</div>
+          <div class="skill-chips">${trope.skills.map(s=>`<span class="skill-chip">+${s}</span>`).join('')}</div>
+        </div>`;
+      });
+    });
+    const pickedId=c[idKey];
+    if(pickedId){
+      const trope=TROPES.find(t=>t.id===pickedId);
+      if(trope){
+        h+=`<div class="card card-accent" style="margin-top:6px">
+          <div class="label">Attribute Bonus for ${trope.name}</div>
+          <div style="display:flex;gap:8px;margin-top:6px">
+            ${trope.attrs.map(a=>`<button class="btn ${c[attrKey]===a?'btn-primary':'btn-secondary'}" style="flex:1" onclick="setTropeAttr('${a}',${slot})">+1 ${a}</button>`).join('')}
+          </div>
+        </div>`;
+      }
+    }
+    return h;
+  };
+  html+=renderPicker(1);
+  if(tropePicks===2)html+=renderPicker(2);
   html+=`<button class="btn btn-primary btn-full" style="margin-top:8px" onclick="creationNext()">Continue →</button>`;
   return html;
 }
@@ -1921,50 +2630,53 @@ function renderStepFeats(){
   const c=S.creation;
   const role=ROLES.find(r=>r.id===c.roleId);
   const isSpecial=role?.isSpecial;
-  const trope=isSpecial?null:TROPES.find(t=>t.id===c.tropeId);
-  const maxRole=isSpecial?role.featChoices:2;
-  const maxTrope=isSpecial?0:1;
+  const prodigy=role?.tropeChoices===2;
+  // Prodigy is special but draws feats from two tropes (1 from each), not from the role
+  const trope=(!isSpecial||prodigy)?TROPES.find(t=>t.id===c.tropeId):null;
+  const trope2=prodigy?TROPES.find(t=>t.id===c.tropeId2):null;
+  const maxRole=prodigy?0:(isSpecial?role.featChoices:2);
+  const maxTrope=prodigy?1:(isSpecial?0:1);
+  const maxTrope2=prodigy?1:0;
   const roleFeats=role?.feats||[];
   const tropeFeats=trope?.feats||[];
+  const trope2Feats=trope2?.feats||[];
   const selRole=c.roleFeatsSelected||[];
   const selTrope=c.tropeFeatsSelected||[];
+  const selTrope2=c.tropeFeatsSelected2||[];
 
   let html=`<h2>Choose Feats</h2>
-  <div class="muted" style="margin-bottom:8px">${isSpecial?`Choose ${maxRole} Feats from the ${role.name} list.`:`Role: ${selRole.length}/${maxRole} · Trope: ${selTrope.length}/${maxTrope}`}</div>`;
+  <div class="muted" style="margin-bottom:8px">${prodigy
+    ?`Prodigy: 1 Feat from each Trope (${selTrope.length}/1 · ${selTrope2.length}/1)`
+    :isSpecial?`Choose ${maxRole} Feats from the ${role.name} list.`
+    :`Role: ${selRole.length}/${maxRole} · Trope: ${selTrope.length}/${maxTrope}`}</div>`;
 
-  html+=`<div class="label">From Role — ${role?.name}</div>`;
-  roleFeats.forEach(fname=>{
-    const feat=FEATS.find(f=>f.name===fname);
-    const sel=selRole.includes(fname);
-    const canAdd=!sel&&selRole.length<maxRole;
-    html+=`<div class="feat-card${sel?' selected':''}" onclick="${canAdd||sel?`toggleFeat('${escq(fname)}','role')`:'void(0)'}">
-      <div style="display:flex;align-items:center;gap:6px">
-        <span class="feat-card-name">${fname}</span>
-        ${feat?.trigger&&feat.trigger!=='Passive'?`<span style="font-size:9px;color:var(--yellow)">[${feat.trigger}]</span>`:''}
-        ${sel?'<span style="color:var(--green);margin-left:auto">✓</span>':''}
-      </div>
-      <div class="feat-card-desc">${feat?.desc||''}</div>
-    </div>`;
-  });
-
-  if(!isSpecial&&tropeFeats.length){
-    html+=`<div class="label" style="margin-top:12px">From Trope — ${trope?.name}</div>`;
-    tropeFeats.forEach(fname=>{
+  const renderFeatList=(label,feats,sel,max,source)=>{
+    if(!feats.length)return '';
+    let h=`<div class="label" style="margin-top:12px">${label}</div>`;
+    feats.forEach(fname=>{
       const feat=FEATS.find(f=>f.name===fname);
-      const sel=selTrope.includes(fname);
-      const canAdd=!sel&&selTrope.length<maxTrope;
-      html+=`<div class="feat-card${sel?' selected':''}" onclick="${canAdd||sel?`toggleFeat('${escq(fname)}','trope')`:'void(0)'}">
+      const isSel=sel.includes(fname);
+      const canAdd=!isSel&&sel.length<max;
+      h+=`<div class="feat-card${isSel?' selected':''}" onclick="${canAdd||isSel?`toggleFeat('${escq(fname)}','${source}')`:'void(0)'}">
         <div style="display:flex;align-items:center;gap:6px">
           <span class="feat-card-name">${fname}</span>
           ${feat?.trigger&&feat.trigger!=='Passive'?`<span style="font-size:9px;color:var(--yellow)">[${feat.trigger}]</span>`:''}
-          ${sel?'<span style="color:var(--green);margin-left:auto">✓</span>':''}
+          ${isSel?'<span style="color:var(--green);margin-left:auto">✓</span>':''}
         </div>
-        <div class="feat-card-desc">${feat?.desc||''}</div>
+        <div class="feat-card-desc">${termSubst(feat?.desc||'')}</div>
       </div>`;
     });
-  }
+    return h;
+  };
 
-  const ok=isSpecial?selRole.length===maxRole:(selRole.length===maxRole&&selTrope.length===maxTrope);
+  if(maxRole>0)html+=renderFeatList(`From Role — ${role?.name}`,roleFeats,selRole,maxRole,'role');
+  if(maxTrope>0)html+=renderFeatList(`From Trope${prodigy?' #1':''} — ${trope?.name||''}`,tropeFeats,selTrope,maxTrope,'trope');
+  if(maxTrope2>0)html+=renderFeatList(`From Trope #2 — ${trope2?.name||''}`,trope2Feats,selTrope2,maxTrope2,'trope2');
+
+  const ok=prodigy
+    ?(selTrope.length===maxTrope&&selTrope2.length===maxTrope2)
+    :isSpecial?selRole.length===maxRole
+    :(selRole.length===maxRole&&selTrope.length===maxTrope);
   const nextAction=S.creation.solo?`creationNext()`:`creationFinish()`;
   const nextLabel=S.creation.solo?'Continue →':'Create Hero!';
   html+=`<button class="btn btn-primary btn-full" style="margin-top:8px;${ok?'':'opacity:.5'}" ${ok?'':'disabled'} onclick="${nextAction}">${nextLabel}</button>`;
@@ -2086,14 +2798,24 @@ function selectRole(id){
   renderCreationStep();
 }
 
-function selectTrope(id){
-  S.creation.tropeId=id;
-  S.creation.tropeAttr=null;
-  S.creation.tropeFeatsSelected=[];
+function selectTrope(id,slot){
+  if(slot===2){
+    S.creation.tropeId2=id;
+    S.creation.tropeAttr2=null;
+    S.creation.tropeFeatsSelected2=[];
+  } else {
+    S.creation.tropeId=id;
+    S.creation.tropeAttr=null;
+    S.creation.tropeFeatsSelected=[];
+  }
   renderCreationStep();
 }
 
-function setTropeAttr(attr){S.creation.tropeAttr=attr;renderCreationStep();}
+function setTropeAttr(attr,slot){
+  if(slot===2)S.creation.tropeAttr2=attr;
+  else S.creation.tropeAttr=attr;
+  renderCreationStep();
+}
 
 function adjFreeSkill(skill,d){
   const c=S.creation;
@@ -2111,14 +2833,19 @@ function toggleFeat(fname,source){
   const c=S.creation;
   const role=ROLES.find(r=>r.id===c.roleId);
   const isSpecial=role?.isSpecial;
-  const trope=isSpecial?null:TROPES.find(t=>t.id===c.tropeId);
-  const maxRole=isSpecial?role.featChoices:2;
-  const maxTrope=isSpecial?0:1;
+  const prodigy=role?.tropeChoices===2;
+  const maxRole=prodigy?0:(isSpecial?role.featChoices:2);
+  const maxTrope=prodigy?1:(isSpecial?0:1);
+  const maxTrope2=prodigy?1:0;
   if(!c.roleFeatsSelected)c.roleFeatsSelected=[];
   if(!c.tropeFeatsSelected)c.tropeFeatsSelected=[];
+  if(!c.tropeFeatsSelected2)c.tropeFeatsSelected2=[];
   if(source==='role'){
     if(c.roleFeatsSelected.includes(fname))c.roleFeatsSelected=c.roleFeatsSelected.filter(f=>f!==fname);
     else if(c.roleFeatsSelected.length<maxRole)c.roleFeatsSelected.push(fname);
+  } else if(source==='trope2'){
+    if(c.tropeFeatsSelected2.includes(fname))c.tropeFeatsSelected2=c.tropeFeatsSelected2.filter(f=>f!==fname);
+    else if(c.tropeFeatsSelected2.length<maxTrope2)c.tropeFeatsSelected2.push(fname);
   } else {
     if(c.tropeFeatsSelected.includes(fname))c.tropeFeatsSelected=c.tropeFeatsSelected.filter(f=>f!==fname);
     else if(c.tropeFeatsSelected.length<maxTrope)c.tropeFeatsSelected.push(fname);
@@ -2130,23 +2857,25 @@ function buildBaseSkills(){
   const c=S.creation;
   const role=ROLES.find(r=>r.id===c.roleId);
   const trope=TROPES.find(t=>t.id===c.tropeId);
+  const trope2=role?.tropeChoices===2?TROPES.find(t=>t.id===c.tropeId2):null;
   const skills={};
   ALL_SKILLS.forEach(s=>skills[s]=1);
   if(role)role.skills.forEach(s=>skills[s]=Math.min(3,(skills[s]||1)+1));
   if(trope)trope.skills.forEach(s=>skills[s]=Math.min(3,(skills[s]||1)+1));
+  if(trope2)trope2.skills.forEach(s=>skills[s]=Math.min(3,(skills[s]||1)+1));
   return skills;
 }
 
 function buildBaseAttrs(){
   const c=S.creation;
   const role=ROLES.find(r=>r.id===c.roleId);
-  const trope=TROPES.find(t=>t.id===c.tropeId);
   const attrs={BRAWN:2,NERVES:2,SMOOTH:2,FOCUS:2,CRIME:2};
   if(role){
     if(role.attrBonuses?.length){role.attrBonuses.forEach(a=>{attrs[a]=Math.min(3,(attrs[a]||2)+1);});}
-    else if(role.attr)attrs[role.attr]=Math.min(3,(attrs[role.attr]||2)+1);
+    else if(role.attr&&attrs[role.attr]!==undefined)attrs[role.attr]=Math.min(3,(attrs[role.attr]||2)+1);
   }
-  if(trope&&c.tropeAttr)attrs[c.tropeAttr]=Math.min(3,attrs[c.tropeAttr]+1);
+  if(c.tropeId&&c.tropeAttr)attrs[c.tropeAttr]=Math.min(3,attrs[c.tropeAttr]+1);
+  if(role?.tropeChoices===2&&c.tropeId2&&c.tropeAttr2)attrs[c.tropeAttr2]=Math.min(3,attrs[c.tropeAttr2]+1);
   return attrs;
 }
 
@@ -2161,9 +2890,10 @@ function creationNext(){
   const c=S.creation;
   const role=ROLES.find(r=>r.id===c.roleId);
   const isSpecial=role?.isSpecial;
+  const prodigy=role?.tropeChoices===2;
+  const usesTrope=!isSpecial||prodigy;
   if(c.step===0){
-    // Games — already set via toggleGame; just advance
-    if(!c.games)c.games=['core'];
+    if(!c.coreBook)c.coreBook='core';
     c.step=1;
   } else if(c.step===1){
     c.name=document.getElementById('cr-name').value.trim();
@@ -2175,19 +2905,25 @@ function creationNext(){
     c.step=2;
   } else if(c.step===2){
     if(!c.roleId){alert('Choose a Role!');return;}
+    if(role&&role.book==='osh'){
+      if(!c.originId){alert('Choose an Origin!');return;}
+      const sp=SUPERPOWERS.find(s=>s.id===role.superpowerId);
+      if(sp?.variants?.length&&!((c.superpowerVariants||{})[sp.id])){alert('Choose a '+sp.name+' variant!');return;}
+    }
     c.step=3;
   } else if(c.step===3){
-    if(!isSpecial){
+    if(usesTrope){
       if(!c.tropeId){alert('Choose a Trope!');return;}
       if(!c.tropeAttr){alert('Choose your Attribute bonus for your Trope!');return;}
+      if(prodigy){
+        if(!c.tropeId2){alert('Choose your second Trope!');return;}
+        if(!c.tropeAttr2){alert('Choose your Attribute bonus for the second Trope!');return;}
+      }
     }
     c.step=4;
   } else if(c.step===4){
-    // For special+solo, feats are at step 4; that button calls creationNext → go to solo
-    if(isSpecial&&c.solo){c.step=5;}
-    else{c.step=5;}
-  } else if(c.step===5&&!isSpecial&&c.solo){
-    // Non-special: feats step called creationNext (solo path) → go to solo boosts
+    c.step=5;
+  } else if(c.step===5&&usesTrope&&c.solo){
     c.step=6;
   }
   save();renderCreationStep();
@@ -2196,47 +2932,63 @@ function creationNext(){
 function creationFinish(){
   const c=S.creation;
   const role=ROLES.find(r=>r.id===c.roleId);
-  const trope=role?.isSpecial?null:TROPES.find(t=>t.id===c.tropeId);
+  const prodigy=role?.tropeChoices===2;
   const skills=buildBaseSkills();
   Object.entries(c.freeSkills).forEach(([s,v])=>skills[s]=Math.min(3,skills[s]+v));
   const attrs=buildBaseAttrs();
-  const games=c.games||['core'];
-  const isWoK=games.includes('wok');
-  const allFeats=[...(c.roleFeatsSelected||[]),...(c.tropeFeatsSelected||[])];
-  // Aggregate creation effects from all selected feats — data-driven, no hardcoded feat names
+  const allFeats=[...(c.roleFeatsSelected||[]),...(c.tropeFeatsSelected||[]),...(c.tropeFeatsSelected2||[])];
   const fx=allFeats.reduce((acc,fname)=>{
     const f=FEATS.find(f=>f.name===fname);
     if(f?.creationEffects)Object.entries(f.creationEffects).forEach(([k,v])=>acc[k]=(acc[k]||0)+v);
     return acc;
   },{});
-  // isWoKChar: true if the character's role belongs to a WoK-gated book
-  const isWoKChar=bookGame(role?.book||'core')==='wok';
+  const coreB=c.coreBook||'core';
+  const inc=c.include||defaultInclude();
+  // Char tracks coreBook+include rather than legacy games array
+  const isWoKChar=role?.book==='wok'||role?.book==='special';
+  const isOSHChar=role?.book==='osh';
+  const wokEnabled=coreB==='wok'||inc.wok?.roles||inc.wok?.feats||inc.wok?.scenes;
   const startBullets=c.age==='Old'?(isWoKChar?3:2):1;
   const startAdr=c.age==='Young'?2:1;
-  // Gold: WoK chars start with 1 base; Old age +1; feat goldBonus (e.g. Bad Name)
-  const startGold=isWoK?(1+(c.age==='Old'?1:0)+(fx.goldBonus||0)):0;
+  const startGold=(wokEnabled&&isWoKChar)?(1+(c.age==='Old'?1:0)+(fx.goldBonus||0)):0;
   const isSolo=!!c.solo;
-  // Apply solo attr boost
   if(isSolo&&c.soloAttr&&attrs[c.soloAttr]!==undefined){attrs[c.soloAttr]++;}
-  // Apply solo skill boosts
   if(isSolo&&c.soloSkills){Object.entries(c.soloSkills).forEach(([sk,v])=>{if(v)skills[sk]=Math.min(3,(skills[sk]||1)+v);});}
   const startSpotlight=(isSolo?2:1)+(fx.spotlightBonus||0);
-  // cashOverride: a feat sets a minimum starting cash (e.g. Cash Flow → 3); then add solo +2 and any cashBonus
   const startCashFinal=(fx.cashOverride??1)+(isSolo?2:0)+(fx.cashBonus||0);
+  // For OSH heroes, Arcane Powers grants +1 starting Adrenaline (= 1 Power, on top of base)
+  const adrenalineExtra=(isOSHChar&&role?.superpowerId==='arcane_powers')?1:0;
   S.char={
     name:c.name,job:c.job,age:c.age,catchphrase:c.catchphrase,flaw:c.flaw,
-    roleId:c.roleId,tropeId:c.tropeId||null,
+    coreBook:coreB,include:JSON.parse(JSON.stringify(inc)),
+    roleId:c.roleId,tropeId:c.tropeId||null,tropeId2:prodigy?(c.tropeId2||null):null,
     feats:allFeats,
-    games,solo:isSolo,
+    solo:isSolo,
     attrs,skills,
     grit:0,
-    conditions:buildDefaultConditions(games),
-    adrenaline:startAdr,spotlight:startSpotlight,cash:startCashFinal,gold:startGold,deathBullets:startBullets,
+    conditions:buildDefaultConditions(),
+    adrenaline:startAdr+adrenalineExtra,spotlight:startSpotlight,cash:startCashFinal,gold:startGold,deathBullets:startBullets,
     advancements:0,
-    rides:role?.startRide&&!role.startRide.optional?[{name:role.startRide.name,types:role.startRide.types||[],speed:role.startRide.speed??1,armor:role.startRide.armor??0}]:[]
+    rides:role?.startRide&&!role.startRide.optional?[{name:role.startRide.name,types:role.startRide.types||[],speed:role.startRide.speed??1,armor:role.startRide.armor??0}]:[],
+    originId:c.originId||null,
+    superpowers:isOSHChar?buildHeroSuperpowers(c,role):[],
+    powerTier:isOSHChar?(c.powerTier||'street'):null
   };
-  S.creation={step:0,name:'',job:'',age:'Adult',catchphrase:'',flaw:'',roleId:null,tropeId:null,tropeAttr:null,freeSkills:{},roleFeatsSelected:[],tropeFeatsSelected:[],games:['core'],solo:false,soloAttr:null,soloSkills:{}};
+  S.creation=defaultCreation();
   save();renderHero();
+}
+
+function buildHeroSuperpowers(c,role){
+  const result=[];
+  if(!role)return result;
+  if(role.superpowerId){
+    const sp=SUPERPOWERS.find(s=>s.id===role.superpowerId);
+    if(sp){
+      const variantId=(c.superpowerVariants||{})[sp.id]||null;
+      result.push({id:sp.id,name:sp.name,variant:variantId});
+    }
+  }
+  return result;
 }
 
 // ============================================================
@@ -2263,13 +3015,12 @@ function renderSheet(){
     deathHtml+=`<div class="bullet ${lethal?'lethal':'empty'}" onclick="toggleBullet(${i})">${lethal?'●':'○'}</div>`;
   }
 
-  const charGames=ch.games||['core'];
-  const allConditions=[...CONDITIONS,...(charGames.includes('wok')?WOK_CONDITIONS:[])];
+  const allConditions=[...CONDITIONS,...(bookHas('wok','roles')?WOK_CONDITIONS:[]),...(bookHas('osh','roles')?OSH_CONDITIONS:[])];
   let condHtml='';
   allConditions.forEach(cond=>{
     const on=ch.conditions[cond.id];
     condHtml+=`<button class="cond-btn${on?' active':''}" onclick="toggleCond('${cond.id}')">
-      <div>${cond.label}</div><div style="font-size:9px;opacity:.7">${cond.penalty}</div>
+      <div>${cond.label}</div><div style="font-size:9px;opacity:.7">${termSubst(cond.penalty)}</div>
     </button>`;
   });
 
@@ -2293,18 +3044,30 @@ function renderSheet(){
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
         <span class="feat-inline-name">${fname}</span>
         ${feat?.trigger&&feat.trigger!=='Passive'?`<span style="font-size:9px;color:var(--yellow)">[${feat.trigger}]</span>`:''}
-        ${feat?.book&&feat.book!=='core'?`<span class="badge ${bookBadge(feat.book)}">${bookLabel(feat.book)}</span>`:''}
+        ${hasAdrCost(feat)?adrCostChip():''}
+        ${entryBadgesHtml(feat)}
       </div>
-      <div class="feat-inline-desc">${feat?.desc||''}</div>
+      <div class="feat-inline-desc">${termSubst(feat?.desc||'')}</div>
     </div>`;
   });
 
-  const isWoK=charGames.includes('wok');
+  const isWoK=bookHas('wok','roles');
+  const isOSHChar=role?.book==='osh';
+  const origin=isOSHChar&&ch.originId?ORIGINS.find(o=>o.id===ch.originId):null;
+  const adrName=adrenalineName();
+  const trope2=ch.tropeId2?TROPES.find(t=>t.id===ch.tropeId2):null;
+  // Books displayed as small badges: coreBook + every included book/category
+  const otherBooks=[];
+  ['wok','osh'].forEach(b=>{
+    if(ch.coreBook===b)return;
+    const inc=ch.include?.[b]||{};
+    if(inc.roles||inc.feats||inc.scenes)otherBooks.push(b);
+  });
   el.innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
       <div>
         <div class="pg-title">${ch.name}</div>
-        <div class="pg-sub">${role?.name||''}${trope?' · '+trope.name:''} · ${ch.age}${charGames.filter(g=>g!=='core').map(g=>`<span class="badge ${bookBadge(g)}" style="font-size:8px">${bookLabel(g)}</span>`).join(' ')}</div>
+        <div class="pg-sub">${role?.name||''}${trope?' · '+trope.name:''}${trope2?' · '+trope2.name:''}${origin?' · '+origin.name:''} · ${ch.age} <span class="badge ${bookBadge(ch.coreBook||'core')}" style="font-size:8px">${bookLabel(ch.coreBook||'core')}</span> ${otherBooks.map(g=>`<span class="badge ${bookBadge(g)}" style="font-size:8px;opacity:.7">${bookLabel(g)}</span>`).join(' ')}</div>
       </div>
       <button class="btn btn-secondary btn-xs" onclick="openSlotModal()">Select</button>
     </div>
@@ -2313,7 +3076,7 @@ function renderSheet(){
 
     <div class="resource-row">
       <div class="resource-box">
-        <div class="resource-label">Adrenaline</div>
+        <div class="resource-label">${adrName}${adrName==='Power'?' ⚡':''}</div>
         <div class="resource-val" style="color:var(--accent)">${ch.adrenaline}</div>
         <div class="resource-btns"><button class="r-btn" onclick="adjRes('adrenaline',-1)">−</button><button class="r-btn" onclick="adjRes('adrenaline',1)">+</button></div>
       </div>
@@ -2341,8 +3104,8 @@ function renderSheet(){
       </div>
       <div class="health-row" style="margin-top:8px">${gritHtml}</div>
       <div style="font-size:10px;color:var(--muted);margin-top:6px">
-        <span style="color:var(--yellow)">■</span> Box 8 = Bad Box: gain a Condition (Hard to Kill: +Adrenaline &amp; +1 next roll)
-        &nbsp;<span style="color:var(--purple)">■</span> Box 12 = Hot Box: gain 2 Adrenaline
+        <span style="color:var(--yellow)">■</span> Box 8 = Bad Box: gain a Condition (Hard to Kill: +${adrName} &amp; +1 next roll)
+        &nbsp;<span style="color:var(--purple)">■</span> Box 12 = Hot Box: gain 2 ${adrName}
       </div>
     </div>
 
@@ -2379,6 +3142,8 @@ function renderSheet(){
           ${featHtml||'<div class="muted">No feats selected.</div>'}
         </div>
 
+        ${isOSHChar?renderSuperpowersCard(ch):''}
+
         <div class="card" id="rides-card">
           ${renderRidesPanel(ch)}
         </div>
@@ -2395,12 +3160,42 @@ function renderSheet(){
   `;
 }
 
+function renderSuperpowersCard(ch){
+  const role=ROLES.find(r=>r.id===ch.roleId);
+  const origin=ch.originId?ORIGINS.find(o=>o.id===ch.originId):null;
+  let html='<div class="card">';
+  html+=`<h3 style="margin-bottom:8px">Origin &amp; Superpowers <span class="badge badge-osh">OSH</span></h3>`;
+  if(origin){
+    html+=`<div class="feat-inline">
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span class="feat-inline-name">Origin: ${origin.name}</span></div>
+      <div class="feat-inline-desc">${termSubst(origin.desc)} <span style="color:var(--muted)">— ${termSubst(origin.effect)}</span></div>
+    </div>`;
+  }
+  (ch.superpowers||[]).forEach(s=>{
+    const sp=SUPERPOWERS.find(x=>x.id===s.id);
+    if(!sp)return;
+    const variant=s.variant&&sp.variants?sp.variants.find(v=>v.id===s.variant):null;
+    html+=`<div class="feat-inline">
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <span class="feat-inline-name">${sp.name}${variant?` — ${variant.name}`:''}</span>
+        ${hasAdrCost(sp)?adrCostChip():''}
+        <span class="badge badge-osh">OSH</span>
+      </div>
+      <div class="feat-inline-desc">${termSubst(variant?variant.desc+' · '+sp.desc:sp.desc)}</div>
+    </div>`;
+  });
+  if(ch.powerTier){
+    html+=`<div style="font-size:10px;color:var(--muted);margin-top:6px">Campaign tier: <strong style="color:var(--accent);text-transform:capitalize">${ch.powerTier} Level</strong></div>`;
+  }
+  html+='</div>';
+  return html;
+}
+
 function printCharSheet(){
   const ch=S.char;if(!ch)return;
   const role=ROLES.find(r=>r.id===ch.roleId);
   const trope=TROPES.find(t=>t.id===ch.tropeId);
-  const charGames=ch.games||['core'];
-  const isWoK=charGames.includes('wok');
+  const isWoK=bookHas('wok','roles');
   function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
   function pips(val,max,square){
     let s='';
@@ -2435,8 +3230,30 @@ function printCharSheet(){
   let featsHtml='';
   (ch.feats||[]).forEach(fname=>{
     const feat=FEATS.find(f=>f.name===fname);
-    featsHtml+=`<div class="feat-item"><span class="fn">${esc(fname)}</span>${feat?.trigger&&feat.trigger!=='Passive'?`<span class="ftrig"> [${esc(feat.trigger)}]</span>`:''}<div class="fdesc">${esc(feat?.desc||'')}</div></div>`;
+    const cost=hasAdrCost(feat)?` <span class="fcost">[Spends ${esc(term('Adrenaline'))}]</span>`:'';
+    featsHtml+=`<div class="feat-item"><span class="fn">${esc(fname)}</span>${feat?.trigger&&feat.trigger!=='Passive'?`<span class="ftrig"> [${esc(feat.trigger)}]</span>`:''}${cost}<div class="fdesc">${esc(termSubst(feat?.desc||''))}</div></div>`;
   });
+  // Origin + Superpowers (printed only for OSH heroes that actually have them)
+  let powersHtml='';
+  const printRole=ROLES.find(r=>r.id===ch.roleId);
+  const printOSH=printRole?.book==='osh';
+  if(printOSH){
+    const printOrigin=ch.originId?ORIGINS.find(o=>o.id===ch.originId):null;
+    if(printOrigin){
+      powersHtml+=`<div class="feat-item"><span class="fn">Origin: ${esc(printOrigin.name)}</span><div class="fdesc">${esc(termSubst(printOrigin.desc))} — ${esc(termSubst(printOrigin.effect))}</div></div>`;
+    }
+    (ch.superpowers||[]).forEach(s=>{
+      const sp=SUPERPOWERS.find(x=>x.id===s.id);
+      if(!sp)return;
+      const variant=s.variant&&sp.variants?sp.variants.find(v=>v.id===s.variant):null;
+      const cost=hasAdrCost(sp)?` <span class="fcost">[Spends ${esc(term('Adrenaline'))}]</span>`:'';
+      const desc=variant?variant.desc+' · '+sp.desc:sp.desc;
+      powersHtml+=`<div class="feat-item"><span class="fn">${esc(sp.name)}${variant?` — ${esc(variant.name)}`:''}</span>${cost}<div class="fdesc">${esc(termSubst(desc))}</div></div>`;
+    });
+    if(ch.powerTier){
+      powersHtml+=`<div class="fdesc" style="margin-top:3px"><b>Power Tier:</b> <span style="text-transform:capitalize">${esc(ch.powerTier)} Level</span></div>`;
+    }
+  }
   featsHtml+=`<div class="feat-blanks"><div class="blbl">Additional Feats</div><div class="bline"></div><div class="bline"></div><div class="bline"></div><div class="bline"></div><div class="bline"></div><div class="bline"></div><div class="bline"></div><div class="bline"></div></div>`;
   // Rides
   let ridesHtml='';
@@ -2515,7 +3332,7 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:11.5pt;color:#111;backgrou
 .attr-block{margin-bottom:5px}.attr-row{display:flex;justify-content:space-between;align-items:center;padding:1px 0;border-bottom:1px solid #eee}
 .an{font-size:10pt;font-weight:800;text-transform:uppercase;letter-spacing:.4px}
 .sk-row{display:flex;justify-content:space-between;align-items:center;padding:1px 0 1px 8px}.sn{font-size:9.5pt;color:#333}
-.feat-item{margin-bottom:3px;padding-bottom:3px;border-bottom:1px solid #eee}.fn{font-size:10pt;font-weight:700}.ftrig{font-size:8.5pt;color:#aaa}
+.feat-item{margin-bottom:3px;padding-bottom:3px;border-bottom:1px solid #eee}.fn{font-size:10pt;font-weight:700}.ftrig{font-size:8.5pt;color:#aaa}.fcost{font-size:8pt;font-weight:700;color:#b8860b;background:#fff7d6;border:.5px solid #d4a017;padding:0 4px;border-radius:8px;margin-left:3px;letter-spacing:.3px}
 .fdesc{font-size:8.5pt;color:#666;line-height:1.3;margin-top:1px}
 .feat-blanks{margin-top:4px}.blbl{font-size:8.5pt;font-weight:700;text-transform:uppercase;color:#ccc;margin-bottom:2px}.bline{border-bottom:1px solid #bbb;height:16px;margin-bottom:3px}
 .ride-item{margin-bottom:4px;padding-bottom:3px;border-bottom:1px solid #eee}.ride-hd{display:flex;gap:6px;align-items:baseline}
@@ -2537,7 +3354,7 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:11.5pt;color:#111;backgrou
   <div class="h-right"><div class="gtitle">OUTGUNNED</div><div style="font-size:6pt;color:#bbb;letter-spacing:1px">CHARACTER SHEET</div></div>
 </div>
 <div class="res-bar">
-  ${[['Adrenaline',ch.adrenaline],['Spotlight',ch.spotlight],['Cash',ch.cash],...(isWoK?[['Gold',ch.gold||0]]:[])].map(([lbl,val])=>{
+  ${[[adrenalineName(),ch.adrenaline],['Spotlight',ch.spotlight],['Cash',ch.cash],...(isWoK?[['Gold',ch.gold||0]]:[])].map(([lbl,val])=>{
     const total=Math.max(val,6);
     const pips=Array.from({length:total},(_,i)=>`<span class="pip${i<val?' grey':''}"></span>`).join('');
     return `<div class="res"><span class="rl">${lbl}</span><div class="res-pips">${pips}</div></div>`;
@@ -2555,13 +3372,14 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:11.5pt;color:#111;backgrou
     <div class="sec"><div class="st">Conditions</div>${condHtml}</div>
     <div class="sec"><div class="st">Advancement &nbsp;<span style="font-weight:400">${adv}/3</span></div>
       <div class="adv-boxes">${advHtml}</div>
-      <div class="adv-note">+2 Skill pts · +1 Feat · +1 Adrenaline</div></div>
+      <div class="adv-note">+2 Skill pts · +1 Feat · +1 ${adrenalineName()}</div></div>
     <div class="sec"><div class="st">Supporting Characters</div>${npcHtml}</div>
   </div>
   <div class="col">
     <div class="sec"><div class="st">Attributes &amp; Skills &nbsp;<span style="font-weight:400">pool = Attr + Skill</span></div>${statsHtml}</div>
   </div>
   <div class="col">
+    ${powersHtml?`<div class="sec"><div class="st">Origin &amp; Superpowers</div>${powersHtml}</div>`:''}
     <div class="sec"><div class="st">Feats</div>${featsHtml}</div>
     <div class="sec"><div class="st">Rides</div>${ridesHtml}</div>
   </div>
@@ -2580,8 +3398,8 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:11.5pt;color:#111;backgrou
 function toggleGrit(n){
   const ch=S.char;const prev=ch.grit;
   ch.grit=n<=ch.grit?n-1:n;
-  if(prev<8&&ch.grit>=8)setTimeout(()=>alert('Bad Box filled!\nGain a Condition (most severe applies).\nIf you have Hard to Kill: gain 1 Adrenaline and +1 to next roll.'),50);
-  if(prev<12&&ch.grit>=12){ch.adrenaline=Math.min(6,ch.adrenaline+2);setTimeout(()=>alert('Hot Box filled! Gained 2 Adrenaline.'),50);}
+  if(prev<8&&ch.grit>=8)setTimeout(()=>alert('Bad Box filled!\nGain a Condition (most severe applies).\nIf you have Hard to Kill: gain 1 '+adrenalineName()+' and +1 to next roll.'),50);
+  if(prev<12&&ch.grit>=12){ch.adrenaline=Math.min(6,ch.adrenaline+2);setTimeout(()=>alert('Hot Box filled! Gained 2 '+adrenalineName()+'.'),50);}
   save();renderSheet();maybeDicePage();
 }
 function clearGrit(){S.char.grit=0;save();renderSheet();maybeDicePage();}
@@ -2639,10 +3457,10 @@ function renderAdvancePanel(ch){
 
   if(isMax){
     // At max: reassign 2 skill pts and/or swap a feat, OR just take +1 Adr
-    html+=`<div style="font-size:12px;color:var(--fg2);margin-bottom:10px">You've reached max advancement. Reassign 2 skill points and/or swap a feat — or take +1 Adrenaline instead.</div>`;
-    html+=`<button class="btn btn-secondary btn-xs" style="margin-bottom:12px;width:100%" onclick="confirmAdvanceAdr()">Take +1 Adrenaline instead</button>`;
+    html+=`<div style="font-size:12px;color:var(--fg2);margin-bottom:10px">You've reached max advancement. Reassign 2 skill points and/or swap a feat — or take +1 ${adrenalineName()} instead.</div>`;
+    html+=`<button class="btn btn-secondary btn-xs" style="margin-bottom:12px;width:100%" onclick="confirmAdvanceAdr()">Take +1 ${adrenalineName()} instead</button>`;
   } else {
-    html+=`<div style="font-size:12px;color:var(--fg2);margin-bottom:10px">Assign <b>2 skill points</b>, pick <b>1 feat</b>. You'll also gain <b>+1 Adrenaline</b>.</div>`;
+    html+=`<div style="font-size:12px;color:var(--fg2);margin-bottom:10px">Assign <b>2 skill points</b>, pick <b>1 feat</b>. You'll also gain <b>+1 ${adrenalineName()}</b>.</div>`;
   }
 
   // Skill points picker
@@ -2666,9 +3484,8 @@ function renderAdvancePanel(ch){
     html+=`</div></div>`;
   });
 
-  // Feat picker
+  // Feat picker — limit to feats from books that contribute feats to this campaign
   const charFeats=ch.feats||[];
-  const charGames=ch.games||['core'];
 
   if(isMax){
     // Step 1: pick which current feat to swap OUT (optional)
@@ -2682,21 +3499,21 @@ function renderAdvancePanel(ch){
     html+=`</div>`;
     if(panel.swapFeat){
       html+=`<div style="font-size:11px;font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Replace with:</div>`;
-      const availFeats=FEATS.filter(f=>bookEnabled(f.book,charGames)&&!(charFeats.includes(f.name)&&f.name!==panel.swapFeat));
+      const availFeats=FEATS.filter(f=>featInScope(f,'feats')&&!(charFeats.includes(f.name)&&f.name!==panel.swapFeat));
       html+=`<div style="max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;padding:6px">`;
       availFeats.forEach(f=>{
         const sel=panel.featName===f.name;
         html+=`<div onclick="pickAdvFeat('${escq(f.name)}')" style="padding:7px 8px;border-radius:7px;margin-bottom:3px;cursor:pointer;background:${sel?'rgba(230,57,70,.15)':'transparent'};border:1px solid ${sel?'var(--accent)':'transparent'}">`;
         html+=`<div style="display:flex;gap:5px;align-items:center"><span style="font-size:12px;font-weight:700">${f.name}</span>`;
         if(f.trigger&&f.trigger!=='Passive')html+=`<span style="font-size:9px;color:var(--yellow)">[${f.trigger}]</span>`;
-        if(f.book!=='core')html+=`<span class="badge ${bookBadge(f.book)}">${bookLabel(f.book)}</span>`;
-        html+=`</div><div style="font-size:11px;color:var(--fg2)">${f.desc}</div></div>`;
+        html+=entryBadgesHtml(f);
+        html+=`</div><div style="font-size:11px;color:var(--fg2)">${termSubst(f.desc)}</div></div>`;
       });
       html+=`</div>`;
     }
   } else {
     html+=`<div style="font-size:11px;font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.05em;margin:10px 0 6px">Pick 1 Feat</div>`;
-    const availFeats=FEATS.filter(f=>bookEnabled(f.book,charGames)&&!charFeats.includes(f.name));
+    const availFeats=FEATS.filter(f=>featInScope(f,'feats')&&!charFeats.includes(f.name));
     html+=`<div style="max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;padding:6px">`;
     availFeats.forEach(f=>{
       const sel=panel.featName===f.name;
@@ -2704,7 +3521,7 @@ function renderAdvancePanel(ch){
       html+=`<div style="display:flex;gap:5px;align-items:center"><span style="font-size:12px;font-weight:700">${f.name}</span>`;
       if(f.trigger&&f.trigger!=='Passive')html+=`<span style="font-size:9px;color:var(--yellow)">[${f.trigger}]</span>`;
       if(f.book!=='core')html+=`<span class="badge ${bookBadge(f.book)}">${bookLabel(f.book)}</span>`;
-      html+=`</div><div style="font-size:11px;color:var(--fg2)">${f.desc}</div></div>`;
+      html+=`</div><div style="font-size:11px;color:var(--fg2)">${termSubst(f.desc)}</div></div>`;
     });
     html+=`</div>`;
   }
@@ -3283,6 +4100,7 @@ function npcClearGrit(i){S.npcs[i].grit=0;save();renderParty();maybeDicePage();}
 function switchEnemyTab(tab,btn){
   document.querySelectorAll('#page-enemies .tab-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
+  renderOSHCampaignPanel();
   if(tab==='active'){
     document.getElementById('enemy-templates').style.display='none';
     document.getElementById('active-enemies').style.display='block';
@@ -3295,18 +4113,20 @@ function switchEnemyTab(tab,btn){
 }
 
 function renderEnemyTemplates(type){
+  renderOSHCampaignPanel();
   const templates=ENEMY_TEMPLATES[type]||[];
   let html='';
   templates.forEach((t,i)=>{
-    const isWok=t.book==='wok';
+    const tagged=t.book&&t.book!=='core';
+    const badge=tagged?`<span class="badge ${bookBadge(t.book)}">${bookLabel(t.book)}</span><span style="font-size:10px;color:var(--muted)">${t.template||''}</span>`:'';
     html+=`<div class="enemy-card">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
             <span style="font-size:15px;font-weight:700">${t.name}</span>
-            ${isWok?`<span class="badge badge-wok">WoK</span><span style="font-size:10px;color:var(--muted)">${t.template}</span>`:''}
+            ${badge}
           </div>
-          ${t.desc?`<div class="muted" style="font-size:11px;margin-top:2px">${t.desc}</div>`:''}
+          ${t.desc?`<div class="muted" style="font-size:11px;margin-top:2px">${termSubst(t.desc)}</div>`:''}
         </div>
         <button class="btn btn-primary btn-xs" style="margin-left:8px;flex-shrink:0" onclick="deployEnemy('${type}',${i})">Deploy</button>
       </div>
@@ -3314,17 +4134,290 @@ function renderEnemyTemplates(type){
         <div class="enemy-stat"><div class="enemy-stat-label">Attack</div><div class="enemy-stat-val" style="color:var(--red)">${t.atk}</div></div>
         <div class="enemy-stat"><div class="enemy-stat-label">Defense</div><div class="enemy-stat-val" style="color:var(--blue)">${t.def}</div></div>
         <div class="enemy-stat"><div class="enemy-stat-label">Grit</div><div class="enemy-stat-val">${t.grit}</div></div>
-        <div class="enemy-stat"><div class="enemy-stat-label">${isWok?'Feats':'Feat Pts'}</div><div class="enemy-stat-val" style="color:var(--yellow)">${isWok?(t.feats?.length||0):t.featPts}</div></div>
+        <div class="enemy-stat"><div class="enemy-stat-label">${tagged?'Feats':'Feat Pts'}</div><div class="enemy-stat-val" style="color:var(--yellow)">${tagged?(t.feats?.length||0):t.featPts}</div></div>
       </div>
       ${t.hotBoxes?.length?`<div style="font-size:10px;color:var(--purple);margin-top:4px">Hot Boxes at Grit: ${t.hotBoxes.join(', ')}</div>`:''}
-      ${isWok&&t.feats?.length?`<div style="font-size:10px;margin-top:6px"><span style="color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-size:9px">Feats: </span>${t.feats.join(' · ')}</div>`:''}
-      ${isWok&&t.specialActions?.length?`<div style="font-size:10px;margin-top:3px"><span style="color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-size:9px">Special Actions: </span>${t.specialActions.join(' · ')}</div>`:''}
+      ${tagged&&t.feats?.length?`<div style="font-size:10px;margin-top:6px"><span style="color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-size:9px">Feats: </span>${t.feats.join(' · ')}</div>`:''}
+      ${tagged&&t.specialActions?.length?`<div style="font-size:10px;margin-top:3px"><span style="color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-size:9px">Special Actions: </span>${t.specialActions.join(' · ')}</div>`:''}
     </div>`;
   });
   document.getElementById('enemy-templates').innerHTML=html||'<div class="empty-state"><div>No enemies in this category.</div></div>';
 }
 
-function activeGames(){return S.char?.games||['core'];}
+
+function renderOSHCampaignPanel(){
+  const el=document.getElementById('osh-campaign-panel');
+  if(!el)return;
+  if(!bookHas('osh','scenes')){el.innerHTML='';return;}
+  if(!S.heat&&S.heat!==0)S.heat=0;
+  if(!S.villain)S.villain={name:'',evilPlan:'',strongSpots:[],weakSpots:'',herald:'',appt6:'',appt9:'',appt12:''};
+  const h=S.heat||0;
+  const v=S.villain;
+  let heatPips='';
+  for(let i=1;i<=12;i++){
+    const milestone=i===6||i===9||i===12;
+    const filled=i<=h;
+    heatPips+=`<div onclick="setHeat(${i===h?i-1:i})" style="width:18px;height:18px;border-radius:4px;border:1px solid ${milestone?'var(--accent)':'var(--border)'};background:${filled?(milestone?'var(--accent)':'var(--yellow)'):'transparent'};cursor:pointer" title="${milestone?'Heat Appointment at '+i:'Heat '+i}"></div>`;
+  }
+  let html=`<div class="card" style="margin-bottom:10px;border:1px solid var(--accent)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <div style="display:flex;align-items:center;gap:8px"><h3 style="margin:0">Heat</h3><span class="badge badge-osh">OSH</span><span style="font-size:11px;color:var(--muted)">${h}/12</span></div>
+      <div style="display:flex;gap:4px"><button class="r-btn" onclick="adjHeat(-1)">−</button><button class="r-btn" onclick="adjHeat(1)">+</button><button class="btn btn-secondary btn-xs" onclick="setHeat(0)">Clear</button></div>
+    </div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap">${heatPips}</div>
+    <div style="font-size:10px;color:var(--muted);margin-top:6px">Marked boxes are Heat Appointments. The Villain’s plan advances at 6, 9, and 12.</div>
+  </div>`;
+  // Villain dashboard
+  html+=`<div class="card" style="margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <h3 style="margin:0">Villain <span class="badge badge-osh">OSH</span></h3>
+      <button class="btn btn-secondary btn-xs" onclick="toggleVillainEdit()">${S._villainEdit?'Done':'Edit'}</button>
+    </div>`;
+  if(S._villainEdit){
+    html+=`<div class="form-group"><label>Name</label><input value="${escq(v.name||'')}" oninput="setVillain('name',this.value)"></div>
+      <div class="form-group"><label>Evil Plan</label><textarea oninput="setVillain('evilPlan',this.value)" style="min-height:60px">${(v.evilPlan||'').replace(/</g,'&lt;')}</textarea></div>
+      <div class="label">Strong Spots</div>
+      <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px">`;
+    VILLAIN_STRONG_SPOTS.forEach(ss=>{
+      const on=(v.strongSpots||[]).includes(ss.id);
+      html+=`<div onclick="toggleVillainStrong('${ss.id}')" style="padding:6px 8px;border-radius:6px;cursor:pointer;border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'rgba(230,57,70,.1)':'var(--surface2)'}">
+        <div style="font-size:12px;font-weight:700">${ss.name}${on?' ✓':''}</div>
+        <div style="font-size:10px;color:var(--muted)">${ss.desc}</div>
+      </div>`;
+    });
+    html+=`</div>
+      <div class="form-group"><label>Weak Spots</label><textarea oninput="setVillain('weakSpots',this.value)" style="min-height:50px">${(v.weakSpots||'').replace(/</g,'&lt;')}</textarea></div>
+      <div class="form-group"><label>Loyal Herald</label><input value="${escq(v.herald||'')}" oninput="setVillain('herald',this.value)"></div>
+      <div class="form-group"><label>Heat Appointment @ 6</label><input value="${escq(v.appt6||'')}" oninput="setVillain('appt6',this.value)"></div>
+      <div class="form-group"><label>Heat Appointment @ 9</label><input value="${escq(v.appt9||'')}" oninput="setVillain('appt9',this.value)"></div>
+      <div class="form-group"><label>Heat Appointment @ 12</label><input value="${escq(v.appt12||'')}" oninput="setVillain('appt12',this.value)"></div>`;
+  } else {
+    if(!v.name){html+='<div class="muted" style="font-size:12px">No villain set. Click Edit to define one.</div>';}
+    else {
+      html+=`<div style="font-weight:700;font-size:15px">${v.name}</div>`;
+      if(v.evilPlan)html+=`<div style="font-size:12px;margin-top:4px"><span class="muted">Plan:</span> ${v.evilPlan}</div>`;
+      if((v.strongSpots||[]).length){
+        html+=`<div style="font-size:11px;margin-top:6px"><span class="muted">Strong Spots:</span> ${v.strongSpots.map(id=>VILLAIN_STRONG_SPOTS.find(s=>s.id===id)?.name).filter(Boolean).join(', ')}</div>`;
+      }
+      if(v.weakSpots)html+=`<div style="font-size:11px;margin-top:4px"><span class="muted">Weak Spots:</span> ${v.weakSpots}</div>`;
+      if(v.herald)html+=`<div style="font-size:11px;margin-top:4px"><span class="muted">Herald:</span> ${v.herald}</div>`;
+      ['6','9','12'].forEach(n=>{
+        const t=v['appt'+n];
+        if(t)html+=`<div style="font-size:11px;margin-top:4px"><span class="muted">Heat ${n}:</span> ${t}</div>`;
+      });
+    }
+  }
+  html+='</div>';
+  // ASSEMBLE panel
+  html+=renderAssemblePanel();
+  // TIME-OUT panel
+  html+=renderTimeOutPanel();
+  // ETERNITY SHARDS panel
+  html+=renderShardsPanel();
+  el.innerHTML=html;
+}
+
+// ============================================================
+// ASSEMBLE (Need for Team) — OSH special scene
+// ============================================================
+function renderAssemblePanel(){
+  if(!S.assemble)S.assemble={active:false,needMax:12,filled:0,teamwork:1,turn:1,countdown:0,powerBoxes:[],log:[]};
+  const a=S.assemble;
+  let html=`<div class="card" style="margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <h3 style="margin:0">Assemble <span class="badge badge-osh">OSH</span></h3>
+      <div style="display:flex;gap:4px">
+        ${a.active?`<button class="btn btn-secondary btn-xs" onclick="resetAssemble()">End</button>`:''}
+      </div>
+    </div>`;
+  if(!a.active){
+    html+=`<div class="muted" style="font-size:11px;margin-bottom:8px">Need for Team scene. Director sets the Need (6-18); Heroes raise Teamwork via Critical+ rolls; Teamwork fills Need at end of each Action Turn.</div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+        <span style="font-size:11px;color:var(--fg2)">Need:</span>
+        <input id="asm-need" type="number" min="6" max="18" value="${a.needMax||12}" style="width:60px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--fg);font-size:12px">
+        <span style="font-size:11px;color:var(--fg2);margin-left:8px">Start Teamwork:</span>
+        <input id="asm-tw" type="number" min="0" max="6" value="1" style="width:60px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--fg);font-size:12px">
+        <span style="font-size:11px;color:var(--fg2);margin-left:8px">Countdown:</span>
+        <input id="asm-cd" type="number" min="0" max="6" value="0" style="width:60px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--fg);font-size:12px">
+      </div>
+      <button class="btn btn-primary btn-xs" onclick="startAssemble()">Start Assemble Scene</button>`;
+  } else {
+    let needPips='';
+    for(let i=1;i<=a.needMax;i++){
+      const isPower=a.powerBoxes.includes(i);
+      const filled=i<=a.filled;
+      needPips+=`<div onclick="assembleToggleBox(${i})" style="width:18px;height:18px;border-radius:4px;border:1px solid ${isPower?'var(--accent)':'var(--border)'};background:${filled?(isPower?'var(--accent)':'var(--blue)'):'transparent'};cursor:pointer" title="${isPower?'Power Box at '+i:'Need '+i}"></div>`;
+    }
+    html+=`<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px">
+      <span>Turn ${a.turn}${a.countdown>0?` · Countdown ${a.countdown}`:''}</span>
+      <span>Need ${a.filled}/${a.needMax}</span>
+    </div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">${needPips}</div>
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+      <span style="font-size:11px;font-weight:700;color:var(--fg2)">Teamwork</span>
+      <button class="r-btn" onclick="adjTeamwork(-1)">−</button>
+      <div style="font-size:16px;font-weight:700;color:var(--accent);min-width:24px;text-align:center">${a.teamwork}</div>
+      <button class="r-btn" onclick="adjTeamwork(1)">+</button>
+      <span style="font-size:10px;color:var(--muted);margin-left:6px">Crit:+1 · Extreme:+2 · Impossible:+3 · Fail:-1</span>
+    </div>
+    <button class="btn btn-primary btn-xs" onclick="assembleEndTurn()" style="margin-right:4px">End Turn → Fill +${a.teamwork} Need</button>
+    ${a.countdown>0?`<button class="btn btn-secondary btn-xs" onclick="assembleTickCountdown()">Tick Countdown</button>`:''}
+    ${a.log.length?`<div style="margin-top:8px;max-height:80px;overflow-y:auto;font-size:10px;color:var(--muted)">${a.log.slice(-6).map(l=>`<div>${l}</div>`).join('')}</div>`:''}`;
+  }
+  html+='</div>';
+  return html;
+}
+
+function startAssemble(){
+  const need=parseInt(document.getElementById('asm-need').value)||12;
+  const tw=parseInt(document.getElementById('asm-tw').value)||1;
+  const cd=parseInt(document.getElementById('asm-cd').value)||0;
+  S.assemble={active:true,needMax:Math.max(6,Math.min(18,need)),filled:0,teamwork:Math.max(0,Math.min(6,tw)),turn:1,countdown:Math.max(0,Math.min(6,cd)),powerBoxes:[],log:[`Assemble started — Need ${need}, Teamwork ${tw}${cd?', Countdown '+cd:''}`]};
+  save();renderOSHCampaignPanel();
+}
+function resetAssemble(){S.assemble={active:false,needMax:12,filled:0,teamwork:1,turn:1,countdown:0,powerBoxes:[],log:[]};save();renderOSHCampaignPanel();}
+function assembleToggleBox(n){const a=S.assemble;a.filled=n<=a.filled?n-1:n;save();renderOSHCampaignPanel();}
+function adjTeamwork(d){const a=S.assemble;a.teamwork=Math.max(0,Math.min(6,a.teamwork+d));save();renderOSHCampaignPanel();}
+function assembleEndTurn(){
+  const a=S.assemble;
+  const add=Math.min(a.teamwork,a.needMax-a.filled);
+  a.filled=Math.min(a.needMax,a.filled+a.teamwork);
+  a.log.push(`Turn ${a.turn}: Teamwork ${a.teamwork} → +${add} Need (${a.filled}/${a.needMax})`);
+  a.turn++;
+  if(a.filled>=a.needMax){a.log.push('🎉 Victory — Need filled!');setTimeout(()=>alert('Assemble: Heroes achieve their objective!'),50);}
+  save();renderOSHCampaignPanel();
+}
+function assembleTickCountdown(){
+  const a=S.assemble;
+  a.countdown=Math.max(0,a.countdown-1);
+  a.log.push(`Countdown ticks → ${a.countdown}`);
+  if(a.countdown===0&&a.filled<a.needMax){a.log.push('💥 It’s too late! Defeat.');setTimeout(()=>alert('Assemble: Countdown expired — Heroes fail.'),50);}
+  save();renderOSHCampaignPanel();
+}
+
+// ============================================================
+// TIME-OUT — OSH safe-scene phase
+// ============================================================
+const TIMEOUT_ACTIONS=[
+  {id:'research',name:'Research',desc:'Gather info, follow up on a personal investigation, or dig into the Villain.'},
+  {id:'heal',name:'Heal',desc:'Remove a Condition from yourself or a friend.'},
+  {id:'fix',name:'Fix',desc:'Repair an object, weapon, or ride.'},
+  {id:'recharge',name:'Recharge',desc:"Recover Adrenaline. Gain 1 — once per Time-Out."},
+  {id:'shop',name:'Shop',desc:'Buy a specific piece of gear.'},
+  {id:'work',name:'Work',desc:'Build, tidy, or anything that just needs time.'},
+  {id:'superpower',name:'Superpower',desc:'Push your superpower beyond normal limits (ritual, scout, sculpt). May cost 2 actions.'},
+  {id:'train',name:'Train',desc:'Train a friend; they gain Free Re-roll in one Skill until next Time-Out.'},
+  {id:'normality',name:'Normality',desc:'Spend the whole Time-Out out of costume on a day-job, loved ones, or a date.'}
+];
+function renderTimeOutPanel(){
+  if(!S.timeout)S.timeout={active:false,actions:[]};
+  const t=S.timeout;
+  let html=`<div class="card" style="margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <h3 style="margin:0">Time-Out <span class="badge badge-osh">OSH</span></h3>
+      <div style="display:flex;gap:4px">
+        ${t.active?`<button class="btn btn-secondary btn-xs" onclick="endTimeOut()">End</button>`:`<button class="btn btn-primary btn-xs" onclick="startTimeOut()">Begin Time-Out</button>`}
+      </div>
+    </div>`;
+  if(!t.active){
+    html+=`<div class="muted" style="font-size:11px">Safe scene. On start, all Heroes recover all Grit and gain 1 ${adrenalineName()}. Each Hero takes 2 actions.</div>`;
+  } else {
+    html+=`<div class="muted" style="font-size:11px;margin-bottom:8px">All Heroes recovered Grit + gained 1 ${adrenalineName()}. Log each Hero's 2 actions. Extending Time-Out grants +1 action but Heat rises by 1.</div>`;
+    (t.actions||[]).forEach((row,i)=>{
+      html+=`<div class="card" style="padding:8px;margin-bottom:6px">
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px">
+          <input value="${escq(row.heroName||'')}" placeholder="Hero" oninput="setTimeOutField(${i},'heroName',this.value)" style="flex:1;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--fg);font-size:12px">
+          <button class="btn btn-secondary btn-xs" onclick="removeTimeOutRow(${i})">✕</button>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:4px">
+          ${[1,2].map(slot=>`<select onchange="setTimeOutField(${i},'action${slot}',this.value)" style="flex:1;padding:5px 6px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--fg);font-size:11px">
+            <option value="">— Action ${slot} —</option>
+            ${TIMEOUT_ACTIONS.map(a=>`<option value="${a.id}" ${row['action'+slot]===a.id?'selected':''}>${a.name}</option>`).join('')}
+          </select>`).join('')}
+        </div>
+        <input value="${escq(row.notes||'')}" placeholder="Notes" oninput="setTimeOutField(${i},'notes',this.value)" style="width:100%;box-sizing:border-box;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--fg);font-size:11px">
+      </div>`;
+    });
+    html+=`<button class="btn btn-secondary btn-xs" onclick="addTimeOutRow()">+ Hero</button>
+      <button class="btn btn-secondary btn-xs" onclick="extendTimeOut()" style="margin-left:6px">Extend (Heat +1)</button>`;
+  }
+  html+='</div>';
+  return html;
+}
+function startTimeOut(){
+  S.timeout={active:true,actions:[]};
+  // Each existing hero recovers Grit + gains 1 Adrenaline (= Power)
+  if(S.char){S.char.grit=0;S.char.adrenaline=Math.min(6,(S.char.adrenaline||0)+1);}
+  save();renderHero();renderOSHCampaignPanel();
+}
+function endTimeOut(){S.timeout={active:false,actions:[]};save();renderOSHCampaignPanel();}
+function addTimeOutRow(){if(!S.timeout.actions)S.timeout.actions=[];S.timeout.actions.push({heroName:'',action1:'',action2:'',notes:''});save();renderOSHCampaignPanel();}
+function removeTimeOutRow(i){S.timeout.actions.splice(i,1);save();renderOSHCampaignPanel();}
+function setTimeOutField(i,k,v){if(!S.timeout.actions[i])return;S.timeout.actions[i][k]=v;save();}
+function extendTimeOut(){S.heat=Math.min(12,(S.heat||0)+1);save();renderOSHCampaignPanel();}
+
+// ============================================================
+// ETERNITY SHARDS
+// ============================================================
+const ETERNITY_SHARDS=[
+  {id:'change',name:'Change Shard',color:'#e94e77',desc:'Controls the fabric of reality.'},
+  {id:'force',name:'Force Shard',color:'#f39c12',desc:'Unleashes endless force; breaks anything, even duramantium.'},
+  {id:'mind',name:'Mind Shard',color:'#9b59b6',desc:'Controls minds.'},
+  {id:'space',name:'Space Shard',color:'#3498db',desc:'Bends space; teleportation.'},
+  {id:'spirit',name:'Spirit Shard',color:'#2ecc71',desc:'Controls souls of the living.'},
+  {id:'time',name:'Time Shard',color:'#f1c40f',desc:'Manipulates time.'}
+];
+function renderShardsPanel(){
+  if(!S.shards)S.shards={change:'',force:'',mind:'',space:'',spirit:'',time:''};
+  let html=`<div class="card" style="margin-bottom:10px">
+    <h3 style="margin:0 0 6px">Eternity Shards <span class="badge badge-osh">OSH</span></h3>
+    <div class="muted" style="font-size:11px;margin-bottom:8px">6 cosmic gems. Track who holds each. A Villain holding all 6 is practically invincible.</div>`;
+  ETERNITY_SHARDS.forEach(sh=>{
+    const holder=S.shards[sh.id]||'';
+    html+=`<div style="border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:6px;background:var(--surface2)">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
+        <div style="width:14px;height:14px;border-radius:50%;background:${sh.color};flex-shrink:0"></div>
+        <div style="font-size:12px;font-weight:700;flex:1;min-width:0">${sh.name}</div>
+        <select onchange="setShardHolder('${sh.id}',this.value)" style="padding:4px 6px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--fg);font-size:11px;flex-shrink:0">
+          <option value="" ${holder===''?'selected':''}>— None</option>
+          <option value="hero" ${holder==='hero'?'selected':''}>Hero</option>
+          <option value="villain" ${holder==='villain'?'selected':''}>Villain</option>
+          <option value="lost" ${holder==='lost'?'selected':''}>Lost</option>
+        </select>
+      </div>
+      <div style="font-size:10px;color:var(--muted);line-height:1.4">${termSubst(sh.desc)}</div>
+    </div>`;
+  });
+  html+='</div>';
+  return html;
+}
+function setShardHolder(id,who){if(!S.shards)S.shards={};S.shards[id]=who;save();}
+
+function adjHeat(d){S.heat=Math.max(0,Math.min(12,(S.heat||0)+d));save();renderOSHCampaignPanel();}
+function setHeat(n){S.heat=Math.max(0,Math.min(12,n));save();renderOSHCampaignPanel();}
+function setVillain(k,v){if(!S.villain)S.villain={};S.villain[k]=v;save();}
+function toggleVillainStrong(id){
+  if(!S.villain)S.villain={strongSpots:[]};
+  if(!S.villain.strongSpots)S.villain.strongSpots=[];
+  const i=S.villain.strongSpots.indexOf(id);
+  if(i>=0)S.villain.strongSpots.splice(i,1);else S.villain.strongSpots.push(id);
+  save();renderOSHCampaignPanel();
+}
+function toggleVillainEdit(){S._villainEdit=!S._villainEdit;renderOSHCampaignPanel();}
+
+// Returns the list of book ids active for the current char (core + any partially-included book).
+function activeGames(){
+  const ch=S.char;
+  if(!ch)return ['core'];
+  const core=ch.coreBook||'core';
+  const out=[core];
+  selectableBooks().forEach(b=>{
+    if(b===core)return;
+    const inc=ch.include?.[b]||{};
+    if(inc.roles||inc.feats||inc.scenes)out.push(b);
+  });
+  return out;
+}
 
 function deployEnemy(type,idx){
   // Open staging modal instead of prompt
@@ -3338,8 +4431,9 @@ function renderDeployModal(){
   const st=S.enemyStaging;
   if(!st)return;
   const t=ENEMY_TEMPLATES[st.type][st.idx];
-  const games=activeGames();
-  const showWok=games.includes('wok')||t.book==='wok';
+  const showWok=bookHas('wok','feats')||t.book==='wok';
+  const showOsh=bookHas('osh','feats')||t.book==='osh';
+  const showCore=bookHas('core','feats');
 
   const featPtBudget=t.featPts||0;
   // Points used by currently selected feats (only those in ENEMY_FEATS — template pre-assigned feats don't count against budget)
@@ -3349,11 +4443,16 @@ function renderDeployModal(){
   },0);
   const remaining=featPtBudget-usedPts;
 
-  const availFeats=ENEMY_FEATS.filter(f=>f.book==='core'||(showWok&&f.book==='wok'));
-  const availSAs=ENEMY_SPECIAL_ACTIONS.filter(f=>f.book==='core'||(showWok&&f.book==='wok'));
+  // Support both single-book (`book:'core'`) and multi-book (`books:['core','osh']`) tagging.
+  const allowed=b=>(showCore&&b==='core')||(showWok&&b==='wok')||(showOsh&&b==='osh');
+  const inScope=f=>entryBooks(f).some(allowed);
+  const availFeats=ENEMY_FEATS.filter(inScope);
+  const availSAs=ENEMY_SPECIAL_ACTIONS.filter(inScope);
 
-  const costLabel=c=>c===1?'1 pt':c===2?'2 pts':'3 pts';
-  const adrLabel=c=>c===1?'1 Adr':c===2?'2 Adr':'3 Adr';
+  const costLabel=c=>c===1?'1 pt':c+' pts';
+  const adrLabel=c=>c+' '+term('Adr');
+  const featCostBuckets=[...new Set(availFeats.map(f=>f.cost))].sort((a,b)=>a-b);
+  const saCostBuckets=[...new Set(availSAs.map(f=>f.cost))].sort((a,b)=>a-b);
 
   let html=`<div style="padding:8px 0 12px;display:flex;align-items:center;gap:10px">
     <button onclick="cancelDeploy()" style="border:none;background:transparent;color:var(--fg2);font-size:20px;cursor:pointer;padding:0">✕</button>
@@ -3374,7 +4473,7 @@ function renderDeployModal(){
         <div style="font-size:11px;font-weight:700;color:var(--fg2);text-transform:uppercase">Enemy Feats</div>
         <div style="font-size:12px;font-weight:700;color:${remaining<0?'var(--accent)':'var(--green)'}">${usedPts}/${featPtBudget} pts used</div>
       </div>`;
-    [1,2,3].forEach(cost=>{
+    featCostBuckets.forEach(cost=>{
       const group=availFeats.filter(f=>f.cost===cost);
       if(!group.length)return;
       html+=`<div style="font-size:10px;font-weight:700;color:var(--fg2);text-transform:uppercase;margin:8px 0 4px">${costLabel(cost)}</div>`;
@@ -3384,10 +4483,10 @@ function renderDeployModal(){
         html+=`<div onclick="${sel||canAdd?`toggleEnemyFeat('${escq(f.name)}')`:'void(0)'}" style="padding:8px;border-radius:8px;margin-bottom:4px;cursor:${sel||canAdd?'pointer':'default'};border:1px solid ${sel?'var(--accent)':'var(--border)'};background:${sel?'rgba(230,57,70,.1)':'var(--surface2)'};opacity:${!sel&&!canAdd?.45:1}">
           <div style="display:flex;align-items:center;gap:6px">
             <span style="font-size:12px;font-weight:700">${f.name}</span>
-            ${f.book!=='core'?`<span class="badge ${bookBadge(f.book)}">${bookLabel(f.book)}</span>`:''}
+            ${entryBadgesHtml(f)}
             ${sel?'<span style="color:var(--green);margin-left:auto;font-size:14px">✓</span>':''}
           </div>
-          <div style="font-size:11px;color:var(--fg2);margin-top:2px">${f.desc}</div>
+          <div style="font-size:11px;color:var(--fg2);margin-top:2px">${termSubst(f.desc)}</div>
         </div>`;
       });
     });
@@ -3398,7 +4497,7 @@ function renderDeployModal(){
   html+=`<div class="card" style="margin-bottom:10px">
     <div style="font-size:11px;font-weight:700;color:var(--fg2);text-transform:uppercase;margin-bottom:4px">Special Actions</div>
     <div style="font-size:11px;color:var(--fg2);margin-bottom:8px">Select which Special Actions this enemy can use (costs Adrenaline during combat).</div>`;
-  [1,2,3].forEach(cost=>{
+  saCostBuckets.forEach(cost=>{
     const group=availSAs.filter(f=>f.cost===cost);
     if(!group.length)return;
     html+=`<div style="font-size:10px;font-weight:700;color:var(--fg2);text-transform:uppercase;margin:8px 0 4px">${adrLabel(cost)}</div>`;
@@ -3408,10 +4507,10 @@ function renderDeployModal(){
         <div style="display:flex;align-items:center;gap:6px">
           <span style="font-size:12px;font-weight:700">${f.name}</span>
           <span style="font-size:10px;color:var(--yellow)">${adrLabel(cost)}</span>
-          ${f.book!=='core'?`<span class="badge ${bookBadge(f.book)}">${bookLabel(f.book)}</span>`:''}
+          ${entryBadgesHtml(f)}
           ${sel?'<span style="color:var(--yellow);margin-left:auto;font-size:14px">✓</span>':''}
         </div>
-        <div style="font-size:11px;color:var(--fg2);margin-top:2px">${f.desc}</div>
+        <div style="font-size:11px;color:var(--fg2);margin-top:2px">${termSubst(f.desc)}</div>
       </div>`;
     });
   });
@@ -3493,8 +4592,8 @@ function renderActiveEnemies(){
         <div class="enemy-stat"><div class="enemy-stat-label">Defense</div><div class="enemy-stat-val" style="color:var(--blue)">${e.def}</div></div>
         <div class="enemy-stat"><div class="enemy-stat-label">Grit</div><div class="enemy-stat-val">${e.grit}/${e.gritMax}</div></div>
       </div>
-      ${e.feats?.length?`<div style="margin-top:8px">${e.feats.map(fn=>{const f=ENEMY_FEATS.find(f=>f.name===fn);return`<div style="margin-bottom:4px"><span style="font-size:11px;font-weight:700;color:var(--accent)">${fn}</span>${f?`<span style="font-size:10px;color:var(--fg2)"> — ${f.desc}</span>`:''}</div>`;}).join('')}</div>`:''}
-      ${e.specialActions?.length?`<div style="margin-top:6px">${e.specialActions.map(fn=>{const f=ENEMY_SPECIAL_ACTIONS.find(f=>f.name===fn);return`<div style="margin-bottom:4px"><span style="font-size:11px;font-weight:700;color:var(--yellow)">${fn}</span>${f?`<span style="font-size:10px;color:var(--fg2)"> [${f.cost} Adr] — ${f.desc}</span>`:''}</div>`;}).join('')}</div>`:''}
+      ${e.feats?.length?`<div style="margin-top:8px">${e.feats.map(fn=>{const f=ENEMY_FEATS.find(f=>f.name===fn);return`<div style="margin-bottom:4px"><span style="font-size:11px;font-weight:700;color:var(--accent)">${fn}</span>${f?`<span style="font-size:10px;color:var(--fg2)"> — ${termSubst(f.desc)}</span>`:''}</div>`;}).join('')}</div>`:''}
+      ${e.specialActions?.length?`<div style="margin-top:6px">${e.specialActions.map(fn=>{const f=ENEMY_SPECIAL_ACTIONS.find(f=>f.name===fn);return`<div style="margin-bottom:4px"><span style="font-size:11px;font-weight:700;color:var(--yellow)">${fn}</span>${f?`<span style="font-size:10px;color:var(--fg2)"> [${f.cost} ${term('Adr')}] — ${termSubst(f.desc)}</span>`:''}</div>`;}).join('')}</div>`:''}
       <div class="label" style="margin-top:8px">Grit Track ${e.hotBoxes?.length?'<span style="color:var(--purple)">■=Hot Box</span>':''}</div>
       <div class="enemy-grit-row">${gritHtml}</div>
       <div style="display:flex;gap:6px;margin-top:8px">
