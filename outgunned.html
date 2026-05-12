@@ -171,9 +171,12 @@ textarea{resize:vertical;min-height:70px}
 .attr-name{font-size:8px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
 .attr-val{font-size:24px;font-weight:700;color:var(--accent);line-height:1.1}
 .skills-section{margin:10px 0}
-.skill-attr-label{font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:1px;
+.skill-attr-label{display:flex;align-items:center;justify-content:flex-start;gap:10px;
+  font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:1px;
   margin-bottom:4px;margin-top:10px;font-weight:700}
-.skill-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;
+.attr-pill{font-size:14px;font-weight:800;color:var(--text);background:var(--surface2);
+  border:1px solid var(--border);border-radius:6px;padding:1px 8px;min-width:24px;text-align:center;letter-spacing:0}
+.skill-row{display:flex;align-items:center;justify-content:flex-start;gap:8px;padding:5px 0;
   border-bottom:1px solid var(--border)}
 .skill-name{font-size:13px}
 .skill-val{font-size:16px;font-weight:700;color:var(--text);min-width:20px;text-align:center}
@@ -283,10 +286,40 @@ textarea{resize:vertical;min-height:70px}
   #notes-fab-area{right:20px;bottom:20px}
 }
 
+/* Skills in two columns (both mobile and desktop) — packs the name and value next to
+   each other and lets the attribute sub-header span the full width. */
+.skills-section{display:grid;grid-template-columns:1fr 1fr;column-gap:14px;row-gap:0}
+.skills-section .skill-attr-label{grid-column:1 / -1}
+.skills-section .skill-row{padding:4px 0}
+
+/* Mobile / narrow viewports: flatten every wrapper so all cards stack in a single
+   flex column with explicit per-card `order:` values. */
+@media(max-width:1023px){
+  .sheet-flex{display:flex;flex-direction:column}
+  .sheet-flex .sheet-top-row,
+  .sheet-flex .sheet-columns,
+  .sheet-flex .sheet-col{display:contents}
+  .card-grit{order:1}
+  .card-skills{order:2}
+  .card-conditions{order:3}
+  .card-death{order:4}
+  .card-feats{order:5}
+  .card-powers{order:6}
+  .card-rides{order:7}
+  .card-flaw{order:8}
+  .card-advance{order:9}
+}
+
 @media(min-width:1024px){
   body{padding-left:220px}
   #nav{width:220px}
+  /* Desktop: Grit + Death Roulette share a two-column grid at the top, then below
+     them two independent flex columns flow their cards without cross-column row
+     alignment — so Conditions sits directly under Attributes regardless of how tall
+     Skills is on the right. */
+  .sheet-top-row{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;margin-bottom:0}
   .sheet-columns{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;align-items:start}
+  .sheet-col{display:flex;flex-direction:column}
   #dice-layout{display:grid;grid-template-columns:380px 1fr;gap:16px;align-items:start}
 }
 
@@ -3024,14 +3057,11 @@ function renderSheet(){
     </button>`;
   });
 
-  let attrHtml='';
-  ATTRS.forEach(a=>{
-    attrHtml+=`<div class="attr-box"><div class="attr-name">${a}</div><div class="attr-val">${ch.attrs[a]}</div></div>`;
-  });
-
+  // Skills section — each attribute heading shows the attribute name on the left and
+  // its value as a pill on the right, so the separate Attributes card is no longer needed.
   let skillHtml='';
   ATTRS.forEach(attr=>{
-    skillHtml+=`<div class="skill-attr-label">${attr}</div>`;
+    skillHtml+=`<div class="skill-attr-label"><span>${attr}</span><span class="attr-pill">${ch.attrs[attr]}</span></div>`;
     ATTR_SKILLS[attr].forEach(skill=>{
       skillHtml+=`<div class="skill-row"><span class="skill-name">${skill}</span><span class="skill-val">${ch.skills[skill]}</span></div>`;
     });
@@ -3097,61 +3127,60 @@ function renderSheet(){
       </div>`:''}
     </div>
 
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <h3>Grit <span style="font-size:11px;color:var(--muted)">${ch.grit}/12</span></h3>
-        <button class="btn btn-xs btn-secondary" onclick="clearGrit()">Clear</button>
-      </div>
-      <div class="health-row" style="margin-top:8px">${gritHtml}</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:6px">
-        <span style="color:var(--yellow)">■</span> Box 8 = Bad Box: gain a Condition (Hard to Kill: +${adrName} &amp; +1 next roll)
-        &nbsp;<span style="color:var(--purple)">■</span> Box 12 = Hot Box: gain 2 ${adrName}
-      </div>
-    </div>
-
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <h3>Death Roulette <span style="font-size:11px;color:var(--muted)">${ch.deathBullets}/6 bullets</span></h3>
-        <button class="btn btn-danger btn-xs" onclick="spinRoulette()">SPIN</button>
-      </div>
-      <div class="death-roulette">${deathHtml}</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:6px">Tap to toggle lethal bullets. SPIN to test fate.</div>
-    </div>
-
-    <div class="sheet-columns">
-      <div class="sheet-col">
-        <div class="card">
-          <h3 style="margin-bottom:8px">Conditions</h3>
-          <div class="cond-grid">${condHtml}</div>
+    <div class="sheet-flex">
+      <div class="sheet-top-row">
+        <div class="card card-grit">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <h3>Grit <span style="font-size:11px;color:var(--muted)">${ch.grit}/12</span></h3>
+            <button class="btn btn-xs btn-secondary" onclick="clearGrit()">Clear</button>
+          </div>
+          <div class="health-row" style="margin-top:8px">${gritHtml}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:6px">
+            <span style="color:var(--yellow)">■</span> Box 8 = Bad Box: gain a Condition (Hard to Kill: +${adrName} &amp; +1 next roll)
+            &nbsp;<span style="color:var(--purple)">■</span> Box 12 = Hot Box: gain 2 ${adrName}
+          </div>
         </div>
 
-        <div class="card">
-          <h3 style="margin-bottom:8px">Attributes</h3>
-          <div class="attrs-grid">${attrHtml}</div>
+        <div class="card card-death">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <h3>Death Roulette <span style="font-size:11px;color:var(--muted)">${ch.deathBullets}/6 bullets</span></h3>
+            <button class="btn btn-danger btn-xs" onclick="spinRoulette()">SPIN</button>
+          </div>
+          <div class="death-roulette">${deathHtml}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:6px">Tap to toggle lethal bullets. SPIN to test fate.</div>
         </div>
       </div>
-      <div class="sheet-col">
-        <div class="card">
-          <h3 style="margin-bottom:4px">Skills</h3>
-          <div style="font-size:10px;color:var(--muted);margin-bottom:8px">Dice pool = Attribute + Skill</div>
-          <div class="skills-section">${skillHtml}</div>
+
+      <div class="sheet-columns">
+        <div class="sheet-col">
+          <div class="card card-conditions">
+            <h3 style="margin-bottom:8px">Conditions</h3>
+            <div class="cond-grid">${condHtml}</div>
+          </div>
+
+          <div class="card card-rides" id="rides-card">
+            ${renderRidesPanel(ch)}
+          </div>
         </div>
+        <div class="sheet-col">
+          <div class="card card-skills">
+            <h3 style="margin-bottom:4px">Skills</h3>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:8px">Dice pool = Attribute + Skill</div>
+            <div class="skills-section">${skillHtml}</div>
+          </div>
 
-        <div class="card">
-          <h3 style="margin-bottom:8px">Feats</h3>
-          ${featHtml||'<div class="muted">No feats selected.</div>'}
-        </div>
+          <div class="card card-feats">
+            <h3 style="margin-bottom:8px">Feats</h3>
+            ${featHtml||'<div class="muted">No feats selected.</div>'}
+          </div>
 
-        ${isOSHChar?renderSuperpowersCard(ch):''}
+          ${isOSHChar?renderSuperpowersCard(ch):''}
 
-        <div class="card" id="rides-card">
-          ${renderRidesPanel(ch)}
-        </div>
+          ${ch.flaw?`<div class="card card-flaw"><div class="label">Flaw</div><div>${ch.flaw}</div></div>`:''}
 
-        ${ch.flaw?`<div class="card"><div class="label">Flaw</div><div>${ch.flaw}</div></div>`:''}
-
-        <div class="card" id="advance-card">
-          ${renderAdvancePanel(ch)}
+          <div class="card card-advance" id="advance-card">
+            ${renderAdvancePanel(ch)}
+          </div>
         </div>
       </div>
     </div>
@@ -3163,7 +3192,7 @@ function renderSheet(){
 function renderSuperpowersCard(ch){
   const role=ROLES.find(r=>r.id===ch.roleId);
   const origin=ch.originId?ORIGINS.find(o=>o.id===ch.originId):null;
-  let html='<div class="card">';
+  let html='<div class="card card-powers">';
   html+=`<h3 style="margin-bottom:8px">Origin &amp; Superpowers <span class="badge badge-osh">OSH</span></h3>`;
   if(origin){
     html+=`<div class="feat-inline">
