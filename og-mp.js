@@ -136,13 +136,22 @@ window.MP = (function(){
     });
     return metaSnap.val();
   }
+  // Stop syncing the current party locally. Keeps the user's membership and
+  // their `users/{uid}/parties/{code}` entry intact so the party still appears
+  // in the lobby's "Your parties" list and can be rejoined with one click.
   async function leaveParty(){
-    if(!user || !currentCode) return;
-    const code = currentCode;
+    if(!currentCode) return;
     unbind();
-    await db.ref('parties/'+code+'/members/'+user.uid).remove();
-    await db.ref('users/'+user.uid+'/parties/'+code).remove();
     currentCode = null; currentMeta = null;
+  }
+  // Explicitly remove yourself from a party and drop it from your saved list.
+  // Used by the lobby's "× Forget" action on a party row.
+  async function forgetParty(code){
+    if(!user) return;
+    code = String(code).padStart(4,'0');
+    if(currentCode===code){ unbind(); currentCode=null; currentMeta=null; }
+    try{ await db.ref('parties/'+code+'/members/'+user.uid).remove(); }catch(_){}
+    try{ await db.ref('users/'+user.uid+'/parties/'+code).remove(); }catch(_){}
   }
   async function listMyParties(){
     if(!user) return [];
@@ -278,7 +287,7 @@ window.MP = (function(){
   return {
     init, onAuth,
     signInGoogle, signOut, currentUser, currentUid,
-    createParty, joinParty, leaveParty, listMyParties,
+    createParty, joinParty, leaveParty, forgetParty, listMyParties,
     bind, unbind,
     isDirector, currentParty,
     setMyCharId, writeChar, deleteChar,

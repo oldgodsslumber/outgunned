@@ -232,10 +232,22 @@
       card.appendChild(el('h3',{style:{margin:'18px 0 8px 0',fontSize:'13px',letterSpacing:'2px',color:'var(--muted)',textTransform:'uppercase'}},['Your parties']));
       const list = el('div',{style:{display:'flex',flexDirection:'column',gap:'6px',marginBottom:'14px'}});
       parties.forEach(p=>{
-        const row=el('button',{class:'btn btn-secondary',style:{justifyContent:'space-between',display:'flex',padding:'10px 12px',textAlign:'left'},onclick:()=>_joinByCode(p.code)});
+        const wrap = el('div',{style:{display:'flex',gap:'4px'}});
+        const row=el('button',{class:'btn btn-secondary',style:{flex:'1',justifyContent:'space-between',display:'flex',padding:'10px 12px',textAlign:'left'},onclick:()=>_joinByCode(p.code)});
         row.appendChild(el('span',{},[p.title||'(untitled)','  ',el('span',{style:{color:'var(--muted)',fontSize:'11px'}},['#'+p.code])]));
         row.appendChild(el('span',{style:{color:'var(--accent)',fontSize:'11px'}},[p.role==='director'?'Director':'Player']));
-        list.appendChild(row);
+        wrap.appendChild(row);
+        wrap.appendChild(el('button',{
+          class:'btn btn-secondary',
+          title:'Forget this party',
+          style:{padding:'10px 10px',color:'var(--muted)'},
+          onclick:async()=>{
+            if(!confirm('Remove "'+(p.title||'this party')+'" from your list? You can rejoin with the code.')) return;
+            try{ await MP.forgetParty(p.code); }catch(e){alert(e.message);}
+            const r = $('og-mp-lobby'); if(r) _renderLobbyContent(r.firstChild);
+          }
+        },['×']));
+        list.appendChild(wrap);
       });
       card.appendChild(list);
     }
