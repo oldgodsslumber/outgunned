@@ -305,9 +305,19 @@
   }
 
   function _applyDirectorGating(){
-    // Hide the Enemies nav tab for non-Directors (the dice-page strip stays visible).
-    const nb = $('nb-enemies');
-    if(nb){ nb.style.display = MP.isDirector() ? '' : 'none'; }
+    // Directors run the table — they don't have a hero, so hide the Hero tab and
+    // land on the Party view. Non-Directors get the Enemies management tab hidden
+    // (they still see the read-only enemy strip on the Dice screen).
+    const dir = MP.isDirector();
+    const nbEnemies = $('nb-enemies'); if(nbEnemies) nbEnemies.style.display = dir ? '' : 'none';
+    const nbHero    = $('nb-hero');    if(nbHero)    nbHero.style.display    = dir ? 'none' : '';
+    if(dir){
+      // If we're currently on the Hero page (the default), jump to Party.
+      const heroPage = $('page-hero');
+      if(heroPage && heroPage.classList.contains('active') && typeof showTab==='function'){
+        showTab('party');
+      }
+    }
   }
 
   // ---- Remote → local handlers -------------------------------------------
@@ -458,6 +468,52 @@
         return r;
       };
     });
+
+    // Character creation — players inherit the party's book selection (already
+    // chosen by the Director when they created the party), so skip step 0 (the
+    // "Select Your Games" screen) and start at Personal Info. Directors don't
+    // make heroes at all, so they never hit this path.
+    const origRCS = window.renderCreationStep;
+    if(typeof origRCS==='function'){
+      window.renderCreationStep = function(){
+        if(inParty && !MP.isDirector() && S.creation){
+          const m = lastRemote.meta||{};
+          // Inherit the party's primary game and enabled books on every render —
+          // cheap, and means the Director can still toggle books mid-session.
+          if(m.gameType) S.creation.coreBook = m.gameType;
+          if(m.books){
+            S.creation.include = S.creation.include || defaultInclude();
+            Object.keys(m.books).forEach(b=>{
+              if(b===S.creation.coreBook) return; // core book isn't toggled in include
+              S.creation.include[b] = S.creation.include[b] || {roles:false,feats:false,scenes:false};
+              // Treat a single boolean in meta.books as "all three categories on".
+              const on = !!m.books[b];
+              S.creation.include[b].roles  = on;
+              S.creation.include[b].feats  = on;
+              S.creation.include[b].scenes = on;
+            });
+          }
+          if(S.creation.step===0) S.creation.step = 1;
+        }
+        const r = origRCS.apply(this, arguments);
+        // Hide the "Back" button at step 1 — there's nowhere to go back to since
+        // the game-selection step is unreachable for players in a party.
+        if(inParty && !MP.isDirector() && S.creation && S.creation.step<=1){
+          document.querySelectorAll('#hero-creation button').forEach(b=>{
+            if(b.textContent && b.textContent.indexOf('Back')>=0) b.style.display='none';
+          });
+        }
+        return r;
+      };
+    }
+    // Block creationBack() from returning to the hidden game-selection step.
+    const origBack = window.creationBack;
+    if(typeof origBack==='function'){
+      window.creationBack = function(){
+        if(inParty && !MP.isDirector() && S.creation && S.creation.step<=1) return;
+        return origBack.apply(this, arguments);
+      };
+    }
 
     // Render hooks — add the roll feed + team-augment + enemy strip.
     const origDicePage = window.renderDicePage;
