@@ -797,6 +797,7 @@
     const chars        = lastRemote.chars||{};
     const myUid        = MP.currentUid();
     const directorUid  = (lastRemote.meta && lastRemote.meta.directorUid) || null;
+    const iAmDirector  = MP.isDirector();
 
     // Director header — the Director isn't a hero, so they get a row of
     // their own at the top and are excluded from the PARTY HEROES list below.
@@ -813,14 +814,97 @@
       panel.appendChild(el('div',{style:{color:'var(--muted)',fontSize:'12px'}},['No players have joined yet.']));
       return;
     }
+
     heroUids.forEach(uid=>{
-      const m = members[uid];
+      const m  = members[uid] || {};
       const ch = chars[m.charId] || chars[uid] || null;
-      const row = el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 0',borderBottom:'1px dashed var(--border)'}});
-      const left = el('span',{},[m.name||'Player',uid===myUid?' (you)':'']);
-      const right = ch ? el('span',{style:{color:'var(--accent)',fontSize:'12px'}},[ch.name||'(no name)',' — ',ch.roleId||'']) : el('span',{style:{color:'var(--muted)',fontSize:'12px'}},['no character yet']);
-      row.appendChild(left); row.appendChild(right);
-      panel.appendChild(row);
+      const isMine = uid===myUid;
+      // Use a real <details> element so the Director can expand each hero's
+      // attributes / skills / feat names without leaving the Party tab.
+      const card = document.createElement('details');
+      card.className = 'card';
+      card.style.cssText = 'margin-bottom:8px;padding:8px 10px';
+      if(iAmDirector) card.open = false; // collapsed by default for the Director
+
+      const summary = document.createElement('summary');
+      summary.style.cssText = 'cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:8px';
+      const role  = ch && ROLES.find(r=>r.id===ch.roleId);
+      const trope = ch && TROPES.find(t=>t.id===ch.tropeId);
+      const isOSHHero = ch && ch.coreBook==='osh';
+      const aliasLabel = isOSHHero ? 'Alias' : 'Job';
+      const left = el('div',{style:{flex:'1',minWidth:'0'}});
+      left.appendChild(el('div',{style:{fontWeight:'700'}},[
+        (m.name||'Player'), isMine?' (you)':''
+      ]));
+      if(ch){
+        const sub = el('div',{style:{fontSize:'11px',color:'var(--muted)',marginTop:'2px'}});
+        const bits = [];
+        if(ch.name) bits.push(ch.name);
+        if(role)    bits.push(role.name);
+        if(trope)   bits.push(trope.name);
+        sub.textContent = bits.join(' · ');
+        left.appendChild(sub);
+      } else {
+        left.appendChild(el('div',{style:{fontSize:'11px',color:'var(--muted)',fontStyle:'italic',marginTop:'2px'}},['no character yet']));
+      }
+      summary.appendChild(left);
+      // Caret on the right that rotates open. CSS triangle so it works in any theme.
+      const caret = el('span',{style:{fontSize:'12px',color:'var(--muted)',transition:'transform .15s'}},['▾']);
+      summary.appendChild(caret);
+      card.appendChild(summary);
+
+      // Body: detailed fields visible to all players. For the Director the
+      // body also includes attributes/skills/feat names so they can plan
+      // encounters without asking each player to read their sheet.
+      const body = el('div',{style:{marginTop:'8px',fontSize:'12px',lineHeight:'1.5'}});
+      if(ch){
+        if(ch.job)         body.appendChild(_kv(aliasLabel, ch.job));
+        if(role)           body.appendChild(_kv('Role', role.name));
+        if(trope)          body.appendChild(_kv('Trope', trope.name));
+        if(ch.catchphrase) body.appendChild(_kv('Catchphrase', '"'+ch.catchphrase+'"'));
+        if(ch.flaw)        body.appendChild(_kv('Flaw', ch.flaw));
+
+        if(iAmDirector){
+          // Compact attributes grid.
+          if(ch.attrs){
+            const aRow = el('div',{style:{display:'flex',gap:'6px',flexWrap:'wrap',margin:'8px 0 4px 0'}});
+            ATTRS.forEach(a=>{
+              const v = ch.attrs[a] || 0;
+              aRow.appendChild(el('span',{style:{padding:'2px 6px',background:'var(--surface2)',border:'1px solid var(--border)',borderRadius:'4px',fontSize:'10px',fontWeight:'700'}},[a+' '+v]));
+            });
+            body.appendChild(el('div',{style:{fontSize:'10px',color:'var(--muted)',letterSpacing:'1.5px',marginTop:'8px'}},['ATTRIBUTES']));
+            body.appendChild(aRow);
+          }
+          // Skills — only the ones > 1 (default) to keep it compact.
+          if(ch.skills){
+            const trained = Object.keys(ch.skills).filter(k=>ch.skills[k]>1)
+                              .sort((a,b)=>ch.skills[b]-ch.skills[a]);
+            if(trained.length){
+              body.appendChild(el('div',{style:{fontSize:'10px',color:'var(--muted)',letterSpacing:'1.5px',marginTop:'8px'}},['SKILLS']));
+              const sList = el('div',{style:{display:'flex',gap:'4px',flexWrap:'wrap',marginTop:'2px'}});
+              trained.forEach(k=>{
+                sList.appendChild(el('span',{style:{padding:'2px 6px',background:'var(--surface3)',borderRadius:'3px',fontSize:'10px'}},[k+' '+ch.skills[k]]));
+              });
+              body.appendChild(sList);
+            }
+          }
+          // Feat names only — descriptions stay on the player's sheet.
+          if(ch.feats && ch.feats.length){
+            body.appendChild(el('div',{style:{fontSize:'10px',color:'var(--muted)',letterSpacing:'1.5px',marginTop:'8px'}},['FEATS']));
+            body.appendChild(el('div',{style:{fontSize:'11px',marginTop:'2px'}},[ch.feats.join(' · ')]));
+          }
+        }
+      } else {
+        body.appendChild(el('div',{style:{color:'var(--muted)',fontStyle:'italic'}},['Character creation not yet finished.']));
+      }
+      card.appendChild(body);
+      panel.appendChild(card);
     });
+  }
+  function _kv(label, value){
+    const row = el('div',{style:{margin:'2px 0'}});
+    row.appendChild(el('span',{style:{color:'var(--muted)',fontSize:'11px'}},[label+': ']));
+    row.appendChild(el('span',{},[String(value)]));
+    return row;
   }
 })();

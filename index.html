@@ -1495,10 +1495,13 @@ function renderStepGames(){
 
 function renderStep0(){
   const c=S.creation;
+  const isOSH = (c.coreBook||'core')==='osh';
+  const jobLabel = isOSH ? 'Alias' : 'Job';
+  const jobPh    = isOSH ? 'e.g. Shadow, Quicksilver, Doctor Strange' : 'e.g. Police Officer, Mercenary, Hacker';
   return `<div class="card">
     <h2>Personal Info</h2>
     <div class="form-group"><label>Name *</label><input id="cr-name" value="${c.name}" placeholder="Your hero's name"></div>
-    <div class="form-group"><label>Job</label><input id="cr-job" value="${c.job}" placeholder="e.g. Police Officer, Mercenary, Hacker"></div>
+    <div class="form-group"><label>${jobLabel}</label><input id="cr-job" value="${c.job}" placeholder="${jobPh}"></div>
     <div class="form-group"><label>Age</label>
       <select id="cr-age">
         <option${c.age==='Young'?' selected':''}>Young</option>
@@ -1749,11 +1752,34 @@ function renderStepFeats(){
     :(selRole.length===maxRole&&selTrope.length===maxTrope);
   const nextAction=S.creation.solo?`creationNext()`:`creationFinish()`;
   const nextLabel=S.creation.solo?'Continue →':'Create Hero!';
+  // Non-solo heroes finalize here — show the gear panel above the button.
+  // Solo heroes get the gear panel on the Solo step instead.
+  if(!S.creation.solo) html+=renderGearSection();
   html+=`<button class="btn btn-primary btn-full" style="margin-top:8px;${ok?'':'opacity:.5'}" ${ok?'':'disabled'} onclick="${nextAction}">${nextLabel}</button>`;
   return html;
 }
 
 function escq(s){return s.replace(/'/g,"\\'");}
+
+// Gear panel that appears on the FINAL creation step (Feats for non-solo,
+// Solo for solo). Shows the Role's pre-listed starting gear and lets the
+// user record additional purchases. Stored as S.creation.gearList (free
+// text) so changes persist across renders without needing creationNext().
+function renderGearSection(){
+  const c=S.creation;
+  const role=ROLES.find(r=>r.id===c.roleId);
+  const startGear=role?.gear||'';
+  const gearVal=(c.gearList||'').replace(/</g,'&lt;');
+  let h=`<div class="card" style="margin-top:14px">
+    <h3 style="margin:0 0 8px 0">Starting Gear & Purchases</h3>`;
+  if(startGear){
+    h+=`<div style="font-size:12px;margin-bottom:8px"><strong style="color:var(--accent)">From your Role (${role.name}):</strong> <span style="color:var(--fg2)">${startGear}</span></div>`;
+  }
+  h+=`<div class="muted" style="font-size:11px;margin-bottom:6px">Use your starting cash to buy additional gear. See the rulebook for prices ($1 / $2 / $3 tiers). List anything you buy below — it'll appear on your sheet.</div>`;
+  h+=`<textarea id="cr-gear" oninput="S.creation.gearList=this.value" placeholder="e.g. Lockpick set ($1), First Aid Kit ($2)&#10;Walkie Talkie ($1)" style="width:100%;min-height:80px;background:var(--surface);border:1px solid var(--border);color:var(--fg);border-radius:8px;padding:8px;font-family:inherit;font-size:13px;resize:vertical;box-sizing:border-box">${gearVal}</textarea>`;
+  h+=`</div>`;
+  return h;
+}
 
 function setSoloAttr(attr){S.creation.soloAttr=attr;renderCreationStep();}
 
@@ -1854,6 +1880,7 @@ function renderStepSolo(){
   html+=`</div>`;
 
   const canFinish=!!c.soloAttr&&soloUsed===2;
+  html+=renderGearSection();
   html+=`<button class="btn btn-primary" onclick="creationFinish()" style="width:100%;margin-top:8px" ${canFinish?'':'disabled'}>Create Hero!</button>`;
   if(!canFinish)html+=`<div style="text-align:center;font-size:11px;color:var(--fg2);margin-top:6px">Choose your +1 Attr and both +2 Skill points to continue.</div>`;
   return html;
@@ -2007,6 +2034,15 @@ function creationFinish(){
   Object.entries(c.freeSkills).forEach(([s,v])=>skills[s]=Math.min(3,skills[s]+v));
   const attrs=buildBaseAttrs();
   const allFeats=[...(c.roleFeatsSelected||[]),...(c.tropeFeatsSelected||[]),...(c.tropeFeatsSelected2||[])];
+  // Superpower-granted automatic feats. Marvel's Invincible adds Flight,
+  // Energy Manipulation, Bulletproof, and Only Weakness (see og-data.js).
+  if(role?.superpowerId){
+    const sp=SUPERPOWERS.find(s=>s.id===role.superpowerId);
+    if(sp?.autoFeats) sp.autoFeats.forEach(fn=>{ if(!allFeats.includes(fn)) allFeats.push(fn); });
+  }
+  // Capture the optional gear textarea from the final step.
+  const gearTA=document.getElementById('cr-gear');
+  if(gearTA) c.gearList=gearTA.value;
   const fx=allFeats.reduce((acc,fname)=>{
     const f=FEATS.find(f=>f.name===fname);
     if(f?.creationEffects)Object.entries(f.creationEffects).forEach(([k,v])=>acc[k]=(acc[k]||0)+v);
@@ -2030,6 +2066,7 @@ function creationFinish(){
   const adrenalineExtra=(isOSHChar&&role?.superpowerId==='arcane_powers')?1:0;
   S.char={
     name:c.name,job:c.job,age:c.age,catchphrase:c.catchphrase,flaw:c.flaw,
+    gearList:c.gearList||'',
     coreBook:coreB,include:JSON.parse(JSON.stringify(inc)),
     roleId:c.roleId,tropeId:c.tropeId||null,tropeId2:prodigy?(c.tropeId2||null):null,
     feats:allFeats,
@@ -2141,7 +2178,7 @@ function renderSheet(){
       </div>
       <button class="btn btn-secondary btn-xs" onclick="openSlotModal()">Select</button>
     </div>
-    ${ch.job?`<div class="muted" style="margin-bottom:4px">Job: ${ch.job}</div>`:''}
+    ${ch.job?`<div class="muted" style="margin-bottom:4px">${ch.coreBook==='osh'?'Alias':'Job'}: ${ch.job}</div>`:''}
     ${ch.catchphrase?`<div style="font-style:italic;font-size:12px;color:var(--muted);margin-bottom:12px">"${ch.catchphrase}"</div>`:''}
 
     <div class="resource-row">
@@ -2214,6 +2251,15 @@ function renderSheet(){
             ${featHtml||'<div class="muted">No feats selected.</div>'}
           </div>
 
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <h3 style="margin:0">Gear</h3>
+              <button class="btn btn-xs btn-secondary" onclick="editGearList()">Edit</button>
+            </div>
+            ${role?.gear?`<div style="font-size:11px;margin-bottom:6px"><span style="color:var(--muted)">From ${role.name}:</span> ${role.gear}</div>`:''}
+            ${ch.gearList?`<div style="font-size:12px;white-space:pre-wrap;color:var(--fg)">${ch.gearList.replace(/</g,'&lt;')}</div>`:'<div class="muted" style="font-size:11px;font-style:italic">No additional gear purchased. Tap Edit to add items.</div>'}
+          </div>
+
           ${isOSHChar?renderSuperpowersCard(ch):''}
 
           ${ch.flaw?`<div class="card card-flaw"><div class="label">Flaw</div><div>${ch.flaw}</div></div>`:''}
@@ -2227,6 +2273,18 @@ function renderSheet(){
     <button onclick="printCharSheet()" style="width:100%;padding:11px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:8px">🖨️ Print Character Sheet</button>
     <div style="height:10px"></div>
   `;
+}
+
+// Lets the player tweak their gear list after creation (e.g. picked up loot,
+// dropped an item). Uses a prompt for simplicity — the sheet view already has
+// the creation textarea for the rich edit.
+function editGearList(){
+  if(!S.char) return;
+  const cur = S.char.gearList||'';
+  const v = prompt('Edit your gear list (one item per line):', cur);
+  if(v===null) return;        // cancelled
+  S.char.gearList = v;
+  save(); renderSheet();
 }
 
 function renderSuperpowersCard(ch){
@@ -2417,7 +2475,7 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:11.5pt;color:#111;backgrou
 <div class="hdr">
   <div><div class="h-name">${esc(ch.name)}</div>
   <div class="h-sub">${esc(role?.name||'')}${trope?' · '+esc(trope.name):''} · ${esc(ch.age)}</div>
-  ${ch.job||ch.catchphrase?`<div class="h-det">${ch.job?`Job: ${esc(ch.job)}`:''}${ch.job&&ch.catchphrase?' &nbsp;|&nbsp; ':''}${ch.catchphrase?`"${esc(ch.catchphrase)}"`:''}</div>`:''}
+  ${ch.job||ch.catchphrase?`<div class="h-det">${ch.job?`${ch.coreBook==='osh'?'Alias':'Job'}: ${esc(ch.job)}`:''}${ch.job&&ch.catchphrase?' &nbsp;|&nbsp; ':''}${ch.catchphrase?`"${esc(ch.catchphrase)}"`:''}</div>`:''}
   ${ch.flaw?`<div class="h-det"><b>Flaw:</b> ${esc(ch.flaw)}</div>`:''}
   </div>
   <div class="h-right"><div class="gtitle">OUTGUNNED</div><div style="font-size:6pt;color:#bbb;letter-spacing:1px">CHARACTER SHEET</div></div>

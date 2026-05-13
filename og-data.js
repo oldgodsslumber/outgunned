@@ -306,6 +306,7 @@ const SUPERPOWERS_OSH=[
      {id:'melee',name:'Melee Weapons',desc:'Choose one Melee Weapon (staff, katana, knives, etc.) and gain one weapon or a pair of weapons of your chosen type for free — they have the Perfect Feat. +1 to fight with your chosen weapon. When wielding a pair of melee weapons of the same type, gain +1 to dodge projectiles.'}
    ]},
   {id:'invincible',name:'Invincible',book:'osh',roleIds:['marvel'],
+   autoFeats:['Flight','Energy Manipulation','Bulletproof','Only Weakness'],
    desc:'Marvel only — a practically perfect being. Free Re-roll to all Brawn rolls. Automatically gain the Flight, Energy Manipulation, Bulletproof, and Only Weakness Feats. At creation, gain 6 extra free Skill Points to assign freely (in addition to the 2 all Heroes get, for a total of 8).'},
   {id:'one_of_a_kind',name:'One of a Kind',book:'osh',roleIds:['prodigy'],
    desc:'Prodigy only — no other Hero is like you. Choose 1 Superpower and 1 Feat (or 2 Feats) from anything available. You may NOT choose Invincible unless it is absolutely crucial to the story and all other Players agree. At creation, gain 2 extra free Skill Points to assign freely (in addition to the 2 all Heroes get, for a total of 4).'},
