@@ -727,7 +727,7 @@ function setCoreBook(book){
 function toggleInclude(book,category){
   const c=S.creation;
   if(!c.include)c.include=defaultInclude();
-  if(!c.include[book])c.include[book]={roles:false,feats:false,scenes:false};
+  if(!c.include[book])c.include[book]={roles:false,feats:false,items:false,scenes:false};
   c.include[book][category]=!c.include[book][category];
   // Re-validate role/trope if removing roles inclusion
   if(category==='roles'){
@@ -931,6 +931,77 @@ body{background:#000;color:#fff;font-family:Arial,Helvetica,sans-serif;width:100
 .sbtn{flex:1;padding:11px;border-radius:9px;border:none;font-size:13px;font-weight:700;cursor:pointer}
 .sbtn.go{background:#e63946;color:#fff}
 .sbtn.skip{background:#222;color:#888}
+
+/* --- Games selection table --- */
+table.games-table{width:100%;border-collapse:collapse;font-size:12px}
+.games-table th,.games-table td{padding:8px 6px;border-bottom:1px solid var(--border);text-align:center;vertical-align:middle}
+.games-table thead th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--fg2);font-weight:700;background:var(--surface2)}
+.games-table tbody tr.is-core{background:rgba(230,57,70,.06)}
+.games-table tbody tr:hover{background:var(--surface2)}
+.games-table td.gt-modes{font-size:11px;color:var(--fg2)}
+.gt-cell-disabled{color:var(--muted);opacity:.4}
+.gt-cell-auto{color:var(--accent);font-weight:700}
+.gt-radio{display:inline-flex;align-items:center;cursor:pointer}
+.gt-radio input{display:none}
+.gt-dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);display:inline-flex;align-items:center;justify-content:center;color:var(--accent);font-size:14px;background:var(--surface)}
+.gt-dot.on{border-color:var(--accent);background:rgba(230,57,70,.15)}
+.gt-check{display:inline-flex;width:22px;height:22px;border-radius:6px;border:2px solid var(--border);background:var(--surface);align-items:center;justify-content:center;cursor:pointer;color:var(--accent);font-weight:700;user-select:none;transition:all .12s}
+.gt-check:hover{border-color:var(--accent)}
+.gt-check.on{background:rgba(230,57,70,.18);border-color:var(--accent)}
+
+/* --- Gear catalog --- */
+.gc-filters{display:flex;flex-direction:column;gap:8px;margin:8px 0}
+.gc-search{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--fg);font-size:13px;box-sizing:border-box}
+.gc-chips{display:flex;flex-wrap:wrap;gap:5px}
+.gc-chip{padding:4px 10px;font-size:11px;font-weight:600;border:1px solid var(--border);border-radius:99px;background:var(--surface);color:var(--fg2);cursor:pointer;user-select:none}
+.gc-chip.on{background:rgba(230,57,70,.18);border-color:var(--accent);color:var(--fg)}
+.gc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-top:8px}
+.item-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:5px;font-size:12px}
+.item-card.owned{border-color:var(--accent);box-shadow:0 0 0 1px rgba(230,57,70,.2) inset}
+.ic-head{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ic-cost{background:var(--accent);color:#fff;font-weight:800;font-size:11px;padding:2px 6px;border-radius:6px;min-width:24px;text-align:center}
+.ic-name{font-weight:700;flex:1;min-width:0}
+.ic-feats{display:flex;flex-wrap:wrap;gap:3px}
+.if-chip{font-size:10px;background:var(--surface);border:1px solid var(--border);padding:1px 6px;border-radius:99px;color:var(--fg2);cursor:help}
+.ic-range{display:flex;gap:6px;font-size:10px;color:var(--fg2);background:var(--surface);padding:3px 6px;border-radius:6px;justify-content:space-between}
+.ic-range span{font-variant-numeric:tabular-nums}
+.ic-specs{font-size:10px;color:var(--muted)}
+.ic-desc{font-size:11px;color:var(--fg2);line-height:1.35}
+.ic-actions{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:4px}
+.ic-qty{font-weight:700;font-size:13px;min-width:18px;text-align:center}
+
+/* --- Loadout summary panel (creation + catalog modal) --- */
+.loadout-summary{font-size:12px}
+.ls-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;flex-wrap:wrap;gap:6px}
+.ls-budget{font-size:13px;font-weight:700;color:var(--accent)}
+.ls-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
+.ls-list li{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 8px}
+.ls-row1{display:flex;align-items:center;gap:6px}
+.ls-name{flex:1;font-weight:600}
+.ls-cost{font-size:11px}
+.ls-feats{font-size:10px;margin-top:2px}
+.ls-mags{display:flex;align-items:center;gap:6px;margin-top:4px;font-size:11px}
+.ls-mag-count{min-width:18px;text-align:center;font-weight:700}
+.ls-notes-wrap{margin-top:10px;display:flex;flex-direction:column;gap:4px}
+.ls-notes{width:100%;min-height:60px;background:var(--surface);border:1px solid var(--border);color:var(--fg);border-radius:6px;padding:6px;font-family:inherit;font-size:12px;resize:vertical;box-sizing:border-box}
+
+/* --- Sheet-view loadout card --- */
+ul.sheet-loadout{list-style:none;padding:0;margin:6px 0 0 0;display:flex;flex-direction:column;gap:6px}
+ul.sheet-loadout li{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:12px}
+.sl-row{display:flex;align-items:center;gap:6px}
+.sl-name{flex:1;font-weight:600}
+.sl-cost{font-size:11px}
+.sl-feats{font-size:10px;margin-top:2px}
+.sl-mags{display:flex;align-items:center;gap:4px;margin-top:4px;font-size:11px;flex-wrap:wrap}
+.sl-ride{font-size:11px;margin-top:2px}
+.mag-pip{width:14px;height:14px;border-radius:3px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:inline-block}
+.mag-pip.on{background:var(--accent);border-color:var(--accent)}
+.sheet-gear-notes{width:100%;min-height:50px;background:var(--surface);border:1px solid var(--border);color:var(--fg);border-radius:6px;padding:6px;font-family:inherit;font-size:12px;resize:vertical;box-sizing:border-box;margin-top:2px}
+
+/* --- Catalog modal --- */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+.modal-card{background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:14px;max-width:920px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 </style></head><body>
 <div id="setup">
   <div class="sbox">
@@ -1377,23 +1448,38 @@ function renderHero(){
   }
 }
 
-function renderCreationStep(){
+// Build the ordered list of creation step renderers for the current character.
+// Returns an array of {label, render} entries; renderCreationStep just indexes
+// into this so adding a new step (Gear) is a one-line change.
+function creationStepPlan(){
   const c=S.creation;
   const role=ROLES.find(r=>r.id===c.roleId);
   const isSpecial=role?.isSpecial;
   const prodigyHere=role?.tropeChoices===2;
   const usesTropeHere=!isSpecial||prodigyHere;
-  // Steps: 0=Games, 1=Info, 2=Role, 3=Trope(or Skills if special-non-prodigy), 4=Skills(or Feats if special-non-prodigy), 5=Feats[, 6=Solo if solo]
-  const soloStep=c.solo;
-  const baseCount=usesTropeHere?6:5;
-  const stepCount=soloStep?baseCount+1:baseCount;
-  const baseLabels=usesTropeHere?['Games','Info','Role','Trope','Skills','Feats']:['Games','Info','Role','Skills','Feats'];
-  const allLabels=soloStep?[...baseLabels.slice(0,baseCount),'Solo']:baseLabels.slice(0,baseCount);
+  const plan=[
+    {label:'Games',render:renderStepGames},
+    {label:'Info', render:renderStep0},
+    {label:'Role', render:renderStep1},
+  ];
+  if(usesTropeHere)plan.push({label:'Trope',render:renderStep2});
+  plan.push({label:'Skills',render:renderStepSkills});
+  plan.push({label:'Feats', render:renderStepFeats});
+  plan.push({label:'Gear',  render:renderStepGear});
+  if(c.solo)plan.push({label:'Solo',render:renderStepSolo});
+  return plan;
+}
+
+function renderCreationStep(){
+  const c=S.creation;
+  const plan=creationStepPlan();
+  const stepCount=plan.length;
+  if(c.step>=stepCount)c.step=stepCount-1;
 
   let dots='';
   for(let i=0;i<stepCount;i++){
     const cls=i<c.step?'step-dot done':i===c.step?'step-dot active':'step-dot';
-    dots+=`<span class="${cls}" title="${allLabels[i]}"></span>`;
+    dots+=`<span class="${cls}" title="${plan[i].label}"></span>`;
   }
 
   const backBtn=c.step>0?`<button class="btn btn-secondary btn-xs" onclick="creationBack()" style="margin-bottom:12px">← Back</button>`:'';
@@ -1401,56 +1487,75 @@ function renderCreationStep(){
   ${backBtn}
   <div style="display:flex;gap:6px;margin-bottom:16px;justify-content:center;align-items:center">${dots}</div>`;
 
-  const soloStepNum=baseCount; // index of solo step when present
-  const prodigy=role?.tropeChoices===2;
-  const usesTropeStep=!isSpecial||prodigy;
-  if(c.step===0) html+=renderStepGames();
-  else if(c.step===1) html+=renderStep0();
-  else if(c.step===2) html+=renderStep1();
-  else if(c.step===3) html+=(usesTropeHere?renderStep2():renderStepSkills());
-  else if(c.step===4) html+=(usesTropeHere?renderStepSkills():renderStepFeats());
-  else if(c.step===5&&usesTropeHere) html+=renderStepFeats();
-  else if(c.step===soloStepNum&&soloStep) html+=renderStepSolo();
-  else if(c.step===5&&isSpecial&&soloStep) html+=renderStepSolo();
+  const step=plan[c.step];
+  if(step&&typeof step.render==='function')html+=step.render();
 
   document.getElementById('hero-creation').innerHTML=html;
   hudBroadcast();
 }
 
+// Game-selection step rendered as a books × content-types table.
+//   Rows: each selectable book in BOOK_META (new expansions auto-appear).
+//   Columns: Core (radio) · Roles & Tropes · Feats · Items · Special Scenes · Modes
+// BOOK_META[b].hasContent (populated in og-data.js) decides which cells are
+// enabled per row so a future expansion shipping only Items still renders.
 function renderStepGames(){
   const c=S.creation;
   if(!c.coreBook)c.coreBook='core';
   if(!c.include)c.include=defaultInclude();
+  if(typeof ensureIncludeShape==='function')c.include=ensureIncludeShape(c.include);
   const core=c.coreBook;
   const tier=c.powerTier||'street';
-  const bookCard=(id,label,badgeCls,desc)=>{
-    const isCore=core===id;
-    const inc=c.include[id]||{roles:false,feats:false,scenes:false};
-    const checks=isCore?'':`
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;padding-left:34px">
-        <span class="hc-chip${inc.roles?' on':''}" onclick="toggleInclude('${id}','roles')">${inc.roles?'✓':'○'} Roles &amp; Tropes</span>
-        <span class="hc-chip${inc.feats?' on':''}" onclick="toggleInclude('${id}','feats')">${inc.feats?'✓':'○'} Feats</span>
-        <span class="hc-chip${inc.scenes?' on':''}" onclick="toggleInclude('${id}','scenes')">${inc.scenes?'✓':'○'} Special Scenes</span>
-      </div>`;
-    return `<div class="game-option${isCore?' selected':''}" style="display:flex;flex-direction:column;gap:0;margin-top:4px;padding:10px">
-      <div onclick="setCoreBook('${id}')" style="display:flex;align-items:center;gap:10px;cursor:pointer">
-        <div class="game-check${isCore?' on':''}" style="border-radius:50%">${isCore?'●':''}</div>
-        <div style="flex:1">
-          <div style="display:flex;align-items:center;gap:8px;font-weight:700">${label} <span class="badge ${badgeCls}">${bookShort(id)}</span> ${isCore?'<span style="font-size:10px;color:var(--accent);font-weight:700">CORE</span>':''}</div>
-          <div class="muted" style="font-size:11px">${desc}</div>
-        </div>
-      </div>
-      ${checks}
-    </div>`;
-  };
+
+  const cols=[
+    {key:'roles', label:'Roles &amp; Tropes'},
+    {key:'feats', label:'Feats'},
+    {key:'items', label:'Items'},
+    {key:'scenes',label:'Special Scenes'}
+  ];
+
   let html=`<div class="card">
     <h2>Select Your Games</h2>
-    <div class="muted" style="margin-bottom:12px">Pick <strong>one core</strong> (its rules drive the game) and optionally include content from the others. Roles &amp; Tropes, Feats, and Special Scenes can be toggled separately per book.</div>`;
-  // Iterate every selectable book registered in BOOK_META. New expansions appear automatically.
+    <div class="muted" style="margin-bottom:10px">Pick <strong>one core</strong> (its rules drive the game) and toggle the content you want to pull in from the other expansions. New columns appear automatically when expansions ship new content types.</div>
+    <div style="overflow-x:auto">
+    <table class="games-table">
+      <thead><tr>
+        <th style="text-align:left">Game</th>
+        <th>Core</th>
+        ${cols.map(c=>`<th>${c.label}</th>`).join('')}
+        <th>Modes</th>
+      </tr></thead>
+      <tbody>`;
+
   selectableBooks().forEach(id=>{
     const meta=BOOK_META[id];
-    html+=bookCard(id,meta.label,meta.badge,meta.description||'');
+    const isCore=core===id;
+    const inc=c.include[id]||{};
+    const has=meta.hasContent||{};
+    const modes=(meta.sceneTypes||[]).map(t=>t.charAt(0).toUpperCase()+t.slice(1)).join(' · ')||'—';
+    html+=`<tr class="games-row${isCore?' is-core':''}">
+      <td style="text-align:left">
+        <div style="display:flex;align-items:center;gap:6px;font-weight:700">${meta.label} <span class="badge ${meta.badge}">${bookShort(id)}</span></div>
+        ${meta.description?`<div class="muted" style="font-size:11px;line-height:1.35;margin-top:2px">${meta.description}</div>`:''}
+      </td>
+      <td>
+        <label class="gt-radio" title="Use this book's rules as the campaign core">
+          <input type="radio" name="gt-core" ${isCore?'checked':''} onchange="setCoreBook('${id}')">
+          <span class="gt-dot${isCore?' on':''}">${isCore?'●':''}</span>
+        </label>
+      </td>`;
+    cols.forEach(col=>{
+      const enabled=!!has[col.key];
+      if(!enabled){html+=`<td class="gt-cell-disabled" title="${meta.label} ships no ${col.label.replace('&amp;','&')}">—</td>`;return;}
+      if(isCore){html+=`<td class="gt-cell-auto" title="The core book always contributes everything">✓</td>`;return;}
+      const on=!!inc[col.key];
+      html+=`<td><span class="gt-check${on?' on':''}" onclick="toggleInclude('${id}','${col.key}')" role="checkbox" aria-checked="${on}">${on?'✓':''}</span></td>`;
+    });
+    html+=`<td class="gt-modes">${modes}</td></tr>`;
   });
+
+  html+=`</tbody></table></div>`;
+
   if(core==='osh'){
     html+=`<div class="card card-accent" style="margin-top:10px;padding:10px">
       <div class="label" style="margin-bottom:6px">Power Tier</div>
@@ -1460,12 +1565,12 @@ function renderStepGames(){
       <div class="muted" style="font-size:10px;margin-top:6px">Sets the campaign’s scale: Street, World, or Cosmic Level. Narrative.</div>
     </div>`;
   }
-  html+='</div>';
+  html+=`</div>`;
   html+=`<div class="game-option${c.solo?' selected':''}" onclick="toggleSolo()" style="display:flex;align-items:center;gap:10px;margin-top:4px">
     <div class="game-check${c.solo?' on':''}">${c.solo?'✓':''}</div>
     <div style="flex:1">
       <div style="font-weight:700">Solo Play</div>
-      <div class="muted" style="font-size:11px">Double Action, Second Wind, Solo Boosts (+1 Attr, +2 Skills, +1 ${adrenalineName()==='Power'?'Spotlight':'Spotlight'}, $2 extra), and more.</div>
+      <div class="muted" style="font-size:11px">Double Action, Second Wind, Solo Boosts (+1 Attr, +2 Skills, +1 Spotlight, $2 extra), and more.</div>
     </div>
   </div>
   <button class="btn btn-primary btn-full" style="margin-top:12px" onclick="creationNext()">Continue →</button>`;
@@ -1729,21 +1834,269 @@ function renderStepFeats(){
     ?(selTrope.length===maxTrope&&selTrope2.length===maxTrope2)
     :isSpecial?selRole.length===maxRole
     :(selRole.length===maxRole&&selTrope.length===maxTrope);
-  const nextAction=S.creation.solo?`creationNext()`:`creationFinish()`;
-  const nextLabel=S.creation.solo?'Continue →':'Create Hero!';
-  // Non-solo heroes finalize here — show the gear panel above the button.
-  // Solo heroes get the gear panel on the Solo step instead.
-  if(!S.creation.solo) html+=renderGearSection();
-  html+=`<button class="btn btn-primary btn-full" style="margin-top:8px;${ok?'':'opacity:.5'}" ${ok?'':'disabled'} onclick="${nextAction}">${nextLabel}</button>`;
+  // Feats always advances to the dedicated Gear step now.
+  html+=`<button class="btn btn-primary btn-full" style="margin-top:8px;${ok?'':'opacity:.5'}" ${ok?'':'disabled'} onclick="creationNext()">Continue →</button>`;
   return html;
 }
 
 function escq(s){return s.replace(/'/g,"\\'");}
 
-// Gear panel that appears on the FINAL creation step (Feats for non-solo,
-// Solo for solo). Shows the Role's pre-listed starting gear and lets the
-// user record additional purchases. Stored as S.creation.gearList (free
-// text) so changes persist across renders without needing creationNext().
+// ============================================================
+// GEAR CATALOG (creation step + sheet-view modal)
+// ============================================================
+// Local UI state for the catalog filters. Lives outside S so navigating away
+// and back doesn't reset the user's chosen filter chips, but is reset whenever
+// a new character creation starts.
+let _gearUI={search:'',category:'all',books:{}};
+
+function gearSetSearch(v){_gearUI.search=v||'';renderCreationStep();}
+function gearSetCategory(cat){_gearUI.category=cat;renderCreationStep();}
+function gearToggleBook(b){_gearUI.books[b]=!_gearUI.books[b];renderCreationStep();}
+
+// Mutate the active loadout (creation OR sheet) by item id.
+function loadoutTarget(){
+  // While creating, write to c.loadout. After creation, write to S.char.loadout.
+  if(S.char&&S.char.loadout)return S.char.loadout;
+  if(S.creation){
+    if(!S.creation.loadout)S.creation.loadout={items:[],notes:''};
+    return S.creation.loadout;
+  }
+  return null;
+}
+function loadoutBuy(itemId){
+  const item=itemById(itemId);if(!item)return;
+  const lo=loadoutTarget();if(!lo)return;
+  const budget=S.char?null:startingCashBudget();
+  if(budget!=null){
+    const remaining=budget-loadoutSpent(lo.items);
+    if(item.cost>remaining){return;}
+  }
+  let entry=lo.items.find(e=>e.itemId===itemId);
+  if(entry){entry.qty=(entry.qty||1)+1;}
+  else{
+    entry={itemId,qty:1};
+    if(isFirearm(item))entry.mags=item.mag||4;
+    lo.items.push(entry);
+  }
+  save();_postLoadoutChange();
+}
+function loadoutSell(itemId){
+  const lo=loadoutTarget();if(!lo)return;
+  const idx=lo.items.findIndex(e=>e.itemId===itemId);if(idx<0)return;
+  const e=lo.items[idx];
+  if((e.qty||1)>1)e.qty--;
+  else lo.items.splice(idx,1);
+  save();_postLoadoutChange();
+}
+function loadoutAdjMags(itemId,delta){
+  const lo=loadoutTarget();if(!lo)return;
+  const e=lo.items.find(x=>x.itemId===itemId);if(!e)return;
+  e.mags=Math.max(0,(e.mags||0)+delta);
+  save();_postLoadoutChange();
+}
+function loadoutSetNotes(v){
+  const lo=loadoutTarget();if(!lo)return;
+  lo.notes=v||'';
+  save();
+}
+function _postLoadoutChange(){
+  const overlay=document.getElementById('catalog-overlay');
+  const modalOpen=overlay&&overlay.style.display!=='none';
+  if(S.char){
+    renderSheet();
+    if(modalOpen)_renderCatalogModal();
+  } else {
+    renderCreationStep();
+  }
+}
+
+// Render one item card for the catalog grid (used in both creation step and modal).
+function _renderItemCard(item,opts){
+  opts=opts||{};
+  const lo=loadoutTarget();
+  const ownedEntry=lo?lo.items.find(e=>e.itemId===item.id):null;
+  const owned=ownedEntry?(ownedEntry.qty||1):0;
+  const budget=opts.budget;
+  const remaining=budget!=null?(budget-loadoutSpent(lo?lo.items:[])):null;
+  const canAfford=remaining==null||item.cost<=remaining;
+  const featChips=(item.feats||[]).map(fid=>{
+    const f=itemFeat(fid);
+    return `<span class="if-chip" title="${(f?.desc||'').replace(/"/g,'&quot;')}">${f?f.name:fid}</span>`;
+  }).join('');
+  let rangeHtml='';
+  if(item.range){
+    rangeHtml=`<div class="ic-range"><span>M ${fmtRange(item.range.melee)}</span><span>C ${fmtRange(item.range.close)}</span><span>Med ${fmtRange(item.range.medium)}</span><span>L ${fmtRange(item.range.long)}</span></div>`;
+  }
+  const specs=[];
+  if(item.mag!=null)specs.push(`Mag ×${item.mag}`);
+  if(item.speed!=null)specs.push(`Speed ${item.speed}`);
+  if(item.armor!=null)specs.push(`Armor ${item.armor}`);
+  if(item.rideType)specs.push(item.rideType.map(t=>t.charAt(0).toUpperCase()+t.slice(1)).join('/'));
+  if(item.twoHand)specs.push('2-handed');
+  return `<div class="item-card${owned?' owned':''}">
+    <div class="ic-head">
+      <span class="ic-cost">${termSubst(item.cost+'$')}</span>
+      <span class="ic-name">${item.name}</span>
+      ${entryBadgesHtml(item)}
+    </div>
+    ${featChips?`<div class="ic-feats">${featChips}</div>`:''}
+    ${rangeHtml}
+    ${specs.length?`<div class="ic-specs">${specs.join(' · ')}</div>`:''}
+    ${item.desc?`<div class="ic-desc">${termSubst(item.desc)}</div>`:''}
+    <div class="ic-actions">
+      <button class="btn btn-secondary btn-xs" onclick="loadoutSell('${item.id}')" ${owned?'':'disabled'}>−</button>
+      <span class="ic-qty">${owned}</span>
+      <button class="btn btn-primary btn-xs" onclick="loadoutBuy('${item.id}')" ${canAfford?'':'disabled'} title="${canAfford?'Buy':'Not enough cash'}">+</button>
+    </div>
+  </div>`;
+}
+
+// Filter chip strip — categories + included books.
+function _renderCatalogFilters(){
+  const cats=[
+    ['all','All'],['gun','Guns'],['melee','Melee'],['gear','Gear'],
+    ['ride','Rides'],['ammo','Ammo'],['gadget','Gadgets']
+  ];
+  const activeCat=_gearUI.category||'all';
+  let h=`<div class="gc-filters">
+    <input class="gc-search" type="text" placeholder="Search items…" value="${(_gearUI.search||'').replace(/"/g,'&quot;')}" oninput="gearSetSearch(this.value)">
+    <div class="gc-chips">`;
+  cats.forEach(([k,lbl])=>{
+    h+=`<span class="gc-chip${activeCat===k?' on':''}" onclick="gearSetCategory('${k}')">${lbl}</span>`;
+  });
+  h+=`</div></div>`;
+  return h;
+}
+
+// Returns the items currently in scope and matching the filter UI.
+function _filteredCatalog(){
+  const list=itemsInScope();
+  const q=(_gearUI.search||'').trim().toLowerCase();
+  const cat=_gearUI.category||'all';
+  return list.filter(it=>{
+    if(cat!=='all'&&it.category!==cat)return false;
+    if(q){
+      const hay=(it.name+' '+(it.desc||'')+' '+(it.feats||[]).map(itemFeatLabel).join(' ')).toLowerCase();
+      if(hay.indexOf(q)<0)return false;
+    }
+    return true;
+  });
+}
+
+// Compact "currently bought" summary panel. Used in catalog + sheet.
+function _renderLoadoutSummary(opts){
+  opts=opts||{};
+  const lo=loadoutTarget();
+  if(!lo){return '<div class="muted">No loadout yet.</div>';}
+  const budget=opts.budget;
+  const spent=loadoutSpent(lo.items);
+  const remaining=budget!=null?(budget-spent):null;
+  let h=`<div class="loadout-summary">
+    <div class="ls-head">
+      <strong>Selected Loadout</strong>
+      ${budget!=null?`<span class="ls-budget">${termSubst(spent+'$')} / ${termSubst(budget+'$')} <span class="muted">spent</span></span>`:`<span class="ls-budget">${termSubst(spent+'$')} <span class="muted">value</span></span>`}
+    </div>`;
+  if(!lo.items.length){h+=`<div class="muted" style="padding:8px 0">No items yet. Click + on a card to buy one.</div>`;}
+  else{
+    h+=`<ul class="ls-list">`;
+    lo.items.forEach(e=>{
+      const it=itemById(e.itemId);if(!it)return;
+      const featTxt=(it.feats||[]).map(itemFeatLabel).join(', ');
+      h+=`<li>
+        <div class="ls-row1">
+          <span class="ls-name">${it.name}${(e.qty||1)>1?` ×${e.qty}`:''}</span>
+          <span class="ls-cost muted">${termSubst((it.cost*(e.qty||1))+'$')}</span>
+          <button class="btn btn-secondary btn-xs" onclick="loadoutSell('${it.id}')" title="Drop one">✕</button>
+        </div>
+        ${featTxt?`<div class="ls-feats muted">${featTxt}</div>`:''}
+        ${isFirearm(it)?`<div class="ls-mags">
+          <span class="muted">Mags:</span>
+          <button class="btn btn-secondary btn-xs" onclick="loadoutAdjMags('${it.id}',-1)">−</button>
+          <span class="ls-mag-count">${e.mags||0}</span>
+          <button class="btn btn-secondary btn-xs" onclick="loadoutAdjMags('${it.id}',1)">+</button>
+        </div>`:''}
+      </li>`;
+    });
+    h+=`</ul>`;
+  }
+  const notesVal=(lo.notes||'').replace(/</g,'&lt;');
+  h+=`<div class="ls-notes-wrap">
+    <label class="muted" style="font-size:11px">Notes / ad-hoc items</label>
+    <textarea class="ls-notes" oninput="loadoutSetNotes(this.value)" placeholder="Free-form notes (e.g. lucky coin, faded photo)…">${notesVal}</textarea>
+  </div></div>`;
+  return h;
+}
+
+// The creation step: full-page catalog + summary side panel.
+function renderStepGear(){
+  const c=S.creation;
+  if(!c.loadout)c.loadout={items:[],notes:''};
+  const budget=startingCashBudget();
+  const role=ROLES.find(r=>r.id===c.roleId);
+  const startGear=role?.gear||'';
+  let html=`<div class="card">
+    <h2>Gear & Equipment</h2>
+    <div class="muted" style="margin-bottom:8px">Spend your starting cash on guns, gear, melee weapons, rides, ammo, and gadgets. Toggling more expansions on the Games step adds their items to this catalog automatically.</div>`;
+  if(startGear){
+    html+=`<div style="font-size:12px;margin-bottom:8px"><strong style="color:var(--accent)">Starting gear from your Role (${role.name}):</strong> <span style="color:var(--fg2)">${startGear}</span> <span class="muted">(narrative — add structured items below)</span></div>`;
+  }
+  html+=_renderCatalogFilters();
+  const items=_filteredCatalog();
+  html+=`<div class="gc-grid">`;
+  if(!items.length)html+=`<div class="muted">No items match the current filter.</div>`;
+  items.forEach(it=>{html+=_renderItemCard(it,{budget});});
+  html+=`</div>`;
+  html+=`</div>`;
+  html+=`<div class="card" style="margin-top:10px">${_renderLoadoutSummary({budget})}</div>`;
+  // Last step? If solo, Continue → Solo. Otherwise this is the final step.
+  const plan=creationStepPlan();
+  const isLast=c.step>=plan.length-1;
+  const btnAction=isLast?'creationFinish()':'creationNext()';
+  const btnLabel=isLast?'Create Hero!':'Continue →';
+  html+=`<button class="btn btn-primary btn-full" style="margin-top:12px" onclick="${btnAction}">${btnLabel}</button>`;
+  return html;
+}
+
+// Sheet-view: opens the catalog as a modal so the player can buy more later.
+function openCatalog(){
+  if(!S.char)return;
+  const ch=S.char;
+  if(!ch.loadout)ch.loadout={items:[],notes:''};
+  let overlay=document.getElementById('catalog-overlay');
+  if(!overlay){
+    overlay=document.createElement('div');
+    overlay.id='catalog-overlay';
+    overlay.className='modal-backdrop';
+    overlay.onclick=function(e){if(e.target===overlay)closeCatalog();};
+    document.body.appendChild(overlay);
+  }
+  _renderCatalogModal();
+  overlay.style.display='flex';
+}
+function closeCatalog(){
+  const o=document.getElementById('catalog-overlay');
+  if(o)o.style.display='none';
+}
+function _renderCatalogModal(){
+  const overlay=document.getElementById('catalog-overlay');
+  if(!overlay||!S.char)return;
+  const items=_filteredCatalog();
+  let html=`<div class="modal-card">
+    <div class="modal-head">
+      <h3 style="margin:0">Gear Catalog</h3>
+      <button class="btn btn-secondary btn-xs" onclick="closeCatalog()">Close ✕</button>
+    </div>
+    ${_renderCatalogFilters()}
+    <div class="gc-grid">`;
+  items.forEach(it=>{html+=_renderItemCard(it,{});});
+  html+=`</div>
+    <div style="margin-top:10px">${_renderLoadoutSummary({})}</div>
+  </div>`;
+  overlay.innerHTML=html;
+}
+
+// Gear panel kept for back-compat (legacy textarea). No longer called from
+// the new creation flow but referenced by older code paths until cleaned up.
 function renderGearSection(){
   const c=S.creation;
   const role=ROLES.find(r=>r.id===c.roleId);
@@ -1859,7 +2212,6 @@ function renderStepSolo(){
   html+=`</div>`;
 
   const canFinish=!!c.soloAttr&&soloUsed===2;
-  html+=renderGearSection();
   html+=`<button class="btn btn-primary" onclick="creationFinish()" style="width:100%;margin-top:8px" ${canFinish?'':'disabled'}>Create Hero!</button>`;
   if(!canFinish)html+=`<div style="text-align:center;font-size:11px;color:var(--fg2);margin-top:6px">Choose your +1 Attr and both +2 Skill points to continue.</div>`;
   return html;
@@ -1967,41 +2319,38 @@ function creationNext(){
   const role=ROLES.find(r=>r.id===c.roleId);
   const isSpecial=role?.isSpecial;
   const prodigy=role?.tropeChoices===2;
-  const usesTrope=!isSpecial||prodigy;
-  if(c.step===0){
+  const plan=creationStepPlan();
+  const cur=plan[c.step]?.label;
+
+  // Per-step validation, keyed by label so the plan can be re-ordered freely.
+  if(cur==='Games'){
     if(!c.coreBook)c.coreBook='core';
-    c.step=1;
-  } else if(c.step===1){
+  } else if(cur==='Info'){
     c.name=document.getElementById('cr-name').value.trim();
     if(!c.name){alert('Enter a name!');return;}
     c.job=document.getElementById('cr-job').value.trim();
     c.age=document.getElementById('cr-age').value;
     c.catchphrase=document.getElementById('cr-catchphrase').value.trim();
     c.flaw=document.getElementById('cr-flaw').value.trim();
-    c.step=2;
-  } else if(c.step===2){
+  } else if(cur==='Role'){
     if(!c.roleId){alert('Choose a Role!');return;}
     if(role&&role.book==='osh'){
       if(!c.originId){alert('Choose an Origin!');return;}
       const sp=SUPERPOWERS.find(s=>s.id===role.superpowerId);
       if(sp?.variants?.length&&!((c.superpowerVariants||{})[sp.id])){alert('Choose a '+sp.name+' variant!');return;}
     }
-    c.step=3;
-  } else if(c.step===3){
-    if(usesTrope){
-      if(!c.tropeId){alert('Choose a Trope!');return;}
-      if(!c.tropeAttr){alert('Choose your Attribute bonus for your Trope!');return;}
-      if(prodigy){
-        if(!c.tropeId2){alert('Choose your second Trope!');return;}
-        if(!c.tropeAttr2){alert('Choose your Attribute bonus for the second Trope!');return;}
-      }
+  } else if(cur==='Trope'){
+    if(!c.tropeId){alert('Choose a Trope!');return;}
+    if(!c.tropeAttr){alert('Choose your Attribute bonus for your Trope!');return;}
+    if(prodigy){
+      if(!c.tropeId2){alert('Choose your second Trope!');return;}
+      if(!c.tropeAttr2){alert('Choose your Attribute bonus for the second Trope!');return;}
     }
-    c.step=4;
-  } else if(c.step===4){
-    c.step=5;
-  } else if(c.step===5&&usesTrope&&c.solo){
-    c.step=6;
   }
+  // Skills / Feats / Gear have no blocking validation here — the step UI
+  // disables its own Continue button while requirements are unmet.
+
+  if(c.step<plan.length-1){c.step++;}
   save();renderCreationStep();
 }
 
@@ -2019,9 +2368,11 @@ function creationFinish(){
     const sp=SUPERPOWERS.find(s=>s.id===role.superpowerId);
     if(sp?.autoFeats) sp.autoFeats.forEach(fn=>{ if(!allFeats.includes(fn)) allFeats.push(fn); });
   }
-  // Capture the optional gear textarea from the final step.
+  // Carry the structured loadout from the creation Gear step. Legacy free-text
+  // textarea (cr-gear) is preserved as a fallback for any path that still uses it.
   const gearTA=document.getElementById('cr-gear');
   if(gearTA) c.gearList=gearTA.value;
+  const finalLoadout=c.loadout?JSON.parse(JSON.stringify(c.loadout)):{items:[],notes:''};
   const fx=allFeats.reduce((acc,fname)=>{
     const f=FEATS.find(f=>f.name===fname);
     if(f?.creationEffects)Object.entries(f.creationEffects).forEach(([k,v])=>acc[k]=(acc[k]||0)+v);
@@ -2046,6 +2397,7 @@ function creationFinish(){
   S.char={
     name:c.name,job:c.job,age:c.age,catchphrase:c.catchphrase,flaw:c.flaw,
     gearList:c.gearList||'',
+    loadout:finalLoadout,
     coreBook:coreB,include:JSON.parse(JSON.stringify(inc)),
     roleId:c.roleId,tropeId:c.tropeId||null,tropeId2:prodigy?(c.tropeId2||null):null,
     feats:allFeats,
@@ -2250,14 +2602,7 @@ function renderSheet(){
             ${featHtml||'<div class="muted">No feats selected.</div>'}
           </div>
 
-          <div class="card">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-              <h3 style="margin:0">Gear</h3>
-              <button class="btn btn-xs btn-secondary" onclick="editGearList()">Edit</button>
-            </div>
-            ${role?.gear?`<div style="font-size:11px;margin-bottom:6px"><span style="color:var(--muted)">From ${role.name}:</span> ${role.gear}</div>`:''}
-            ${ch.gearList?`<div style="font-size:12px;white-space:pre-wrap;color:var(--fg)">${ch.gearList.replace(/</g,'&lt;')}</div>`:'<div class="muted" style="font-size:11px;font-style:italic">No additional gear purchased. Tap Edit to add items.</div>'}
-          </div>
+          ${renderSheetGearCard(ch,role)}
 
           ${isOSHChar?renderSuperpowersCard(ch):''}
 
@@ -2276,7 +2621,7 @@ function renderSheet(){
 
 // Lets the player tweak their gear list after creation (e.g. picked up loot,
 // dropped an item). Uses a prompt for simplicity — the sheet view already has
-// the creation textarea for the rich edit.
+// the creation textarea for the rich edit. Retained for legacy saves only.
 function editGearList(){
   if(!S.char) return;
   const cur = S.char.gearList||'';
@@ -2284,6 +2629,66 @@ function editGearList(){
   if(v===null) return;        // cancelled
   S.char.gearList = v;
   save(); renderSheet();
+}
+
+// Structured gear card on the sheet. Lists owned items with mag pips, lets
+// the player add more via the catalog modal, and preserves the freeform
+// notes field. Falls back to the legacy gearList text for old saves.
+function renderSheetGearCard(ch,role){
+  if(!ch.loadout)ch.loadout={items:[],notes:ch.gearList||''};
+  const lo=ch.loadout;
+  let h=`<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;flex-wrap:wrap">
+      <h3 style="margin:0">Gear</h3>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-xs btn-primary" onclick="openCatalog()">+ Catalog</button>
+      </div>
+    </div>`;
+  if(role&&role.gear){
+    h+=`<div style="font-size:11px;margin-bottom:6px"><span style="color:var(--muted)">From ${role.name}:</span> ${role.gear}</div>`;
+  }
+  if(!lo.items.length&&!ch.gearList){
+    h+=`<div class="muted" style="font-size:11px;font-style:italic">No gear in your loadout. Tap <strong>+ Catalog</strong> to browse and buy.</div>`;
+  }
+  if(lo.items.length){
+    h+=`<ul class="sheet-loadout">`;
+    lo.items.forEach(e=>{
+      const it=itemById(e.itemId);if(!it)return;
+      const featTxt=(it.feats||[]).map(itemFeatLabel).join(', ');
+      const isGun=isFirearm(it);
+      let extra='';
+      if(isGun){
+        const mags=e.mags||0;
+        const cap=it.mag||4;
+        let pips='';
+        for(let i=0;i<Math.max(cap,mags);i++){
+          pips+=`<span class="mag-pip${i<mags?' on':''}" onclick="loadoutAdjMags('${it.id}',${i<mags?-1:1})" title="${i<mags?'Spend a mag':'Add a mag'}"></span>`;
+        }
+        extra=`<div class="sl-mags"><span class="muted">Mags:</span>${pips} <span class="muted">${mags}/${cap}</span></div>`;
+      } else if(it.category==='ride'){
+        const sp=it.speed!=null?it.speed:'?';
+        const ar=it.armor!=null?it.armor:'?';
+        extra=`<div class="sl-ride muted">Speed ${sp} · Armor ${ar}</div>`;
+      }
+      h+=`<li>
+        <div class="sl-row">
+          <span class="sl-name">${it.name}${(e.qty||1)>1?` ×${e.qty}`:''}</span>
+          <span class="sl-cost muted">${termSubst(it.cost+'$')}</span>
+          <button class="btn btn-xs btn-secondary" onclick="loadoutSell('${it.id}')" title="Drop">✕</button>
+        </div>
+        ${featTxt?`<div class="sl-feats muted">${featTxt}</div>`:''}
+        ${extra}
+      </li>`;
+    });
+    h+=`</ul>`;
+  }
+  // Free-form notes / ad-hoc items.
+  const notesVal=(lo.notes||ch.gearList||'').replace(/</g,'&lt;');
+  h+=`<div style="margin-top:8px">
+    <label class="muted" style="font-size:11px">Notes</label>
+    <textarea class="sheet-gear-notes" oninput="if(S.char){if(!S.char.loadout)S.char.loadout={items:[],notes:''};S.char.loadout.notes=this.value;save();}" placeholder="Ad-hoc items, narrative gear, loot…">${notesVal}</textarea>
+  </div></div>`;
+  return h;
 }
 
 function renderSuperpowersCard(ch){

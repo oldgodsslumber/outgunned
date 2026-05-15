@@ -895,3 +895,154 @@ const ETERNITY_SHARDS=[
   {id:'spirit',name:'Spirit Shard',color:'#2ecc71',desc:'Controls souls of the living.'},
   {id:'time',name:'Time Shard',color:'#f1c40f',desc:'Manipulates time.'}
 ];
+
+// --- Items / Gear / Weapons / Rides ---
+// Gear feats are referenced by id from each item; one shared definition list so
+// the catalog UI can render tooltips without duplicating rule text.
+const ITEM_FEATS=[
+  {id:'accurate',name:'Accurate',book:'core',desc:'You can spend one turn to take aim. On your next turn, you gain +1 to your roll to hit that target.'},
+  {id:'explosive',name:'Explosive',books:['core','osh'],desc:'Ignores Bulletproof Vest and Armored Enemy Feats. Using this gun in Melee or Close Range is a Gamble — if you lose Grit, all nearby Heroes lose the same amount.'},
+  {id:'jam',name:'Jam',book:'core',desc:'Before shooting, roll a d6. On a 1, the gun jams: you lose the roll and the ammo used.'},
+  {id:'precision_shot',name:'Precision Shot',book:'core',desc:'You can use it to shoot Out of Range (0).'},
+  {id:'rapid_fire',name:'Rapid Fire',books:['core','osh'],desc:'When laying down Covering Fire you also gain +1 to your next Reaction Roll.'},
+  {id:'short_range',name:'Short Range',book:'core',desc:'You cannot Go Full Auto or lay down Covering Fire at Medium or Long Range.'},
+  {id:'silent',name:'Silent',books:['core','osh'],desc:'The weapon is quiet. When shooting, you don’t alert Enemies and don’t reveal your position.'},
+  {id:'single_shot',name:'Single Shot',books:['core','osh'],desc:'Uses single munitions, not Mags. Reloading requires a Quick Action.'},
+  {id:'slow_reload',name:'Slow Reload',books:['core','osh'],desc:'Reloading requires a Full Action instead of a Quick Action.'},
+  // OSH additions
+  {id:'energy_weapon',name:'Energy Weapon',book:'osh',desc:'Shoots energy beams within range. Overload to lay down covering fire or gain +1 to your next roll; after overloading the weapon overheats for a Turn.'},
+  {id:'firearm',name:'Firearm',book:'osh',desc:'Shoots bullets within range. On a failed Shoot roll you lose one mag. You can voluntarily empty a mag to lay down covering fire or gain +1. Reload = Quick Action.'},
+  {id:'impact',name:'Impact',book:'osh',desc:'Grants Help to crash doors and other objects, and to push back Enemies.'},
+  {id:'maximum_power',name:'Maximum Power',book:'osh',desc:'Ignores cover and the Indestructible Enemy Feat. Energy weapons with this Feat can be overloaded twice before overheating.'},
+  {id:'melee_weapon',name:'Melee Weapon',book:'osh',desc:'Grants no special advantage unless you have Battleborn or Trained Fighter.'},
+  {id:'perfect',name:'Perfect',book:'osh',desc:'Perfectly balanced and precise. Ignores the Indestructible Enemy Feat.'},
+  {id:'sharp',name:'Sharp',book:'osh',desc:'Grants Help to cut ropes and to open a path through vegetation.'},
+  {id:'throwing_weapon',name:'Throwing Weapon',book:'osh',desc:'You can roll Crime instead of Nerves. Recovering a thrown weapon nearby = Quick Action.'},
+  // WoK additions
+  {id:'custom',name:'Custom',book:'wok',desc:'Custom-made for the buyer. Anyone else using it suffers -1.'},
+  {id:'traditional',name:'Traditional',book:'wok',desc:'Crafted with ancient techniques. If you have a Feat that grants Free Re-rolls with this weapon (e.g. Sword Fighter), you also gain +1 to all Action/Reaction Rolls made with it.'},
+  {id:'incendiary',name:'Incendiary',book:'wok',desc:'Loaded with incendiary projectiles. Ignores Bulletproof Vest and Armored Enemy Feats.'}
+];
+
+// Item categories used by the catalog filter chips:
+//   gun | melee | gear | ride | ammo | gadget
+// Range numbers for guns: number (modifier), 'X' (cannot shoot), or '+NG' (Gamble flag at that band).
+// mag: starting mags for a firearm (4 = 3 spare + 1 loaded). Firearms only.
+// ammoType: what consumable this weapon eats (arrows/rockets) so the catalog
+//   can link compatible ammo. ammoFor on an ammo entry is the inverse pointer.
+// rideType/speed/armor: rides only.
+const ITEMS_CORE=[
+  // --- Guns (Corebook p.99) ---
+  {id:'pistol',name:'Pistol',book:'core',category:'gun',cost:1,range:{melee:0,close:0,medium:0,long:-2},mag:4,feats:[]},
+  {id:'revolver',name:'Revolver',book:'core',category:'gun',cost:1,range:{melee:0,close:0,medium:0,long:-2},mag:4,feats:[]},
+  {id:'machine_pistol',name:'Machine Pistol',book:'core',category:'gun',cost:2,range:{melee:0,close:1,medium:0,long:'X'},mag:4,feats:['rapid_fire','short_range']},
+  {id:'shotgun',name:'Shotgun',book:'core',category:'gun',cost:2,range:{melee:1,close:1,medium:-2,long:'X'},mag:4,feats:['short_range','slow_reload']},
+  {id:'rifle',name:'Rifle',book:'core',category:'gun',cost:2,range:{melee:-2,close:1,medium:1,long:0},mag:4,twoHand:true,feats:['accurate','slow_reload']},
+  {id:'assault_rifle',name:'Assault Rifle',book:'core',category:'gun',cost:3,range:{melee:0,close:1,medium:1,long:1},mag:4,twoHand:true,feats:['accurate','rapid_fire']},
+  {id:'precision_rifle',name:'Precision Rifle',book:'core',category:'gun',cost:3,range:{melee:'X',close:-1,medium:0,long:2},mag:4,twoHand:true,feats:['accurate','precision_shot','slow_reload']},
+  {id:'smg',name:'Sub-machine Gun',book:'core',category:'gun',cost:2,range:{melee:0,close:1,medium:1,long:0},mag:4,feats:['rapid_fire']},
+  {id:'machine_gun',name:'Machine Gun',book:'core',category:'gun',cost:3,range:{melee:-2,close:0,medium:2,long:1},mag:4,twoHand:true,feats:['rapid_fire','slow_reload']},
+  {id:'bow',name:'Bow',book:'core',category:'gun',cost:2,range:{melee:-1,close:0,medium:0,long:'X'},twoHand:true,ammoType:'arrows',feats:['silent','single_shot']},
+  {id:'throwing_knives',name:'Throwing Knives (3)',book:'core',category:'gun',cost:1,range:{melee:-1,close:-1,medium:-2,long:'X'},feats:['silent','single_shot']},
+  {id:'rocket_launcher',name:'Rocket Launcher',book:'core',category:'gun',cost:3,range:{melee:'+2G',close:'+2G',medium:3,long:3},twoHand:true,ammoType:'rockets',feats:['explosive','single_shot','slow_reload']},
+  {id:'grenade',name:'Grenade',book:'core',category:'gun',cost:2,range:{melee:'+1G',close:'+1G',medium:2,long:2},feats:['explosive','jam','single_shot']},
+  // --- Ammo ---
+  {id:'arrows_6',name:'Arrows (6)',book:'core',category:'ammo',cost:1,ammoFor:'arrows',desc:'Projectiles for bow.'},
+  {id:'rocket_1',name:'Rocket (1)',book:'core',category:'ammo',cost:2,ammoFor:'rockets',desc:'Projectile for rocket launcher.'},
+  {id:'mags_2',name:'Mags (2)',book:'core',category:'ammo',cost:1,ammoFor:'mag',desc:'Mags for a type of weapon of your choice.'},
+  // --- Gear (Help items) ---
+  {id:'bulletproof_vest',name:'Bulletproof Vest',book:'core',category:'gear',cost:3,desc:'Grants Help to avoid bullets.'},
+  {id:'camera',name:'Camera',book:'core',category:'gear',cost:1,desc:'Grants Help to shoot photos.'},
+  {id:'elegant_clothes',name:'Elegant Clothes',book:'core',category:'gear',cost:3,desc:'Grants Help to make a good impression.'},
+  {id:'first_aid_kit',name:'First-aid Kit',book:'core',category:'gear',cost:2,desc:'Grants Help to treat wounds.'},
+  {id:'grappling_hook',name:'Grappling Hook',book:'core',category:'gear',cost:1,desc:'Grants Help to climb and swing.'},
+  {id:'handcuffs',name:'Handcuffs',book:'core',category:'gear',cost:1,desc:'Grants Help to restrain people.'},
+  {id:'heavy_mace',name:'Heavy Mace',book:'core',category:'melee',cost:1,desc:'Grants Help to break through doors and smash things.'},
+  {id:'knife_sword',name:'Knife/Sword',book:'core',category:'melee',cost:1,desc:'Grants Help to cut things.'},
+  {id:'lockpicking_set',name:'Lockpicking Set',book:'core',category:'gear',cost:2,desc:'Grants Help to open locks or safes.'},
+  {id:'night_vision',name:'Night Vision Device',book:'core',category:'gear',cost:2,desc:'Grants Help to see in the dark.'},
+  {id:'portable_computer',name:'Portable Computer',book:'core',category:'gear',cost:2,desc:'Grants Help to find information and connect to a network.'},
+  {id:'scuba_gear',name:'Scuba Gear',book:'core',category:'gear',cost:3,desc:'Grants Help to dive and swim underwater.'},
+  {id:'silencer',name:'Silencer',book:'core',category:'gear',cost:2,desc:'Grants the Silent Feat to a pistol, assault rifle, or precision rifle.'},
+  {id:'telescopic_sight',name:'Telescopic Sight',book:'core',category:'gear',cost:2,desc:'Grants the Precision Shot Feat to a rifle or assault rifle.'},
+  {id:'toolbox',name:'Toolbox',book:'core',category:'gear',cost:1,desc:'Grants Help to repair Rides and other things.'},
+  {id:'wingsuit',name:'Wingsuit',book:'core',category:'gear',cost:3,desc:'Grants Help to glide. Includes a parachute.'},
+  // --- Rides ---
+  {id:'common_ride',name:'Common Ride (Bike/Car/Boat)',book:'core',category:'ride',cost:3,rideType:['bike','car','nautical'],speed:1,armor:3,desc:'A bike, car, or speed-1 nautical ride.'},
+  {id:'two_bit_ride',name:'Two-bit Ride',book:'core',category:'ride',cost:1,speed:0,armor:3,desc:'Old or broken-down. May start with 1–2 armor missing.'}
+];
+
+const ITEMS_OSH=[
+  {id:'osh_boat',name:'Boat',book:'osh',category:'ride',cost:3,rideType:['nautical'],speed:0,armor:3},
+  {id:'osh_bow',name:'Bow',book:'osh',category:'gun',cost:2,ammoType:'arrows',feats:['single_shot','silent'],twoHand:true,desc:'Allows you to shoot arrows.'},
+  {id:'osh_first_aid',name:'First-aid Kit',book:'osh',category:'gear',cost:2,desc:'Grants Help to treat wounds.'},
+  {id:'osh_flashlight',name:'Flashlight',book:'osh',category:'gear',cost:1,desc:'Grants Help to see in the dark.'},
+  {id:'osh_grappling',name:'Grappling Hook',book:'osh',category:'gear',cost:1,desc:'Grants Help to climb and swing.'},
+  {id:'osh_grenade',name:'Grenade (1)',book:'osh',category:'gun',cost:2,feats:['throwing_weapon','explosive']},
+  {id:'osh_helicopter',name:'Helicopter/Plane',book:'osh',category:'ride',cost:4,rideType:['flying'],speed:1,armor:3},
+  {id:'osh_laptop',name:'Laptop',book:'osh',category:'gear',cost:2,desc:'Grants Help to find information online and connect to networks.'},
+  {id:'osh_laser_pistol',name:'Laser Pistol',book:'osh',category:'gun',cost:2,feats:['energy_weapon']},
+  {id:'osh_laser_rifle',name:'Laser Rifle',book:'osh',category:'gun',cost:4,feats:['energy_weapon','maximum_power'],twoHand:true,desc:'Allows you to Shoot with +1.'},
+  {id:'osh_lighter',name:'Lighter',book:'osh',category:'gear',cost:1,desc:'Grants Help to light a fire.'},
+  {id:'osh_lockpicks',name:'Lockpicking Set',book:'osh',category:'gear',cost:2,desc:'Grants Help to open locks or padlocks.'},
+  {id:'osh_mace',name:'Mace/Hammer',book:'osh',category:'melee',cost:1,feats:['melee_weapon','impact']},
+  {id:'osh_machine_gun',name:'Machine Gun',book:'osh',category:'gun',cost:3,feats:['firearm','rapid_fire'],mag:4,twoHand:true,desc:'Allows you to Shoot with +1.'},
+  {id:'osh_car',name:'Motorbike/Car',book:'osh',category:'ride',cost:3,rideType:['bike','car'],speed:0,armor:3},
+  {id:'osh_motorboat',name:'Motorboat',book:'osh',category:'ride',cost:4,rideType:['nautical'],speed:1,armor:3},
+  {id:'osh_pistol',name:'Pistol/Revolver',book:'osh',category:'gun',cost:1,feats:['firearm'],mag:4},
+  {id:'osh_rifle',name:'Rifle',book:'osh',category:'gun',cost:2,feats:['firearm'],mag:4,twoHand:true,desc:'Allows you to shoot with +1.'},
+  {id:'osh_rocket_launcher',name:'Rocket Launcher',book:'osh',category:'gun',cost:4,feats:['single_shot','slow_reload','explosive'],twoHand:true,ammoType:'rockets',desc:'Allows you to Shoot with +1.'},
+  {id:'osh_shotgun',name:'Shotgun',book:'osh',category:'gun',cost:2,feats:['firearm','slow_reload','impact'],mag:4,twoHand:true,desc:'Allows you to shoot with +1.'},
+  {id:'osh_shuriken',name:'Shuriken (3)',book:'osh',category:'gun',cost:1,feats:['throwing_weapon','silent']},
+  {id:'osh_silencer',name:'Silencer',book:'osh',category:'gear',cost:2,desc:'Grants the Silent Feat to a pistol or rifle.'},
+  {id:'osh_sporty_car',name:'Sporty Motorbike/Car',book:'osh',category:'ride',cost:4,rideType:['bike','car'],speed:1,armor:3},
+  {id:'osh_sword',name:'Sword/Axe',book:'osh',category:'melee',cost:2,feats:['melee_weapon','sharp']},
+  {id:'osh_toolbox',name:'Toolbox',book:'osh',category:'gear',cost:1,desc:'Grants Help to repair rides and items.'},
+  {id:'osh_mags',name:'Mags (2)',book:'osh',category:'ammo',cost:1,ammoFor:'mag',desc:'2 Mags for a weapon of your choice.'},
+  {id:'osh_projectiles',name:'Projectiles',book:'osh',category:'ammo',cost:2,desc:'10 arrows for a bow, or 1 missile for a rocket launcher.'}
+];
+
+// WoK "Killer Gear" — all priced at 1 Gold. Terminology layer renames $ to Gold
+// under wok core, so cost:1 reads correctly in either currency.
+const ITEMS_WOK=[
+  {id:'wok_viper',name:'Viper (Pistol)',book:'wok',category:'gun',cost:1,range:{melee:0,close:1,medium:0,long:-2},mag:4,feats:['accurate','custom','silent']},
+  {id:'wok_banshee',name:'Banshee (Shotgun)',book:'wok',category:'gun',cost:1,range:{melee:1,close:1,medium:0,long:-2},mag:4,twoHand:true,feats:['custom','short_range']},
+  {id:'wok_lamia',name:'Lamia (Assault Rifle)',book:'wok',category:'gun',cost:1,range:{melee:0,close:1,medium:2,long:1},mag:4,twoHand:true,feats:['accurate','custom','rapid_fire']},
+  {id:'wok_siren',name:'Siren (Precision Rifle)',book:'wok',category:'gun',cost:1,range:{melee:'X',close:0,medium:0,long:2},mag:4,twoHand:true,feats:['accurate','custom','precision_shot']},
+  {id:'wok_katana',name:'Perfect Katana',book:'wok',category:'melee',cost:1,feats:['traditional'],desc:'Grants Help to cut things.'},
+  {id:'wok_incend_arrows',name:'Incendiary Arrows (6)',book:'wok',category:'ammo',cost:1,ammoFor:'arrows',feats:['incendiary']},
+  {id:'wok_incend_ammo',name:'Incendiary Ammo (2)',book:'wok',category:'ammo',cost:1,ammoFor:'mag',feats:['incendiary'],desc:'Mags for a Shotgun.'},
+  {id:'wok_bulletproof_suit',name:'Bulletproof Suit',book:'wok',category:'gear',cost:1,feats:['custom'],desc:'Grants Help to make a good impression and to dodge bullets.'},
+  {id:'wok_armored_car',name:'Armored Car',book:'wok',category:'ride',cost:1,rideType:['car','armored'],speed:2,armor:6},
+  {id:'wok_bolide',name:'Bolide',book:'wok',category:'ride',cost:1,rideType:['car','bike'],speed:3,armor:3},
+  {id:'wok_concealed_blade',name:'Concealed Blade',book:'wok',category:'gear',cost:1,desc:'Grants Help to hit unaware targets.'},
+  {id:'wok_exclusive_invite',name:'Exclusive Invite',book:'wok',category:'gear',cost:1,desc:'Grants access to an exclusive place or event.'}
+];
+
+// Aggregate — future expansions append ITEMS_NEWBOOK and spread here.
+const ITEMS=[...ITEMS_CORE,...ITEMS_OSH,...ITEMS_WOK];
+
+// Compute BOOK_META[b].hasContent at load time, based on which arrays actually
+// contribute entries for each book. Drives which columns in the game-selection
+// table are enabled per-row, without hand-maintaining a registry.
+(function _populateBookHasContent(){
+  const sources={
+    roles:typeof ROLES!=='undefined'?ROLES:[],
+    tropes:typeof TROPES!=='undefined'?TROPES:[],
+    feats:typeof FEATS!=='undefined'?FEATS:[],
+    items:typeof ITEMS!=='undefined'?ITEMS:[]
+  };
+  Object.keys(BOOK_META).forEach(b=>{
+    const meta=BOOK_META[b];
+    const game=meta.game||b;
+    const has={};
+    Object.keys(sources).forEach(k=>{
+      has[k]=sources[k].some(e=>{
+        const books=Array.isArray(e.books)&&e.books.length?e.books:(e.book?[e.book]:[]);
+        return books.includes(b)||books.includes(game);
+      });
+    });
+    has.scenes=Array.isArray(meta.sceneTypes)&&meta.sceneTypes.length>0;
+    meta.hasContent=has;
+  });
+})();

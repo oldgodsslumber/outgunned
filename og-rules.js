@@ -134,15 +134,27 @@ function buildDefaultConditions(){
 // Build the per-creation 'include' map from every selectable, non-core book.
 function defaultInclude(){
   const r={};
-  selectableBooks().forEach(b=>{if(b!=='core')r[b]={roles:false,feats:false,scenes:false};});
+  selectableBooks().forEach(b=>{if(b!=='core')r[b]={roles:false,feats:false,items:false,scenes:false};});
   return r;
+}
+// Normalize an include map loaded from storage / MP sync that pre-dates the
+// items flag. Mutates in place and returns it so callers can chain.
+function ensureIncludeShape(inc){
+  if(!inc)return defaultInclude();
+  selectableBooks().forEach(b=>{
+    if(b==='core')return;
+    if(!inc[b])inc[b]={roles:false,feats:false,items:false,scenes:false};
+    else if(!('items' in inc[b]))inc[b].items=false;
+  });
+  return inc;
 }
 function defaultCreation(){
   return {step:0,name:'',job:'',age:'Adult',catchphrase:'',flaw:'',roleId:null,tropeId:null,tropeAttr:null,freeSkills:{},roleFeatsSelected:[],tropeFeatsSelected:[],
     coreBook:'core',include:defaultInclude(),
     solo:false,soloAttr:null,soloSkills:{},
     originId:null,superpowerVariants:{},powerTier:null,
-    tropeId2:null,tropeAttr2:null,tropeFeatsSelected2:[]};
+    tropeId2:null,tropeAttr2:null,tropeFeatsSelected2:[],
+    loadout:{items:[],notes:''},gearList:''};
 }
 function defaultState(){
   return {
@@ -184,4 +196,48 @@ function successLevel(matchCount){
   if(matchCount>=3)return{level:'CRITICAL',lvlNum:2,color:'var(--accent)'};
   if(matchCount>=2)return{level:'BASIC SUCCESS',lvlNum:1,color:'var(--green)'};
   return{level:'FAILURE',lvlNum:0,color:'var(--muted)'};
+}
+
+// --- Items / Loadout helpers ---
+function itemsInScope(){
+  if(typeof ITEMS==='undefined')return[];
+  return ITEMS.filter(i=>entryInScope(i,'items'));
+}
+function itemById(id){
+  if(typeof ITEMS==='undefined')return null;
+  return ITEMS.find(i=>i.id===id)||null;
+}
+function itemFeat(id){
+  if(typeof ITEM_FEATS==='undefined')return null;
+  return ITEM_FEATS.find(f=>f.id===id)||null;
+}
+function itemFeatLabel(id){const f=itemFeat(id);return f?f.name:id;}
+function itemFeatTooltip(id){const f=itemFeat(id);return f?termSubst(f.desc):id;}
+function isFirearm(item){
+  if(!item||item.category!=='gun')return false;
+  if(item.feats&&item.feats.indexOf('single_shot')>=0)return false;
+  return item.mag!=null||(item.feats&&item.feats.indexOf('firearm')>=0);
+}
+// Starting cash budget for the catalog. OSH = 4$. Core/WoK = 1$. Solo adds 2$.
+// Cash Flow feat adds 2$.
+function startingCashBudget(){
+  const c=(typeof S!=='undefined'&&S&&S.creation)?S.creation:null;
+  const core=c?c.coreBook:'core';
+  let budget=(core==='osh')?4:1;
+  if(c&&c.solo)budget+=2;
+  const picked=[].concat(c&&c.roleFeatsSelected||[], c&&c.tropeFeatsSelected||[], c&&c.tropeFeatsSelected2||[]);
+  if(picked.some(n=>typeof n==='string'&&/cash\s*flow/i.test(n)))budget+=2;
+  return budget;
+}
+// Sum of cost*qty across the loadout entries.
+function loadoutSpent(items){
+  if(!items||!items.length)return 0;
+  return items.reduce((s,e)=>{const it=itemById(e.itemId);return s+(it?it.cost*(e.qty||1):0);},0);
+}
+// Format a range modifier cell ('X', '+1G', 0, +1, -2…)
+function fmtRange(v){
+  if(v==null)return'—';
+  if(typeof v==='string')return v;
+  if(v>0)return'+'+v;
+  return String(v);
 }
