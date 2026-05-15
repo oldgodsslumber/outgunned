@@ -365,6 +365,11 @@
 
   function _enterOfflineMode(){
     offlineMode = true;
+    // If a Director clicked "Play offline" without explicitly leaving the
+    // party first, drop the in-party flag so the gating helper restores
+    // the single-player Hero tab.
+    inParty = false;
+    _applyDirectorGating();
     _closeLobbyOverlay();
     _refreshTopBar();
     // Trigger the original offline behaviour: open slot modal.
@@ -380,6 +385,9 @@
   async function _leaveParty(){
     try{ await MP.leaveParty(); }catch(e){}
     inParty = false; myCharId = null; rollFeed=[]; lastRemote={chars:{},members:{},npcs:{},enemies:{},notes:{},meta:null,rolls:[],scenes:null};
+    // Re-show tabs that director-mode had hidden so leaving snaps the UI
+    // back to the single-player layout.
+    _applyDirectorGating();
     _refreshTopBar();
     _showLobbyOverlay();
   }
@@ -389,6 +397,7 @@
     if(!u){
       // Signed out → drop party and show lobby.
       if(inParty){ MP.unbind(); inParty=false; }
+      _applyDirectorGating();
       if(!offlineMode){ _showLobbyOverlay(); }
     } else {
       // Re-render lobby if it's open and we just signed in.
@@ -433,9 +442,12 @@
   function _applyDirectorGating(){
     // Directors run the table — they don't have a hero, so hide the Hero tab and
     // land on the Party view. Non-Directors get the Enemies management tab hidden
-    // (they still see the read-only enemy strip on the Dice screen).
-    const dir = MP.isDirector();
-    const nbEnemies = $('nb-enemies'); if(nbEnemies) nbEnemies.style.display = dir ? '' : 'none';
+    // (they still see the read-only enemy strip on the Dice screen). Once we're
+    // OUT of a party (left/kicked/offline) the gating must fully release so the
+    // single-player Hero tab comes back.
+    const dir = inParty && MP.isDirector();
+    const partied = inParty;
+    const nbEnemies = $('nb-enemies'); if(nbEnemies) nbEnemies.style.display = (partied && !dir) ? 'none' : '';
     const nbHero    = $('nb-hero');    if(nbHero)    nbHero.style.display    = dir ? 'none' : '';
     if(dir){
       // If we're currently on the Hero page (the default), jump to Party.
