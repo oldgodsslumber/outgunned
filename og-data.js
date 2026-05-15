@@ -1022,6 +1022,57 @@ const ITEMS_WOK=[
 // Aggregate — future expansions append ITEMS_NEWBOOK and spread here.
 const ITEMS=[...ITEMS_CORE,...ITEMS_OSH,...ITEMS_WOK];
 
+// --- Structured role starting gear ---
+// Maps each role's narrative `gear` text into actionable pieces:
+//   grant: items auto-added to the loadout free (granted:true → don't count
+//          against starting cash).
+//   pick:  unresolved choice slots the player resolves on the Gear step.
+//          Each slot's `match` describes what items qualify; the UI filters
+//          the catalog and assigns the chosen item to the slot at no cost.
+//   notes: items the rules describe but the catalog doesn't carry (radios,
+//          badges, a notebook, "trained dog"). Shown verbatim for color.
+// Cost-capped picks always use the cap as a hard ceiling, and the chosen
+// item is granted free (the cap is just a quality gate per the rulebook).
+const ROLE_STARTING_GEAR={
+  // --- Core ---
+  commando:{grant:['knife_sword'],pick:[{label:'Weapon of choice',match:{kind:'category',category:'gun'}}],notes:['Telephone or Radio']},
+  fighter: {pick:[{label:'One 1$ item of your choice',match:{kind:'cost',max:1}}]},
+  ace:     {pick:[{label:'Pistol or Shotgun',match:{kind:'oneOf',ids:['pistol','shotgun']}}],notes:['Ride (Speed 1) — see Ride sheet']},
+  agent:   {grant:['pistol','handcuffs'],notes:['Badge','Telephone or Radio']},
+  face:    {grant:['elegant_clothes'],pick:[{label:'Precious item of choice',match:{kind:'cost',max:1}}]},
+  nobody:  {pick:[{label:'1$ item of choice OR Old Ride (Speed 0)',match:{kind:'cost',max:1}}]},
+  brain:   {grant:['portable_computer'],notes:['Notebook','Pencil']},
+  sleuth:  {pick:[{label:'1$ item of choice',match:{kind:'cost',max:1}},{label:'Pistol / Rifle / Shotgun',match:{kind:'oneOf',ids:['pistol','rifle','shotgun']}}]},
+  criminal:{grant:['pistol'],pick:[{label:'Knife / Lockpicks / Handcuffs',match:{kind:'oneOf',ids:['knife_sword','lockpicking_set','handcuffs']}}]},
+  spy:     {grant:['elegant_clothes','pistol','silencer'],pick:[{label:'Item of choice',match:{kind:'cost',max:2}}]},
+  // --- WoK (currency labelled Gold via the terminology layer) ---
+  samurai: {grant:['wok_katana'],pick:[{label:'One 1$ item of choice',match:{kind:'cost',max:1}}]},
+  hired_gun:{grant:['pistol'],pick:[{label:'Weapon of choice',match:{kind:'category',category:'gun'}}],notes:['Telephone']},
+  aristocrat:{grant:['elegant_clothes'],notes:['Items worth up to 5$ (spend your starting cash + ask the Director about the extra $4)']},
+  dog_trainer:{pick:[{label:'Pistol / Rifle / Shotgun',match:{kind:'oneOf',ids:['pistol','rifle','shotgun']}}],notes:['Trained Dog (see WoK supporting characters)']},
+  derelict:{notes:['Nothing — start with whatever you can scavenge']},
+  // --- Special ---
+  assassin:{grant:['wok_concealed_blade']},
+  // --- OSH ---
+  armored:{notes:['Hyper-technological Armor with Energy Beam (Superpower-granted)']},
+  beast:  {pick:[{label:'One 1$ item of choice',match:{kind:'cost',max:1}}],notes:['Claws (Sharp) — Superpower-granted']},
+  blaster:{notes:['Kinetic Ray super-weapon (Superpower-granted)']},
+  champion:{pick:[{label:'One 1$ item of choice',match:{kind:'cost',max:1}}],notes:['Enhanced Body grants Trained Fighter']},
+  elemental:{notes:['Elemental Ray super-weapon (Superpower-granted)']},
+  force_master:{notes:['Focus item of your choice (talisman, helmet, glove) — narrative']},
+  maverick:{grant:['osh_pistol'],pick:[{label:'One 1$ item of choice',match:{kind:'cost',max:1}}]},
+  psychic:{pick:[{label:'One 1$ item of choice',match:{kind:'cost',max:1}}]},
+  shadow:{pick:[{label:'One 1$ item of choice',match:{kind:'cost',max:1}}],notes:['Grappling line']},
+  shapeshifter:{pick:[{label:'One 1$ item of choice',match:{kind:'cost',max:1}}]},
+  sorcerer:{notes:['Magical Weapon OR Arcane Missile super-weapon (Superpower-granted)']},
+  speedster:{pick:[{label:'One 1$ item of choice',match:{kind:'cost',max:1}}],notes:['Running shoes']},
+  tank:{notes:['You are the weapon — no starting items']},
+  teleporter:{pick:[{label:'One 1$ item of choice',match:{kind:'cost',max:1}}]},
+  weaponmaster:{pick:[{label:'Chosen weapon: Bow / Gun / Melee (Battleborn)',match:{kind:'oneOf',ids:['osh_bow','osh_pistol','osh_rifle','osh_shotgun','osh_machine_gun','osh_sword','osh_mace']}}]},
+  marvel:{notes:['Invincible Superpower: Flight, Energy Manipulation, Bulletproof, Only Weakness']},
+  prodigy:{notes:['One of a Kind Superpower (1 Superpower + 1 Feat OR 2 Feats free)']}
+};
+
 // Compute BOOK_META[b].hasContent at load time, based on which arrays actually
 // contribute entries for each book. Drives which columns in the game-selection
 // table are enabled per-row, without hand-maintaining a registry.

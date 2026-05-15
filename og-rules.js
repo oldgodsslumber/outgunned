@@ -232,10 +232,15 @@ function startingCashBudget(){
   if(picked.some(n=>typeof n==='string'&&/cash\s*flow/i.test(n)))budget+=2;
   return budget;
 }
-// Sum of cost*qty across the loadout entries.
+// Sum of cost*qty across the loadout entries. Granted items (free starting
+// gear from a role) are excluded since they don't count toward the budget.
 function loadoutSpent(items){
   if(!items||!items.length)return 0;
-  return items.reduce((s,e)=>{const it=itemById(e.itemId);return s+(it?it.cost*(e.qty||1):0);},0);
+  return items.reduce((s,e)=>{
+    if(e.granted)return s;
+    const it=itemById(e.itemId);
+    return s+(it?it.cost*(e.qty||1):0);
+  },0);
 }
 // Format a range modifier cell ('X', '+1G', 0, +1, -2…)
 function fmtRange(v){
@@ -243,4 +248,35 @@ function fmtRange(v){
   if(typeof v==='string')return v;
   if(v>0)return'+'+v;
   return String(v);
+}
+// Look up the structured starting gear for a role id.
+function roleStartingGear(roleId){
+  if(typeof ROLE_STARTING_GEAR==='undefined')return null;
+  return ROLE_STARTING_GEAR[roleId]||null;
+}
+// Does this item satisfy a role-gear pick slot's match spec?
+function itemMatchesSlot(item,match){
+  if(!item||!match)return false;
+  if(match.kind==='cost'){
+    if(item.cost>match.max)return false;
+    if(match.category&&item.category!==match.category)return false;
+    return true;
+  }
+  if(match.kind==='category'){
+    if(item.category!==match.category)return false;
+    if(match.max!=null&&item.cost>match.max)return false;
+    return true;
+  }
+  if(match.kind==='oneOf'){
+    return (match.ids||[]).indexOf(item.id)>=0;
+  }
+  return false;
+}
+// Display helper for a slot's match constraint (used in the catalog hint).
+function describeSlotMatch(match){
+  if(!match)return '';
+  if(match.kind==='cost')return 'Up to '+match.max+'$'+(match.category?' '+match.category:'');
+  if(match.kind==='category')return (match.category||'item')+(match.max!=null?` up to ${match.max}$`:'');
+  if(match.kind==='oneOf')return 'One of: '+(match.ids||[]).map(id=>{const it=itemById(id);return it?it.name:id;}).join(', ');
+  return '';
 }

@@ -981,26 +981,59 @@ table.games-table{width:100%;border-collapse:collapse;font-size:12px}
 .gt-check:hover{border-color:var(--accent)}
 .gt-check.on{background:rgba(230,57,70,.18);border-color:var(--accent)}
 
+/* --- Sticky budget banner --- */
+.gear-step{position:relative}
+.budget-banner{position:sticky;top:0;z-index:50;display:flex;align-items:baseline;gap:8px;padding:10px 14px;background:var(--accent);color:#fff;border-radius:10px;margin-bottom:8px;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,.25);flex-wrap:wrap}
+.budget-banner.empty{background:#7a1f27}
+.bb-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;opacity:.85}
+.bb-spent{font-size:20px;font-variant-numeric:tabular-nums}
+.bb-sep{opacity:.65;font-size:13px;font-weight:600}
+.bb-budget{font-size:16px;opacity:.95}
+.bb-rem{margin-left:auto;font-size:12px;padding:3px 8px;border-radius:99px;background:rgba(0,0,0,.25)}
+.bb-rem.rem-empty{background:rgba(0,0,0,.45);text-decoration:line-through}
+
+/* --- Role gear panel --- */
+.role-gear-panel{background:rgba(230,57,70,.06);border:1px solid var(--accent);border-radius:10px;padding:10px;margin-top:8px;display:flex;flex-direction:column;gap:8px}
+.rg-head{font-size:13px}
+.rg-grants{display:flex;flex-wrap:wrap;gap:5px}
+.rg-grant-chip{font-size:11px;padding:3px 9px;border-radius:99px;background:var(--surface);border:1px solid var(--border);color:var(--green)}
+.rg-slots{display:flex;flex-direction:column;gap:6px}
+.rg-slot{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 9px;font-size:12px}
+.rg-slot.armed{border-color:var(--accent);box-shadow:0 0 0 2px rgba(230,57,70,.25)}
+.rg-slot.resolved{border-color:rgba(46,204,113,.5);background:rgba(46,204,113,.08)}
+.rg-slot-label{font-weight:600;margin-bottom:3px}
+.rg-slot-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rg-slot-pick{font-weight:700;color:var(--green)}
+.rg-slot-hint{font-size:11px;color:var(--fg2)}
+.rg-slot-match{font-size:10px;font-style:italic}
+.rg-notes{font-size:11px;line-height:1.4}
+
 /* --- Gear catalog --- */
+.gc-section{margin-top:8px}
+.gc-section-title{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--fg2);margin:6px 0;border-bottom:1px dashed var(--border);padding-bottom:3px}
 .gc-filters{display:flex;flex-direction:column;gap:8px;margin:8px 0}
 .gc-search{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--fg);font-size:13px;box-sizing:border-box}
 .gc-chips{display:flex;flex-wrap:wrap;gap:5px}
 .gc-chip{padding:4px 10px;font-size:11px;font-weight:600;border:1px solid var(--border);border-radius:99px;background:var(--surface);color:var(--fg2);cursor:pointer;user-select:none}
 .gc-chip.on{background:rgba(230,57,70,.18);border-color:var(--accent);color:var(--fg)}
 .gc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-top:8px}
-.item-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:5px;font-size:12px}
-.item-card.owned{border-color:var(--accent);box-shadow:0 0 0 1px rgba(230,57,70,.2) inset}
-.ic-head{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.ic-cost{background:var(--accent);color:#fff;font-weight:800;font-size:11px;padding:2px 6px;border-radius:6px;min-width:24px;text-align:center}
-.ic-name{font-weight:700;flex:1;min-width:0}
-.ic-feats{display:flex;flex-wrap:wrap;gap:3px}
-.if-chip{font-size:10px;background:var(--surface);border:1px solid var(--border);padding:1px 6px;border-radius:99px;color:var(--fg2);cursor:help}
-.ic-range{display:flex;gap:6px;font-size:10px;color:var(--fg2);background:var(--surface);padding:3px 6px;border-radius:6px;justify-content:space-between}
-.ic-range span{font-variant-numeric:tabular-nums}
-.ic-specs{font-size:10px;color:var(--muted)}
-.ic-desc{font-size:11px;color:var(--fg2);line-height:1.35}
-.ic-actions{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:4px}
-.ic-qty{font-weight:700;font-size:13px;min-width:18px;text-align:center}
+.item-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:9px 10px;display:flex;flex-direction:column;gap:6px;font-size:12px;transition:opacity .12s,border-color .12s}
+.item-card.owned{border-color:var(--accent);box-shadow:0 0 0 1px rgba(230,57,70,.25) inset}
+.item-card.dimmed{opacity:.35}
+.item-card.pickable{border-color:var(--green);box-shadow:0 0 0 2px rgba(46,204,113,.25)}
+.ic-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ic-cost{background:var(--accent);color:#fff;font-weight:800;font-size:12px;padding:3px 8px;border-radius:6px;min-width:30px;text-align:center;font-variant-numeric:tabular-nums}
+.ic-name{font-weight:700;flex:1;min-width:0;font-size:13px}
+.ic-feats{display:flex;flex-wrap:wrap;gap:4px}
+.if-chip{font-size:10px;background:var(--surface);border:1px solid var(--border);padding:2px 7px;border-radius:99px;color:var(--fg2);cursor:help;font-weight:600}
+table.ic-range{width:100%;border-collapse:collapse;font-size:10px;font-variant-numeric:tabular-nums}
+table.ic-range th{font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding:2px 0;border-bottom:1px solid var(--border)}
+table.ic-range td{text-align:center;padding:3px 0;font-weight:700;background:var(--surface);color:var(--fg)}
+table.ic-range td:not(:last-child){border-right:1px solid var(--border)}
+.ic-specs{font-size:10px;color:var(--muted);letter-spacing:.02em}
+.ic-desc{font-size:11px;color:var(--fg2);line-height:1.4}
+.ic-actions{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:4px;gap:6px}
+.ic-qty{font-weight:700;font-size:13px;min-width:18px;text-align:center;color:var(--accent)}
 
 /* --- Loadout summary panel (creation + catalog modal) --- */
 .loadout-summary{font-size:12px}
@@ -1020,6 +1053,8 @@ table.games-table{width:100%;border-collapse:collapse;font-size:12px}
 /* --- Sheet-view loadout card --- */
 ul.sheet-loadout{list-style:none;padding:0;margin:6px 0 0 0;display:flex;flex-direction:column;gap:6px}
 ul.sheet-loadout li{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:12px}
+ul.sheet-loadout li.granted,.ls-list li.granted{border-left:3px solid var(--accent)}
+.sl-tag{display:inline-block;font-size:9px;text-transform:uppercase;letter-spacing:.08em;padding:1px 5px;border-radius:99px;background:rgba(230,57,70,.18);color:var(--accent);font-weight:700;margin-left:4px;vertical-align:middle}
 .sl-row{display:flex;align-items:center;gap:6px}
 .sl-name{flex:1;font-weight:600}
 .sl-cost{font-size:11px}
@@ -1878,33 +1913,115 @@ function escq(s){return s.replace(/'/g,"\\'");}
 // GEAR CATALOG (creation step + sheet-view modal)
 // ============================================================
 // Local UI state for the catalog filters. Lives outside S so navigating away
-// and back doesn't reset the user's chosen filter chips, but is reset whenever
-// a new character creation starts.
-let _gearUI={search:'',category:'all',books:{}};
+// and back doesn't reset the user's chosen filter chips. Reset on each new
+// creation flow / catalog open.
+let _gearUI={search:'',category:'all',books:{},pickingSlot:null};
 
 function gearSetSearch(v){_gearUI.search=v||'';renderCreationStep();}
 function gearSetCategory(cat){_gearUI.category=cat;renderCreationStep();}
 function gearToggleBook(b){_gearUI.books[b]=!_gearUI.books[b];renderCreationStep();}
 
+// Normalize loadout shape (items[], gearSlots[], notes, roleInitId).
+function _normalizeLoadout(lo){
+  if(!lo)return {items:[],gearSlots:[],notes:'',roleInitId:null};
+  if(!Array.isArray(lo.items))lo.items=[];
+  if(!Array.isArray(lo.gearSlots))lo.gearSlots=[];
+  if(typeof lo.notes!=='string')lo.notes='';
+  return lo;
+}
 // Mutate the active loadout (creation OR sheet) by item id.
 function loadoutTarget(){
-  // While creating, write to c.loadout. After creation, write to S.char.loadout.
-  if(S.char&&S.char.loadout)return S.char.loadout;
+  if(S.char){if(!S.char.loadout)S.char.loadout={items:[],gearSlots:[],notes:''};return _normalizeLoadout(S.char.loadout);}
   if(S.creation){
-    if(!S.creation.loadout)S.creation.loadout={items:[],notes:''};
-    return S.creation.loadout;
+    if(!S.creation.loadout)S.creation.loadout={items:[],gearSlots:[],notes:''};
+    return _normalizeLoadout(S.creation.loadout);
   }
   return null;
 }
+// Seed grants + pick slots from the current role. Re-runs if the user changes
+// roles (purges prior role-granted items first). Idempotent — safe to call on
+// every renderStepGear.
+function initRoleGearIfNeeded(){
+  if(!S.creation)return;
+  const c=S.creation;
+  const lo=loadoutTarget();if(!lo)return;
+  const role=ROLES.find(r=>r.id===c.roleId);
+  if(!role){
+    // No role yet — strip any leftover role-tied entries.
+    if(lo.roleInitId){
+      lo.items=lo.items.filter(e=>!e.granted&&!e.fromSlot);
+      lo.gearSlots=[];
+      lo.roleInitId=null;
+    }
+    return;
+  }
+  if(lo.roleInitId===role.id)return;
+  // Role changed — clear previous role-derived gear so we don't accumulate.
+  lo.items=lo.items.filter(e=>!e.granted&&!e.fromSlot);
+  lo.gearSlots=[];
+  const cfg=roleStartingGear(role.id);
+  if(cfg){
+    (cfg.grant||[]).forEach(id=>{
+      const it=itemById(id);if(!it)return;
+      let e=lo.items.find(x=>x.itemId===id&&x.granted);
+      if(!e){
+        e={itemId:id,qty:1,granted:true};
+        if(isFirearm(it))e.mags=it.mag||4;
+        lo.items.push(e);
+      }
+    });
+    (cfg.pick||[]).forEach((slot,i)=>{
+      lo.gearSlots.push({id:'slot_'+i,label:slot.label,match:slot.match,chosenItemId:null});
+    });
+  }
+  lo.roleInitId=role.id;
+}
+// Click a slot to "arm" it: the next buy resolves into it (free of charge).
+function armSlot(slotId){
+  const lo=loadoutTarget();if(!lo)return;
+  const slot=(lo.gearSlots||[]).find(s=>s.id===slotId);if(!slot)return;
+  if(_gearUI.pickingSlot===slotId){_gearUI.pickingSlot=null;}
+  else{
+    _gearUI.pickingSlot=slotId;
+    // Auto-narrow the filter so the catalog shows only valid items.
+    if(slot.match&&slot.match.category)_gearUI.category=slot.match.category;
+    else _gearUI.category='all';
+    _gearUI.search='';
+  }
+  _postLoadoutChange();
+}
+function clearSlot(slotId){
+  const lo=loadoutTarget();if(!lo)return;
+  const slot=(lo.gearSlots||[]).find(s=>s.id===slotId);if(!slot||!slot.chosenItemId)return;
+  // Remove the slot-linked item from the loadout.
+  lo.items=lo.items.filter(e=>e.fromSlot!==slotId);
+  slot.chosenItemId=null;
+  save();_postLoadoutChange();
+}
+
 function loadoutBuy(itemId){
   const item=itemById(itemId);if(!item)return;
   const lo=loadoutTarget();if(!lo)return;
+  // If a slot is armed and this item satisfies it, resolve the slot — free.
+  const armed=_gearUI.pickingSlot?(lo.gearSlots||[]).find(s=>s.id===_gearUI.pickingSlot):null;
+  if(armed&&itemMatchesSlot(item,armed.match)){
+    // Replace any prior pick on this slot.
+    lo.items=lo.items.filter(e=>e.fromSlot!==armed.id);
+    const e={itemId,qty:1,granted:true,fromSlot:armed.id};
+    if(isFirearm(item))e.mags=item.mag||4;
+    lo.items.push(e);
+    armed.chosenItemId=itemId;
+    _gearUI.pickingSlot=null;
+    save();_postLoadoutChange();
+    return;
+  }
+  // Standard purchase path — must fit the budget.
   const budget=S.char?null:startingCashBudget();
   if(budget!=null){
     const remaining=budget-loadoutSpent(lo.items);
     if(item.cost>remaining){return;}
   }
-  let entry=lo.items.find(e=>e.itemId===itemId);
+  let entry=lo.items.find(e=>e.itemId===itemId&&!e.granted);
   if(entry){entry.qty=(entry.qty||1)+1;}
   else{
     entry={itemId,qty:1};
@@ -1915,10 +2032,20 @@ function loadoutBuy(itemId){
 }
 function loadoutSell(itemId){
   const lo=loadoutTarget();if(!lo)return;
-  const idx=lo.items.findIndex(e=>e.itemId===itemId);if(idx<0)return;
+  // Prefer to drop a paid copy first; if only granted copies remain, drop one
+  // of those AND clear any linked slot so the player can re-pick.
+  const idxPaid=lo.items.findIndex(e=>e.itemId===itemId&&!e.granted);
+  const idx=idxPaid>=0?idxPaid:lo.items.findIndex(e=>e.itemId===itemId);
+  if(idx<0)return;
   const e=lo.items[idx];
-  if((e.qty||1)>1)e.qty--;
-  else lo.items.splice(idx,1);
+  if((e.qty||1)>1){e.qty--;}
+  else{
+    if(e.fromSlot){
+      const slot=(lo.gearSlots||[]).find(s=>s.id===e.fromSlot);
+      if(slot)slot.chosenItemId=null;
+    }
+    lo.items.splice(idx,1);
+  }
   save();_postLoadoutChange();
 }
 function loadoutAdjMags(itemId,delta){
@@ -1947,39 +2074,48 @@ function _postLoadoutChange(){
 function _renderItemCard(item,opts){
   opts=opts||{};
   const lo=loadoutTarget();
-  const ownedEntry=lo?lo.items.find(e=>e.itemId===item.id):null;
-  const owned=ownedEntry?(ownedEntry.qty||1):0;
+  const ownedEntries=lo?lo.items.filter(e=>e.itemId===item.id):[];
+  const owned=ownedEntries.reduce((s,e)=>s+(e.qty||1),0);
   const budget=opts.budget;
   const remaining=budget!=null?(budget-loadoutSpent(lo?lo.items:[])):null;
   const canAfford=remaining==null||item.cost<=remaining;
+  // Is a role-gear slot currently armed AND does this item satisfy it?
+  const armed=_gearUI.pickingSlot&&lo?(lo.gearSlots||[]).find(s=>s.id===_gearUI.pickingSlot):null;
+  const slotMatches=armed?itemMatchesSlot(item,armed.match):false;
+  const isPickMode=!!armed;
+  const buyEnabled=isPickMode?slotMatches:canAfford;
+  const buyLabel=isPickMode&&slotMatches?'✓ Pick':(isPickMode?'—':'+');
+  const buyTitle=isPickMode?(slotMatches?'Pick for: '+armed.label:'Does not match the armed slot'):(canAfford?'Buy with your cash':'Not enough cash');
   const featChips=(item.feats||[]).map(fid=>{
     const f=itemFeat(fid);
     return `<span class="if-chip" title="${(f?.desc||'').replace(/"/g,'&quot;')}">${f?f.name:fid}</span>`;
   }).join('');
   let rangeHtml='';
   if(item.range){
-    rangeHtml=`<div class="ic-range"><span>M ${fmtRange(item.range.melee)}</span><span>C ${fmtRange(item.range.close)}</span><span>Med ${fmtRange(item.range.medium)}</span><span>L ${fmtRange(item.range.long)}</span></div>`;
+    rangeHtml=`<table class="ic-range"><thead><tr><th>Melee</th><th>Close</th><th>Med</th><th>Long</th></tr></thead><tbody><tr><td>${fmtRange(item.range.melee)}</td><td>${fmtRange(item.range.close)}</td><td>${fmtRange(item.range.medium)}</td><td>${fmtRange(item.range.long)}</td></tr></tbody></table>`;
   }
   const specs=[];
-  if(item.mag!=null)specs.push(`Mag ×${item.mag}`);
+  if(item.mag!=null)specs.push(`Mag×${item.mag}`);
   if(item.speed!=null)specs.push(`Speed ${item.speed}`);
   if(item.armor!=null)specs.push(`Armor ${item.armor}`);
   if(item.rideType)specs.push(item.rideType.map(t=>t.charAt(0).toUpperCase()+t.slice(1)).join('/'));
-  if(item.twoHand)specs.push('2-handed');
-  return `<div class="item-card${owned?' owned':''}">
+  if(item.twoHand)specs.push('2-hand');
+  if(item.ammoType)specs.push('ammo: '+item.ammoType);
+  if(item.ammoFor)specs.push('for: '+item.ammoFor);
+  return `<div class="item-card${owned?' owned':''}${isPickMode&&!slotMatches?' dimmed':''}${isPickMode&&slotMatches?' pickable':''}">
     <div class="ic-head">
-      <span class="ic-cost">${termSubst(item.cost+'$')}</span>
+      <span class="ic-cost" title="${termSubst('Cost: '+item.cost+'$')}">${termSubst(item.cost+'$')}</span>
       <span class="ic-name">${item.name}</span>
       ${entryBadgesHtml(item)}
     </div>
-    ${featChips?`<div class="ic-feats">${featChips}</div>`:''}
     ${rangeHtml}
+    ${featChips?`<div class="ic-feats">${featChips}</div>`:''}
     ${specs.length?`<div class="ic-specs">${specs.join(' · ')}</div>`:''}
     ${item.desc?`<div class="ic-desc">${termSubst(item.desc)}</div>`:''}
     <div class="ic-actions">
-      <button class="btn btn-secondary btn-xs" onclick="loadoutSell('${item.id}')" ${owned?'':'disabled'}>−</button>
-      <span class="ic-qty">${owned}</span>
-      <button class="btn btn-primary btn-xs" onclick="loadoutBuy('${item.id}')" ${canAfford?'':'disabled'} title="${canAfford?'Buy':'Not enough cash'}">+</button>
+      <button class="btn btn-secondary btn-xs" onclick="loadoutSell('${item.id}')" ${owned?'':'disabled'} title="Drop one">−</button>
+      <span class="ic-qty" title="In loadout">${owned||''}</span>
+      <button class="btn btn-primary btn-xs" onclick="loadoutBuy('${item.id}')" ${buyEnabled?'':'disabled'} title="${buyTitle}">${buyLabel}</button>
     </div>
   </div>`;
 }
@@ -2035,10 +2171,10 @@ function _renderLoadoutSummary(opts){
     lo.items.forEach(e=>{
       const it=itemById(e.itemId);if(!it)return;
       const featTxt=(it.feats||[]).map(itemFeatLabel).join(', ');
-      h+=`<li>
+      h+=`<li${e.granted?' class="granted"':''}>
         <div class="ls-row1">
-          <span class="ls-name">${it.name}${(e.qty||1)>1?` ×${e.qty}`:''}</span>
-          <span class="ls-cost muted">${termSubst((it.cost*(e.qty||1))+'$')}</span>
+          <span class="ls-name">${it.name}${(e.qty||1)>1?` ×${e.qty}`:''}${e.granted?' <span class="sl-tag">role</span>':''}</span>
+          <span class="ls-cost muted">${e.granted?'free':termSubst((it.cost*(e.qty||1))+'$')}</span>
           <button class="btn btn-secondary btn-xs" onclick="loadoutSell('${it.id}')" title="Drop one">✕</button>
         </div>
         ${featTxt?`<div class="ls-feats muted">${featTxt}</div>`:''}
@@ -2060,33 +2196,140 @@ function _renderLoadoutSummary(opts){
   return h;
 }
 
-// The creation step: full-page catalog + summary side panel.
+// Sticky budget banner shown at top of the Gear step and inside the catalog
+// modal. Wraps the spent/budget figure with high contrast so the player
+// never has to scroll to remember how much cash they have left.
+function _renderBudgetBanner(budget){
+  const lo=loadoutTarget();
+  const spent=loadoutSpent(lo?lo.items:[]);
+  const remaining=budget!=null?budget-spent:null;
+  const lowCash=remaining!=null&&remaining<=0;
+  return `<div class="budget-banner${lowCash?' empty':''}">
+    <span class="bb-label">Cash</span>
+    <span class="bb-spent">${termSubst(spent+'$')}</span>
+    ${budget!=null?`<span class="bb-sep">of</span><span class="bb-budget">${termSubst(budget+'$')}</span>`:''}
+    ${remaining!=null?`<span class="bb-rem ${lowCash?'rem-empty':'rem-ok'}">${termSubst(remaining+'$')} left</span>`:''}
+  </div>`;
+}
+
+// Role-granted gear: fixed items (auto-added) + interactive choice slots
+// (player picks from the catalog). Each slot can be "armed" to filter the
+// catalog and the next + click resolves into it free of charge.
+function _renderRoleGearPanel(role){
+  if(!role)return '';
+  const cfg=roleStartingGear(role.id);
+  const lo=loadoutTarget();
+  const slots=lo?(lo.gearSlots||[]):[];
+  const grantedItems=lo?lo.items.filter(e=>e.granted&&!e.fromSlot):[];
+  if(!cfg&&!role.gear)return '';
+  const armedId=_gearUI.pickingSlot;
+  let h=`<div class="role-gear-panel">
+    <div class="rg-head"><strong>Starting gear from ${role.name}</strong> <span class="muted">— granted free, doesn't count against your cash</span></div>`;
+  // Auto-granted items
+  if(grantedItems.length){
+    h+=`<div class="rg-grants">`;
+    grantedItems.forEach(e=>{
+      const it=itemById(e.itemId);if(!it)return;
+      h+=`<span class="rg-grant-chip">✓ ${it.name}</span>`;
+    });
+    h+=`</div>`;
+  }
+  // Pick slots — interactive
+  if(slots.length){
+    h+=`<div class="rg-slots">`;
+    slots.forEach(slot=>{
+      const chosenItem=slot.chosenItemId?itemById(slot.chosenItemId):null;
+      const armed=armedId===slot.id;
+      if(chosenItem){
+        h+=`<div class="rg-slot resolved">
+          <div class="rg-slot-label muted">${slot.label}</div>
+          <div class="rg-slot-row">
+            <span class="rg-slot-pick">✓ ${chosenItem.name}</span>
+            <button class="btn btn-xs btn-secondary" onclick="clearSlot('${slot.id}')">Change</button>
+          </div>
+        </div>`;
+      } else if(armed){
+        h+=`<div class="rg-slot armed">
+          <div class="rg-slot-label">${slot.label}</div>
+          <div class="rg-slot-row">
+            <span class="rg-slot-hint">Click <strong>✓ Pick</strong> on a highlighted item below…</span>
+            <button class="btn btn-xs btn-secondary" onclick="armSlot('${slot.id}')">Cancel</button>
+          </div>
+          <div class="rg-slot-match muted">${describeSlotMatch(slot.match)}</div>
+        </div>`;
+      } else {
+        h+=`<div class="rg-slot pending">
+          <div class="rg-slot-label">${slot.label}</div>
+          <div class="rg-slot-row">
+            <button class="btn btn-xs btn-primary" onclick="armSlot('${slot.id}')">Pick…</button>
+            <span class="rg-slot-match muted">${describeSlotMatch(slot.match)}</span>
+          </div>
+        </div>`;
+      }
+    });
+    h+=`</div>`;
+  }
+  // Narrative notes (radios, badges, trained dog, etc.)
+  if(cfg&&Array.isArray(cfg.notes)&&cfg.notes.length){
+    h+=`<div class="rg-notes muted">Also: ${cfg.notes.join(' · ')}</div>`;
+  } else if(!cfg&&role.gear){
+    h+=`<div class="rg-notes muted">Also: ${role.gear}</div>`;
+  }
+  return h+`</div>`;
+}
+
+// Render the catalog grouped by category for readability. If the user has
+// filtered to a specific category, just render that one section without a
+// header.
+function _renderCatalogGrouped(opts){
+  const items=_filteredCatalog();
+  if(!items.length)return `<div class="muted" style="padding:14px 0">No items match the current filter.</div>`;
+  const order=['gun','melee','gear','ride','ammo','gadget'];
+  const labels={gun:'Guns',melee:'Melee Weapons',gear:'Gear',ride:'Rides',ammo:'Ammo & Mags',gadget:'Gadgets'};
+  if(_gearUI.category&&_gearUI.category!=='all'){
+    let h=`<div class="gc-grid">`;
+    items.forEach(it=>{h+=_renderItemCard(it,opts);});
+    return h+`</div>`;
+  }
+  const buckets={};order.forEach(k=>buckets[k]=[]);
+  items.forEach(it=>{(buckets[it.category]||(buckets.gear)).push(it);});
+  let h='';
+  order.forEach(k=>{
+    if(!buckets[k].length)return;
+    h+=`<div class="gc-section">
+      <h4 class="gc-section-title">${labels[k]} <span class="muted">(${buckets[k].length})</span></h4>
+      <div class="gc-grid">`;
+    buckets[k].forEach(it=>{h+=_renderItemCard(it,opts);});
+    h+=`</div></div>`;
+  });
+  return h;
+}
+
+// The creation step: sticky budget banner, role gear panel, then catalog.
 function renderStepGear(){
   const c=S.creation;
-  if(!c.loadout)c.loadout={items:[],notes:''};
+  if(!c.loadout)c.loadout={items:[],gearSlots:[],notes:''};
+  initRoleGearIfNeeded();
   const budget=startingCashBudget();
   const role=ROLES.find(r=>r.id===c.roleId);
-  const startGear=role?.gear||'';
-  let html=`<div class="card">
-    <h2>Gear & Equipment</h2>
-    <div class="muted" style="margin-bottom:8px">Spend your starting cash on guns, gear, melee weapons, rides, ammo, and gadgets. Toggling more expansions on the Games step adds their items to this catalog automatically.</div>`;
-  if(startGear){
-    html+=`<div style="font-size:12px;margin-bottom:8px"><strong style="color:var(--accent)">Starting gear from your Role (${role.name}):</strong> <span style="color:var(--fg2)">${startGear}</span> <span class="muted">(narrative — add structured items below)</span></div>`;
-  }
-  html+=_renderCatalogFilters();
-  const items=_filteredCatalog();
-  html+=`<div class="gc-grid">`;
-  if(!items.length)html+=`<div class="muted">No items match the current filter.</div>`;
-  items.forEach(it=>{html+=_renderItemCard(it,{budget});});
-  html+=`</div>`;
-  html+=`</div>`;
-  html+=`<div class="card" style="margin-top:10px">${_renderLoadoutSummary({budget})}</div>`;
-  // Last step? If solo, Continue → Solo. Otherwise this is the final step.
+  let html=`<div class="gear-step">
+    ${_renderBudgetBanner(budget)}
+    <div class="card">
+      <h2 style="margin-bottom:6px">Gear & Equipment</h2>
+      <div class="muted" style="margin-bottom:8px">Resolve your Role's starting gear, then spend your remaining cash on extras. Toggling more expansions on the Games step adds their items to this catalog automatically.</div>
+      ${_renderRoleGearPanel(role)}
+    </div>
+    <div class="card">
+      ${_renderCatalogFilters()}
+      ${_renderCatalogGrouped({budget})}
+    </div>
+    <div class="card">${_renderLoadoutSummary({budget})}</div>`;
   const plan=creationStepPlan();
   const isLast=c.step>=plan.length-1;
   const btnAction=isLast?'creationFinish()':'creationNext()';
   const btnLabel=isLast?'Create Hero!':'Continue →';
-  html+=`<button class="btn btn-primary btn-full" style="margin-top:12px" onclick="${btnAction}">${btnLabel}</button>`;
+  html+=`<button class="btn btn-primary btn-full" style="margin-top:12px" onclick="${btnAction}">${btnLabel}</button>
+  </div>`;
   return html;
 }
 
@@ -2113,16 +2356,14 @@ function closeCatalog(){
 function _renderCatalogModal(){
   const overlay=document.getElementById('catalog-overlay');
   if(!overlay||!S.char)return;
-  const items=_filteredCatalog();
   let html=`<div class="modal-card">
     <div class="modal-head">
       <h3 style="margin:0">Gear Catalog</h3>
       <button class="btn btn-secondary btn-xs" onclick="closeCatalog()">Close ✕</button>
     </div>
+    ${_renderBudgetBanner(null)}
     ${_renderCatalogFilters()}
-    <div class="gc-grid">`;
-  items.forEach(it=>{html+=_renderItemCard(it,{});});
-  html+=`</div>
+    ${_renderCatalogGrouped({})}
     <div style="margin-top:10px">${_renderLoadoutSummary({})}</div>
   </div>`;
   overlay.innerHTML=html;
@@ -2677,8 +2918,17 @@ function renderSheetGearCard(ch,role){
         <button class="btn btn-xs btn-primary" onclick="openCatalog()">+ Catalog</button>
       </div>
     </div>`;
-  if(role&&role.gear){
-    h+=`<div style="font-size:11px;margin-bottom:6px"><span style="color:var(--muted)">From ${role.name}:</span> ${role.gear}</div>`;
+  // Surface ONLY the narrative notes from the role (radios, badges, dogs,
+  // superpower-granted weapons) — the structured grants/picks are already
+  // listed below as real loadout entries. Reading role.gear verbatim on the
+  // sheet duplicated the picks and asked the player to "choose" things they
+  // had no UI to choose.
+  if(role){
+    const cfg=roleStartingGear(role.id);
+    const notesArr=cfg&&Array.isArray(cfg.notes)?cfg.notes:(cfg?null:(role.gear?[role.gear]:null));
+    if(notesArr&&notesArr.length){
+      h+=`<div style="font-size:11px;margin-bottom:6px"><span style="color:var(--muted)">From ${role.name}:</span> ${notesArr.join(' · ')}</div>`;
+    }
   }
   if(!lo.items.length&&!ch.gearList){
     h+=`<div class="muted" style="font-size:11px;font-style:italic">No gear in your loadout. Tap <strong>+ Catalog</strong> to browse and buy.</div>`;
@@ -2703,9 +2953,9 @@ function renderSheetGearCard(ch,role){
         const ar=it.armor!=null?it.armor:'?';
         extra=`<div class="sl-ride muted">Speed ${sp} · Armor ${ar}</div>`;
       }
-      h+=`<li>
+      h+=`<li${e.granted?' class="granted"':''}>
         <div class="sl-row">
-          <span class="sl-name">${it.name}${(e.qty||1)>1?` ×${e.qty}`:''}</span>
+          <span class="sl-name">${it.name}${(e.qty||1)>1?` ×${e.qty}`:''}${e.granted?' <span class="sl-tag">role</span>':''}</span>
           <span class="sl-cost muted">${termSubst(it.cost+'$')}</span>
           <button class="btn btn-xs btn-secondary" onclick="loadoutSell('${it.id}')" title="Drop">✕</button>
         </div>
