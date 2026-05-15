@@ -12,9 +12,30 @@
 // pages automatically and never needs rebuilding.
 const fs=require('fs');
 const crypto=require('crypto');
+const {execSync}=require('child_process');
 let html=fs.readFileSync('outgunned.html','utf8');
 
 html = html.replace('<title>Outgunned</title>','<title>Outgunned — Multiplayer</title>');
+
+// Aggressive cache-control. GitHub Pages serves index.html with a 10-min
+// edge cache that can mask a redeploy for several minutes, AND browsers
+// often hold their own copy on top of that. These meta tags push the page
+// itself to revalidate on every load — combined with the per-script
+// content-hash query strings below, a redeploy reliably reaches users.
+const NOCACHE_META = [
+  '<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">',
+  '<meta http-equiv="Pragma" content="no-cache">',
+  '<meta http-equiv="Expires" content="0">'
+].join('\n');
+html = html.replace('<meta charset="UTF-8">','<meta charset="UTF-8">\n'+NOCACHE_META);
+
+// Build stamp visible in the UI so the user can verify they're on the latest
+// code at a glance, without having to crack open DevTools.
+let buildStamp='dev';
+try{buildStamp=execSync('git rev-parse --short HEAD',{stdio:['ignore','pipe','ignore']}).toString().trim();}catch(_){}
+const stampEpoch=Date.now();
+html = html.replace('</body>','<div id="build-stamp" title="Build commit · click to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;bottom:4px;right:6px;font-size:9px;color:rgba(255,255,255,.35);font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none">build '+buildStamp+'</div>\n</body>');
+html = html.replace('<title>Outgunned — Multiplayer</title>','<title>Outgunned — Multiplayer</title>\n<meta name="build" content="'+buildStamp+'-'+stampEpoch+'">');
 
 // (Cache-busting query strings are appended at the very end so that the
 // script-tag injections below match their literal anchors.)
