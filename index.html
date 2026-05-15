@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Outgunned — Multiplayer</title>
-<meta name="build" content="9509408-1778887841143">
+<meta name="build" content="0301b12-1778888065116">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -119,21 +119,21 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 #nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;
   background:var(--surface);border-top:1px solid var(--border);display:flex;z-index:100;
   padding-bottom:env(safe-area-inset-bottom)}
-.nb{flex:1;padding:8px 2px 6px;background:none;border:none;color:var(--muted);
-  font-size:9px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;
+.nb{flex:1;padding:9px 4px 7px;background:none;border:none;color:var(--muted);
+  font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;
   transition:color .15s;letter-spacing:.5px;text-transform:uppercase}
 .nb.active{color:var(--accent)}
 .nb svg{width:20px;height:20px}
-.page{display:none;padding:16px;animation:fadeIn .15s ease}
+.page{display:none;padding:14px;animation:fadeIn .15s ease}
 .page.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .pg-title{font-size:20px;font-weight:700;margin-bottom:4px}
 .pg-sub{font-size:12px;color:var(--muted);margin-bottom:16px}
 h2{font-size:17px;font-weight:700;margin-bottom:10px}
 h3{font-size:14px;font-weight:600}
-.label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
-.muted{color:var(--muted);font-size:12px}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-card,12px);padding:14px;margin-bottom:10px}
+.label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.muted{color:var(--muted);font-size:13px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-card,12px);padding:12px;margin-bottom:6px}
 .card-sm{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-card,8px);padding:10px;margin-bottom:8px}
 .card-accent{border-color:var(--accent)}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 18px;
@@ -145,7 +145,7 @@ h3{font-size:14px;font-weight:600}
 .btn-success{background:rgba(46,204,113,.15);color:var(--green);border:1px solid rgba(46,204,113,.3)}
 .btn-gold{background:rgba(241,196,15,.15);color:var(--gold);border:1px solid rgba(241,196,15,.3)}
 .btn-sm{padding:6px 12px;font-size:12px;border-radius:7px}
-.btn-xs{padding:4px 8px;font-size:11px;border-radius:6px}
+.btn-xs{padding:6px 10px;font-size:12px;border-radius:6px}
 .btn-full{width:100%;margin-bottom:8px}
 .btn-icon{width:36px;height:36px;padding:0;border-radius:8px}
 input:not([type=radio]):not([type=checkbox]),select,textarea{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-input,9px);
@@ -162,9 +162,12 @@ textarea{resize:vertical;min-height:70px}
 .tab-btn{flex:1;padding:8px 4px;border:none;border-radius:7px;background:none;color:var(--muted);
   font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
 .tab-btn.active{background:var(--accent);color:#fff}
-.health-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
-.hbox{width:30px;height:30px;border:2px solid var(--border);border-radius:6px;cursor:pointer;
-  transition:all .15s;display:flex;align-items:center;justify-content:center;font-size:9px;color:transparent}
+.health-row{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:6px}
+.hbox{aspect-ratio:1;width:auto;height:auto;min-height:38px;border:2px solid var(--border);border-radius:7px;cursor:pointer;
+  transition:all .15s;display:flex;align-items:center;justify-content:center;font-size:9px;color:transparent;position:relative}
+.hbox.bad::after,.hbox.hot::after{content:'';position:absolute;top:3px;right:3px;width:6px;height:6px;border-radius:50%;background:var(--yellow);opacity:.85}
+.hbox.hot::after{background:var(--purple)}
+.hbox.hit.bad::after,.hbox.hit.hot::after{background:#fff;opacity:.95}
 .hbox.hit{background:var(--accent);border-color:var(--accent);color:transparent}
 .hbox.bad{border-color:var(--yellow);border-width:3px}
 .hbox.bad.hit{background:var(--yellow);border-color:var(--yellow)}
@@ -180,10 +183,14 @@ textarea{resize:vertical;min-height:70px}
   margin-bottom:4px;margin-top:10px;font-weight:700}
 .attr-pill{font-size:14px;font-weight:800;color:var(--text);background:var(--surface2);
   border:1px solid var(--border);border-radius:6px;padding:1px 8px;min-width:24px;text-align:center;letter-spacing:0}
-.skill-row{display:flex;align-items:center;justify-content:flex-start;gap:8px;padding:5px 0;
-  border-bottom:1px solid var(--border)}
-.skill-name{font-size:13px}
+.skill-row{display:flex;align-items:center;justify-content:flex-start;gap:8px;padding:7px 4px;
+  border-bottom:1px solid var(--border);cursor:pointer;border-radius:5px;transition:background .12s;-webkit-tap-highlight-color:transparent}
+.skill-row:hover{background:rgba(230,57,70,.08)}
+.skill-row:active{background:rgba(230,57,70,.14)}
+.skill-name{font-size:13px;flex:1}
 .skill-val{font-size:16px;font-weight:700;color:var(--text);min-width:20px;text-align:center}
+.skill-row .sk-chev{font-size:10px;color:var(--muted);opacity:.5;transition:opacity .12s,transform .12s}
+.skill-row:hover .sk-chev{opacity:1;transform:translateX(2px);color:var(--accent)}
 
 /* Dice picker — tap-driven replacement for the old dropdown form */
 .dice-attr-row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:4px}
@@ -236,18 +243,38 @@ textarea{resize:vertical;min-height:70px}
 .result-banner.fail{background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.2)}
 .result-level{font-size:22px;font-weight:800;letter-spacing:2px}
 .result-desc{font-size:12px;color:var(--muted);margin-top:4px}
-.resource-row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
-.resource-box{flex:1;min-width:70px;background:var(--surface2);border:1px solid var(--border);
-  border-radius:10px;padding:10px 8px;text-align:center}
-.resource-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-.resource-val{font-size:24px;font-weight:700}
-.resource-btns{display:flex;gap:4px;justify-content:center;margin-top:6px}
+.resource-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
+.resource-row.has-gold{grid-template-columns:repeat(4,1fr)}
+.resource-tile{position:relative;background:var(--surface2);border:1px solid var(--border);border-radius:10px;
+  min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  cursor:pointer;user-select:none;overflow:hidden;-webkit-tap-highlight-color:transparent}
+.resource-tile::before{content:'';position:absolute;top:8px;bottom:8px;left:50%;width:1px;background:var(--border);opacity:.5;pointer-events:none}
+.resource-tile .r-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;line-height:1;pointer-events:none}
+.resource-tile .r-val{font-size:24px;font-weight:800;line-height:1.1;pointer-events:none}
+.resource-tile .r-half{position:absolute;top:0;bottom:0;width:50%;display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;color:var(--muted);opacity:0;transition:opacity .15s,background .15s;pointer-events:none}
+.resource-tile .r-half.l{left:0;cursor:w-resize}
+.resource-tile .r-half.r{right:0;cursor:e-resize}
+@media(hover:hover){
+  .resource-tile:hover .r-half{opacity:.9}
+  .resource-tile .r-half.l:hover{background:rgba(231,76,60,.10)}
+  .resource-tile .r-half.r:hover{background:rgba(46,204,113,.10)}
+}
+.resource-tile:active{background:var(--surface3,var(--surface))}
 .r-btn{width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:var(--surface);
   color:var(--text);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.cond-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
-.cond-btn{padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);
-  color:var(--muted);font-size:12px;cursor:pointer;text-align:center;transition:all .15s}
-.cond-btn.active{background:rgba(231,76,60,.2);border-color:var(--red);color:var(--text)}
+.cond-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.cond-btn{position:relative;padding:8px 12px;border-radius:18px;border:1px solid var(--border);background:var(--surface2);
+  color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;text-align:center;transition:all .15s;
+  -webkit-tap-highlight-color:transparent;user-select:none;line-height:1.1;min-height:34px;display:inline-flex;align-items:center;justify-content:center;gap:5px}
+.cond-btn.active{background:rgba(231,76,60,.22);border-color:var(--red);color:var(--text)}
+.cond-btn.active::before{content:'●';font-size:9px;color:var(--red)}
+.cond-pop{position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);background:var(--surface);
+  border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--text);font-weight:400;
+  text-transform:none;letter-spacing:0;white-space:normal;min-width:160px;max-width:220px;text-align:center;
+  box-shadow:0 6px 20px rgba(0,0,0,.4);z-index:50;display:none;line-height:1.35;pointer-events:none}
+.cond-pop.show{display:block}
+@media(hover:hover){.cond-btn:hover .cond-pop{display:block}}
 .step-dot{width:8px;height:8px;border-radius:50%;background:var(--surface3);transition:all .2s;display:inline-block}
 .step-dot.active{background:var(--accent);width:20px;border-radius:4px}
 .step-dot.done{background:var(--green)}
@@ -293,10 +320,21 @@ textarea{resize:vertical;min-height:70px}
 .adr-cost{display:inline-flex;align-items:center;gap:2px;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;background:rgba(255,196,0,.18);color:#ffcc33;border:1px solid rgba(255,196,0,.35);letter-spacing:.3px;white-space:nowrap}
 .empty-state{text-align:center;padding:40px 20px;color:var(--muted)}
 .empty-icon{font-size:40px;margin-bottom:10px}
-.death-roulette{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
-.bullet{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);cursor:pointer;
-  display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .15s}
-.bullet.lethal{background:var(--red);border-color:var(--red)}
+.death-roulette{display:flex;justify-content:center;align-items:center;margin-top:4px}
+.revolver-svg{width:150px;height:150px;transition:transform .65s cubic-bezier(.2,.8,.2,1);display:block;overflow:visible}
+.revolver-svg .rev-cyl{fill:var(--surface);stroke:var(--border);stroke-width:2}
+.revolver-svg .rev-chamber{fill:var(--surface2);stroke:var(--border);stroke-width:1.5;cursor:pointer;transition:fill .15s,stroke .15s}
+.revolver-svg .rev-chamber.lethal{fill:url(#rev-grad);stroke:var(--red)}
+.revolver-svg .rev-chamber.flash{stroke:var(--accent);stroke-width:3}
+.revolver-svg .rev-hub{fill:var(--accent);stroke:rgba(0,0,0,.3);stroke-width:2;cursor:pointer;transition:filter .15s}
+.revolver-svg .rev-hub-text{font-size:9px;font-weight:800;fill:#fff;text-anchor:middle;dominant-baseline:central;letter-spacing:1px;pointer-events:none;user-select:none}
+@media(hover:hover){
+  .revolver-svg .rev-chamber:hover{stroke:var(--accent);stroke-width:2.5}
+  .revolver-svg .rev-hub:hover{filter:brightness(1.18)}
+}
+@media(min-width:1024px){.revolver-svg{width:190px;height:190px}}
+@keyframes rev-flash{0%,100%{filter:brightness(1)}40%{filter:brightness(1.6)}}
+.revolver-svg .rev-chamber.flash{animation:rev-flash .55s ease-out}
 .feat-inline{background:var(--surface2);border:1px solid var(--border);border-radius:8px;
   padding:8px 10px;margin-bottom:6px}
 .feat-inline-name{font-size:12px;font-weight:700;margin-bottom:2px}
@@ -1477,7 +1515,7 @@ function applyState(d){
     cp.style.display='none';
   }
 }
-<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build 9509408</div>
+<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build 0301b12</div>
 </body></html>`;}
 
 function loadSlot(n){
@@ -2746,18 +2784,36 @@ function renderSheet(){
     gritHtml+=`<div class="${cls}" onclick="toggleGrit(${i})"></div>`;
   }
 
-  let deathHtml='';
+  // Revolver SVG cylinder: 6 chambers arranged on a 50-radius ring, central hub = SPIN.
+  // viewBox is 120×120, origin (60,60); chamber i (1..6) at angle (i-1)*60 - 90deg.
+  let chamberHtml='';
   for(let i=1;i<=6;i++){
     const lethal=i<=ch.deathBullets;
-    deathHtml+=`<div class="bullet ${lethal?'lethal':'empty'}" onclick="toggleBullet(${i})">${lethal?'●':'○'}</div>`;
+    const ang=((i-1)*60-90)*Math.PI/180;
+    const cx=60+50*Math.cos(ang), cy=60+50*Math.sin(ang);
+    chamberHtml+=`<circle class="rev-chamber${lethal?' lethal':''}" cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r="17" data-idx="${i}" onclick="toggleBullet(${i})"></circle>`;
   }
+  const deathHtml=`<svg class="revolver-svg" viewBox="0 0 120 120" data-rot="0" aria-label="Death Roulette — ${ch.deathBullets} of 6 chambers loaded">
+    <defs><radialGradient id="rev-grad" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="#ff7a85"/><stop offset="65%" stop-color="var(--red,#e63946)"/><stop offset="100%" stop-color="#7a1e25"/></radialGradient></defs>
+    <circle class="rev-cyl" cx="60" cy="60" r="58"/>
+    ${chamberHtml}
+    <circle class="rev-hub" cx="60" cy="60" r="20" onclick="spinRouletteAnimated()"/>
+    <text class="rev-hub-text" x="60" y="60">SPIN</text>
+  </svg>`;
 
   const allConditions=[...CONDITIONS,...(bookHas('wok','roles')?WOK_CONDITIONS:[]),...(bookHas('osh','roles')?OSH_CONDITIONS:[])];
+  // Active chips float to the front so the player can see current penalties at a glance.
+  const sortedConditions=[...allConditions].sort((a,b)=>{
+    const av=ch.conditions[a.id]?1:0, bv=ch.conditions[b.id]?1:0;
+    return bv-av;
+  });
   let condHtml='';
-  allConditions.forEach(cond=>{
+  sortedConditions.forEach(cond=>{
     const on=ch.conditions[cond.id];
-    condHtml+=`<button class="cond-btn${on?' active':''}" onclick="toggleCond('${cond.id}')">
-      <div>${cond.label}</div><div style="font-size:9px;opacity:.7">${termSubst(cond.penalty)}</div>
+    const pen=termSubst(cond.penalty).replace(/'/g,"&#39;");
+    condHtml+=`<button class="cond-btn${on?' active':''}" onclick="toggleCond('${cond.id}',event)" oncontextmenu="event.preventDefault();condPopover(this)">
+      <span>${cond.label}</span>
+      <span class="cond-pop">${pen}</span>
     </button>`;
   });
 
@@ -2769,7 +2825,7 @@ function renderSheet(){
     skillHtml+=`<div class="skill-group">
       <div class="skill-attr-label"><span>${attr}</span><span class="attr-pill">${ch.attrs[attr]}</span></div>`;
     ATTR_SKILLS[attr].forEach(skill=>{
-      skillHtml+=`<div class="skill-row"><span class="skill-name">${skill}</span><span class="skill-val">${ch.skills[skill]}</span></div>`;
+      skillHtml+=`<div class="skill-row" onclick="rollFromSkill('${skill}')" title="Roll ${attr} + ${skill}"><span class="skill-name">${skill}</span><span class="skill-val">${ch.skills[skill]}</span><span class="sk-chev">▶</span></div>`;
     });
     skillHtml+=`</div>`;
   });
@@ -2806,55 +2862,55 @@ function renderSheet(){
         <div class="pg-title">${ch.name}</div>
         <div class="pg-sub">${role?.name||''}${trope?' · '+trope.name:''}${trope2?' · '+trope2.name:''}${origin?' · '+origin.name:''} · ${ch.age} <span class="badge ${bookBadge(ch.coreBook||'core')}" style="font-size:8px">${bookLabel(ch.coreBook||'core')}</span> ${otherBooks.map(g=>`<span class="badge ${bookBadge(g)}" style="font-size:8px;opacity:.7">${bookLabel(g)}</span>`).join(' ')}</div>
       </div>
-      <button class="btn btn-secondary btn-xs" onclick="openSlotModal()">Select</button>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="btn btn-secondary btn-xs" onclick="printCharSheet()" title="Print Character Sheet" aria-label="Print">🖨️</button>
+        <button class="btn btn-secondary btn-xs" onclick="openSlotModal()">Select</button>
+      </div>
     </div>
     ${ch.job?`<div class="muted" style="margin-bottom:4px">${ch.coreBook==='osh'?'Alias':'Job'}: ${ch.job}</div>`:''}
     ${ch.catchphrase?`<div style="font-style:italic;font-size:12px;color:var(--muted);margin-bottom:12px">"${ch.catchphrase}"</div>`:''}
 
-    <div class="resource-row">
-      <div class="resource-box">
-        <div class="resource-label">${adrName}</div>
-        <div class="resource-val" style="color:var(--accent)">${ch.adrenaline}</div>
-        <div class="resource-btns"><button class="r-btn" onclick="adjRes('adrenaline',-1)">−</button><button class="r-btn" onclick="adjRes('adrenaline',1)">+</button></div>
+    <div class="resource-row${isWoK?' has-gold':''}">
+      <div class="resource-tile" data-res="adrenaline" onclick="resTileTap(event,'adrenaline')" oncontextmenu="event.preventDefault();promptSetRes('adrenaline')">
+        <div class="r-half l">−</div><div class="r-half r">+</div>
+        <div class="r-lbl">${adrName}</div>
+        <div class="r-val" style="color:var(--accent)">${ch.adrenaline}</div>
       </div>
-      <div class="resource-box">
-        <div class="resource-label">Spotlight</div>
-        <div class="resource-val" style="color:var(--yellow)">${ch.spotlight}</div>
-        <div class="resource-btns"><button class="r-btn" onclick="adjRes('spotlight',-1)">−</button><button class="r-btn" onclick="adjRes('spotlight',1)">+</button></div>
+      <div class="resource-tile" data-res="spotlight" onclick="resTileTap(event,'spotlight')" oncontextmenu="event.preventDefault();promptSetRes('spotlight')">
+        <div class="r-half l">−</div><div class="r-half r">+</div>
+        <div class="r-lbl">Spotlight</div>
+        <div class="r-val" style="color:var(--yellow)">${ch.spotlight}</div>
       </div>
-      <div class="resource-box">
-        <div class="resource-label">Cash $</div>
-        <div class="resource-val" style="color:var(--green)">${ch.cash}</div>
-        <div class="resource-btns"><button class="r-btn" onclick="adjRes('cash',-1)">−</button><button class="r-btn" onclick="adjRes('cash',1)">+</button></div>
+      <div class="resource-tile" data-res="cash" onclick="resTileTap(event,'cash')" oncontextmenu="event.preventDefault();promptSetRes('cash')">
+        <div class="r-half l">−</div><div class="r-half r">+</div>
+        <div class="r-lbl">Cash $</div>
+        <div class="r-val" style="color:var(--green)">${ch.cash}</div>
       </div>
-      ${isWoK?`<div class="resource-box">
-        <div class="resource-label">Gold ◆</div>
-        <div class="resource-val" style="color:var(--gold)">${ch.gold||0}</div>
-        <div class="resource-btns"><button class="r-btn" onclick="adjRes('gold',-1)">−</button><button class="r-btn" onclick="adjRes('gold',1)">+</button></div>
+      ${isWoK?`<div class="resource-tile" data-res="gold" onclick="resTileTap(event,'gold')" oncontextmenu="event.preventDefault();promptSetRes('gold')">
+        <div class="r-half l">−</div><div class="r-half r">+</div>
+        <div class="r-lbl">Gold ◆</div>
+        <div class="r-val" style="color:var(--gold)">${ch.gold||0}</div>
       </div>`:''}
     </div>
 
     <div class="sheet-flex">
       <div class="sheet-top-row">
         <div class="card card-grit">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <h3>Grit <span style="font-size:11px;color:var(--muted)">${ch.grit}/12</span></h3>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
+            <h3 style="margin:0">Grit <span style="font-size:11px;color:var(--muted)">${ch.grit}/12</span>
+              <button title="Box 8 = Bad Box: gain a Condition (Hard to Kill: +${adrName} & +1 next roll). Box 12 = Hot Box: gain 2 ${adrName}." onclick="alert('Box 8 = Bad Box: gain a Condition (Hard to Kill: +${adrName} & +1 next roll).\\nBox 12 = Hot Box: gain 2 ${adrName}.')" style="margin-left:6px;width:18px;height:18px;border-radius:50%;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;padding:0;line-height:1">?</button>
+            </h3>
             <button class="btn btn-xs btn-secondary" onclick="clearGrit()">Clear</button>
           </div>
           <div class="health-row" style="margin-top:8px">${gritHtml}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:6px">
-            <span style="color:var(--yellow)">■</span> Box 8 = Bad Box: gain a Condition (Hard to Kill: +${adrName} &amp; +1 next roll)
-            &nbsp;<span style="color:var(--purple)">■</span> Box 12 = Hot Box: gain 2 ${adrName}
-          </div>
         </div>
 
         <div class="card card-death">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <h3>Death Roulette <span style="font-size:11px;color:var(--muted)">${ch.deathBullets}/6 bullets</span></h3>
-            <button class="btn btn-danger btn-xs" onclick="spinRoulette()">SPIN</button>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <h3 style="margin:0">Death Roulette <span style="font-size:11px;color:var(--muted)">${ch.deathBullets}/6</span></h3>
+            <span style="font-size:10px;color:var(--muted)">Tap chamber · Hub = SPIN</span>
           </div>
           <div class="death-roulette">${deathHtml}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:6px">Tap to toggle lethal bullets. SPIN to test fate.</div>
         </div>
       </div>
 
@@ -2893,9 +2949,9 @@ function renderSheet(){
         </div>
       </div>
     </div>
-    <button onclick="printCharSheet()" style="width:100%;padding:11px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:8px">🖨️ Print Character Sheet</button>
     <div style="height:10px"></div>
   `;
+  bindResTileLongPress();
 }
 
 // Lets the player tweak their gear list after creation (e.g. picked up loot,
@@ -3239,6 +3295,77 @@ function adjRes(key,d){
   const[mn,mx]=limits[key]||[0,99];
   S.char[key]=Math.max(mn,Math.min(mx,(S.char[key]||0)+d));
   save();renderSheet();maybeDicePage();
+}
+// Resource strip: tap left half = −1, right half = +1. Long-press / right-click = direct set.
+function resTileTap(ev,key){
+  if(resTileLP._fired){resTileLP._fired=false;return;}
+  const tile=ev.currentTarget;
+  const rect=tile.getBoundingClientRect();
+  const x=(ev.clientX!=null?ev.clientX:(ev.touches&&ev.touches[0]?ev.touches[0].clientX:rect.left+rect.width/2))-rect.left;
+  adjRes(key, x < rect.width/2 ? -1 : 1);
+}
+const resTileLP={timer:null,_fired:false};
+function bindResTileLongPress(){
+  document.querySelectorAll('.resource-tile').forEach(tile=>{
+    tile.addEventListener('pointerdown',e=>{
+      if(e.pointerType==='mouse'&&e.button!==0)return;
+      resTileLP._fired=false;
+      clearTimeout(resTileLP.timer);
+      resTileLP.timer=setTimeout(()=>{
+        resTileLP._fired=true;
+        promptSetRes(tile.dataset.res);
+      },480);
+    });
+    ['pointerup','pointercancel','pointerleave','pointermove'].forEach(ev=>tile.addEventListener(ev,()=>clearTimeout(resTileLP.timer)));
+  });
+}
+function promptSetRes(key){
+  const cur=S.char[key]||0;
+  const v=prompt(`Set ${key} (current ${cur}):`, String(cur));
+  if(v===null)return;
+  const n=parseInt(v,10);
+  if(!Number.isFinite(n))return;
+  const limits={adrenaline:[0,6],spotlight:[0,3],cash:[0,30],gold:[0,30]};
+  const[mn,mx]=limits[key]||[0,99];
+  S.char[key]=Math.max(mn,Math.min(mx,n));
+  save();renderSheet();maybeDicePage();
+}
+// Tap a skill row → jump to Dice tab with attr+skill preselected. setDiceSkill auto-locks the attribute.
+function rollFromSkill(skill){
+  setDiceSkill(skill);
+  showTab('dice');
+}
+// Mobile: long-press a condition chip to show its penalty popover.
+function condPopover(btn){
+  document.querySelectorAll('.cond-pop.show').forEach(p=>{if(p!==btn.querySelector('.cond-pop'))p.classList.remove('show');});
+  const p=btn.querySelector('.cond-pop');
+  if(!p)return;
+  p.classList.add('show');
+  setTimeout(()=>p.classList.remove('show'),2200);
+}
+// Animated revolver spin: rotate the SVG to land on the rolled chamber, then resolve.
+function spinRouletteAnimated(){
+  const ch=S.char;if(!ch)return;
+  const spin=Math.ceil(Math.random()*6);
+  const svg=document.querySelector('.revolver-svg');
+  if(svg){
+    const cur=parseFloat(svg.dataset.rot||'0');
+    // Land such that chamber `spin` ends up at top: rotate by full turns + offset for visual feedback.
+    const rot=cur+720+(spin-1)*60;
+    svg.dataset.rot=String(rot);
+    svg.style.transform=`rotate(${rot}deg)`;
+    const chamber=svg.querySelector(`[data-idx="${spin}"]`);
+    if(chamber){setTimeout(()=>chamber.classList.add('flash'),550);}
+  }
+  setTimeout(()=>{
+    if(spin<=ch.deathBullets){
+      ch.deathBullets=Math.min(6,ch.deathBullets+1);
+      save();renderSheet();
+      setTimeout(()=>alert(`💀 Chamber ${spin} — LETHAL BULLET!\nYour Hero is at death's door.\nAdd 1 bullet to the roulette (already done).`),50);
+    } else {
+      setTimeout(()=>alert(`Chamber ${spin} — Click! Empty.\nYou survive... this time.`),50);
+    }
+  },700);
 }
 
 // ---- ADVANCEMENT ----
