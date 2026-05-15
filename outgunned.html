@@ -712,31 +712,42 @@ function setCoreBook(book){
   const c=S.creation;
   c.coreBook=book;
   if(!c.include)c.include=defaultInclude();
-  // Reset role/trope if their book is no longer the core or an included roles-book
-  const role=ROLES.find(r=>r.id===c.roleId);
-  if(role&&!bookHas(role.book,'roles')){c.roleId=null;c.tropeId=null;c.tropeAttr=null;c.roleFeatsSelected=[];c.tropeFeatsSelected=[];c.tropeId2=null;c.tropeAttr2=null;c.tropeFeatsSelected2=[];c.originId=null;c.superpowerVariants={};}
-  const trope=TROPES.find(t=>t.id===c.tropeId);
-  if(trope&&!bookHas(trope.book,'roles')){c.tropeId=null;c.tropeAttr=null;c.tropeFeatsSelected=[];}
-  if(book!=='osh'){
-    // If OSH is not core and not even an enabled add-on for roles, clear OSH-only fields
-    if(!bookHas('osh','roles')){c.originId=null;c.superpowerVariants={};c.powerTier=null;}
-  }
+  if(typeof ensureIncludeShape==='function')c.include=ensureIncludeShape(c.include);
+  _reconcileCreationToInclude();
   renderCreationStep();
 }
 
 function toggleInclude(book,category){
   const c=S.creation;
   if(!c.include)c.include=defaultInclude();
-  if(!c.include[book])c.include[book]={roles:false,feats:false,items:false,scenes:false};
+  if(typeof ensureIncludeShape==='function')c.include=ensureIncludeShape(c.include);
+  if(!c.include[book])c.include[book]={roles:false,tropes:false,feats:false,items:false,scenes:false};
   c.include[book][category]=!c.include[book][category];
-  // Re-validate role/trope if removing roles inclusion
-  if(category==='roles'){
-    const role=ROLES.find(r=>r.id===c.roleId);
-    if(role&&!bookHas(role.book,'roles')){c.roleId=null;c.tropeId=null;c.tropeAttr=null;c.roleFeatsSelected=[];c.tropeFeatsSelected=[];c.tropeId2=null;c.tropeAttr2=null;c.tropeFeatsSelected2=[];}
-    const trope=TROPES.find(t=>t.id===c.tropeId);
-    if(trope&&!bookHas(trope.book,'roles')){c.tropeId=null;c.tropeAttr=null;c.tropeFeatsSelected=[];}
-  }
+  _reconcileCreationToInclude();
   renderCreationStep();
+}
+
+// Clear any character-creation picks whose source content is no longer
+// in scope. Each content type is checked against its OWN bookHas() flag so
+// that turning off (say) Tropes for WoK doesn't also blow away the role.
+function _reconcileCreationToInclude(){
+  const c=S.creation;
+  const role=ROLES.find(r=>r.id===c.roleId);
+  if(role&&!bookHas(role.book,'roles')){
+    c.roleId=null;c.roleFeatsSelected=[];
+    // Without a role, the rest of the role-chain (origin/superpower) is also moot.
+    c.originId=null;c.superpowerVariants={};
+  }
+  const trope=TROPES.find(t=>t.id===c.tropeId);
+  if(trope&&!bookHas(trope.book,'tropes')){
+    c.tropeId=null;c.tropeAttr=null;c.tropeFeatsSelected=[];
+  }
+  const trope2=TROPES.find(t=>t.id===c.tropeId2);
+  if(trope2&&!bookHas(trope2.book,'tropes')){
+    c.tropeId2=null;c.tropeAttr2=null;c.tropeFeatsSelected2=[];
+  }
+  // OSH-specific bits (origins, superpower variants, power tier) need OSH roles on.
+  if(!bookHas('osh','roles')){c.originId=null;c.superpowerVariants={};c.powerTier=null;}
 }
 
 function setPowerTier(t){S.creation.powerTier=t;renderCreationStep();}
@@ -1508,7 +1519,8 @@ function renderStepGames(){
   const tier=c.powerTier||'street';
 
   const cols=[
-    {key:'roles', label:'Roles &amp; Tropes'},
+    {key:'roles', label:'Roles'},
+    {key:'tropes',label:'Tropes'},
     {key:'feats', label:'Feats'},
     {key:'items', label:'Items'},
     {key:'scenes',label:'Special Scenes'}
@@ -1711,7 +1723,7 @@ function renderStep2(){
       h+=`<div class="label" style="margin-top:14px;color:var(--accent)">Trope #${slot} ${slot===1?'(acts as Role)':'(acts as Trope)'}</div>`;
     }
     tropeBooks.forEach(book=>{
-      if(!bookHas(book,'roles'))return;
+      if(!bookHas(book,'tropes'))return;
       const tropes=TROPES.filter(t=>t.book===book);
       if(!tropes.length)return;
       h+=`<div class="label" style="margin-top:10px">${bookLabel(book)}</div>`;

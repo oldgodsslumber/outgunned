@@ -134,17 +134,20 @@ function buildDefaultConditions(){
 // Build the per-creation 'include' map from every selectable, non-core book.
 function defaultInclude(){
   const r={};
-  selectableBooks().forEach(b=>{if(b!=='core')r[b]={roles:false,feats:false,items:false,scenes:false};});
+  selectableBooks().forEach(b=>{if(b!=='core')r[b]={roles:false,tropes:false,feats:false,items:false,scenes:false};});
   return r;
 }
-// Normalize an include map loaded from storage / MP sync that pre-dates the
-// items flag. Mutates in place and returns it so callers can chain.
+// Normalize an include map loaded from storage / MP sync that may pre-date
+// newer content-type flags (items, tropes). Mutates in place and returns it.
 function ensureIncludeShape(inc){
   if(!inc)return defaultInclude();
   selectableBooks().forEach(b=>{
     if(b==='core')return;
-    if(!inc[b])inc[b]={roles:false,feats:false,items:false,scenes:false};
-    else if(!('items' in inc[b]))inc[b].items=false;
+    if(!inc[b]){inc[b]={roles:false,tropes:false,feats:false,items:false,scenes:false};return;}
+    if(!('items' in inc[b]))inc[b].items=false;
+    // Tropes used to ride the roles flag. Inherit on first migration so a
+    // user who previously enabled "Roles & Tropes" doesn't lose their tropes.
+    if(!('tropes' in inc[b]))inc[b].tropes=!!inc[b].roles;
   });
   return inc;
 }
