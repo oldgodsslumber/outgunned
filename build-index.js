@@ -34,7 +34,10 @@ html = html.replace('<meta charset="UTF-8">','<meta charset="UTF-8">\n'+NOCACHE_
 let buildStamp='dev';
 try{buildStamp=execSync('git rev-parse --short HEAD',{stdio:['ignore','pipe','ignore']}).toString().trim();}catch(_){}
 const stampEpoch=Date.now();
-html = html.replace('</body>','<div id="build-stamp" title="Build commit · click to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;bottom:4px;right:6px;font-size:9px;color:rgba(255,255,255,.35);font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none">build '+buildStamp+'</div>\n</body>');
+// Pinned to TOP-right (mobile nav covers bottom) with a small dark pill so
+// it's actually visible on every theme. Clickable to force a cache-bypass
+// reload — primary purpose is letting a user verify they're on latest code.
+html = html.replace('</body>','<div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build '+buildStamp+'</div>\n</body>');
 html = html.replace('<title>Outgunned — Multiplayer</title>','<title>Outgunned — Multiplayer</title>\n<meta name="build" content="'+buildStamp+'-'+stampEpoch+'">');
 
 // (Cache-busting query strings are appended at the very end so that the
