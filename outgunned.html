@@ -2080,8 +2080,28 @@ function buildHeroSuperpowers(c,role){
 // ============================================================
 // SHEET
 // ============================================================
+// Backfill: some Roles' Superpowers grant Feats automatically (e.g. Marvel's
+// Invincible grants Flight + Energy Manipulation + Bulletproof + Only
+// Weakness). Heroes created BEFORE the autoFeats data was added won't have
+// those names in ch.feats. Normalize on every sheet render so existing saves
+// pick the missing feats up without requiring a re-roll.
+function ensureSuperpowerAutoFeats(ch){
+  if(!ch) return false;
+  const role = ROLES.find(r=>r.id===ch.roleId);
+  if(!role || !role.superpowerId) return false;
+  const sp = SUPERPOWERS.find(s=>s.id===role.superpowerId);
+  if(!sp || !Array.isArray(sp.autoFeats) || !sp.autoFeats.length) return false;
+  if(!Array.isArray(ch.feats)) ch.feats = [];
+  let changed = false;
+  sp.autoFeats.forEach(fn=>{
+    if(!ch.feats.includes(fn)){ ch.feats.push(fn); changed = true; }
+  });
+  return changed;
+}
+
 function renderSheet(){
   const ch=S.char;if(!ch)return;
+  if(ensureSuperpowerAutoFeats(ch)) save();
   const role=ROLES.find(r=>r.id===ch.roleId);
   const trope=TROPES.find(t=>t.id===ch.tropeId);
   const el=document.getElementById('hero-sheet');
