@@ -4927,11 +4927,13 @@ const ROLL_MODES=[
   // beyond this entry's predicate.
   {id:'laser', name:'Laser', icon:'🛸', desc:'Charge & discharge', needsMotion:true, render:placeholderModeRender,
     appliesTo:ctx=>ctx.items.some(it=>(it.feats||[]).includes('energy_weapon'))},
-  // Hacking — purely skill-driven for now (Outgunned uses Crime for
-  // electronic infiltration). Expansions could add a 'tech' skill that
-  // also lights this chip.
+  // Hacking — fires on the Know skill (FOCUS · the knowledge / research /
+  // computer skill in Outgunned) OR when the character owns any item
+  // tagged rollMode:'hacking' (Portable Computer, OSH Laptop, future
+  // expansion gear). Items declare their own mode in og-data.js so
+  // expansion content participates automatically.
   {id:'hacking', name:'Hacking', icon:'⌨️', desc:'Type to roll', needsMotion:false, render:hackingModeRender,
-    appliesTo:ctx=>ctx.sel.skill==='Crime'},
+    appliesTo:ctx=>ctx.sel.skill==='Know'||ctx.items.some(it=>it.rollMode==='hacking')},
   // Melee — any blade/club from any book. Hits core Knife/Sword,
   // OSH Sword/Axe + Mace/Hammer, WoK Katana, etc. Requires an actual
   // melee item; an unarmed Fight roll uses Fists below.
@@ -4950,10 +4952,11 @@ const ROLL_MODES=[
   // Drive — any owned ride, or the Drive skill.
   {id:'drive', name:'Drive', icon:'🏎️', desc:'Tilt to steer', needsMotion:true, render:placeholderModeRender,
     appliesTo:ctx=>ctx.items.some(it=>it.category==='ride')||ctx.sel.skill==='Drive'},
-  // Lockpick — Outgunned's "Stuff" skill (FOCUS) covers picking locks,
-  // disabling traps, and similar fine-motor work.
+  // Lockpick — Dexterity (CRIME attribute) is Outgunned's fine-motor
+  // skill: picking locks, disabling traps, sleight of hand. Future items
+  // (lockpick set, multitool) can tag rollMode:'lockpick' the same way.
   {id:'lockpick', name:'Lockpick', icon:'🔓', desc:'Steady your hand', needsMotion:true, render:placeholderModeRender,
-    appliesTo:ctx=>ctx.sel.skill==='Stuff'},
+    appliesTo:ctx=>ctx.sel.skill==='Dexterity'||ctx.items.some(it=>it.rollMode==='lockpick')},
 ];
 function rollModeById(id){return ROLL_MODES.find(m=>m.id===id);}
 // Build the per-character chip context: owned items resolved through
@@ -4972,11 +4975,11 @@ function rollModeContext(){
 // mode to the front and emphasizes it visually. A character's per-skill
 // override (set when the player commits via a mode) wins over this map.
 const SKILL_PRIMARY_MODE={
-  Shoot:'handgun',
-  Fight:'fists',
-  Crime:'hacking',
-  Drive:'drive',
-  Stuff:'lockpick',
+  Shoot:'handgun',     // NERVES
+  Fight:'fists',       // BRAWN
+  Know:'hacking',      // FOCUS — research / computers / IT
+  Drive:'drive',       // NERVES
+  Dexterity:'lockpick',// CRIME — fine motor / locks / sleight of hand
 };
 // Resolve the primary mode for the current selection. Falls back through:
 //   1) per-character per-skill memory (S.char.rollModePrefs)
