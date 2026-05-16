@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Outgunned — Multiplayer</title>
-<meta name="build" content="f655092-1778950472551">
+<meta name="build" content="9c0fead-1778956043881">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -684,6 +684,57 @@ textarea{resize:vertical;min-height:70px}
   0%,100%{box-shadow:0 0 0 0 rgba(230,57,70,0)}
   50%{box-shadow:0 0 0 4px rgba(230,57,70,.45)}
 }
+/* Phone flipped 180° (held upside down) — rotate the gun art and the
+   action buttons so the trigger and controls end up under the player's
+   thumb instead of out of reach. Driven by JS adding .flipped onto the
+   handgun wrapper when device orientation is detected as inverted. */
+.rm-handgun.flipped .rm-gun-art,
+.rm-handgun.flipped .rm-handgun-actions{transform:rotate(180deg)}
+.rm-handgun.flipped .rm-handgun-actions{flex-direction:row-reverse}
+
+/* ─── Prop roll result widget. Compact dice + outcome label dropped into
+   each prop overlay so the player sees the result without scrolling away.
+   Themed wrappers (.muzzle / .terminal / .odometer / .syringe) tune the
+   look to fit the surrounding prop. ─── */
+.prop-result{display:inline-flex;flex-direction:column;align-items:center;gap:4px;padding:8px 12px;border-radius:8px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.12);font-family:inherit;min-width:120px;animation:propResultIn .25s ease-out}
+.prop-result.success{border-color:rgba(118,189,107,.65);box-shadow:0 0 14px rgba(118,189,107,.25)}
+.prop-result.fail{border-color:rgba(230,57,70,.55);box-shadow:0 0 14px rgba(230,57,70,.22)}
+.prop-result-dice{display:flex;gap:3px;flex-wrap:wrap;justify-content:center}
+.prop-die{width:22px;height:22px;border-radius:4px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;font-family:ui-monospace,monospace}
+.prop-die.match{background:var(--accent);border-color:#fff;color:#fff;box-shadow:0 0 6px rgba(230,57,70,.6)}
+.prop-result-level{font-size:14px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.prop-result-desc{font-size:10px;color:#cfcfcf;letter-spacing:.05em;text-transform:uppercase}
+@keyframes propResultIn{from{opacity:0;transform:translateY(6px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* Handgun: float result to the right of the muzzle. The .rm-handgun-art
+   wrapper is the SVG container — we drop a positioned slot inside it. */
+.prop-result-slot-muzzle{position:absolute;right:-130px;top:14%;width:130px;display:flex;justify-content:flex-start;align-items:center;pointer-events:none}
+.prop-result-slot-muzzle .prop-result{pointer-events:auto;min-width:110px}
+@media (max-width:520px){
+  .prop-result-slot-muzzle{right:-110px;width:110px}
+}
+
+/* Hacking: green-on-black variant for the terminal aesthetic. The result
+   renders as a final printed line in the screen log. */
+.prop-result.hack{background:#020806;border:1px solid #0c3a1f;color:#a7ffc1;font-family:ui-monospace,'SF Mono','Cascadia Mono',Menlo,Consolas,monospace;width:100%;max-width:280px;align-self:flex-start;margin-top:4px}
+.prop-result.hack .prop-die{background:#031a0c;border-color:#0c3a1f;color:#a7ffc1;text-shadow:0 0 4px rgba(93,255,142,.5)}
+.prop-result.hack .prop-die.match{background:#1f8e3a;border-color:#a7ffc1;color:#fff}
+.prop-result.hack .prop-result-desc{color:#5dff8e;opacity:.85}
+
+/* Drive: odometer-style result slot. Sits flush on the dashboard with a
+   glassy face and a yellow segmented look. */
+.rm-odometer{margin:6px auto 4px;padding:8px 14px;border-radius:6px;background:linear-gradient(180deg,#0d0d0d 0%,#1b1b1b 100%);border:1px solid #2a2a2a;box-shadow:inset 0 1px 0 rgba(255,255,255,.05), inset 0 0 12px rgba(0,0,0,.7), 0 1px 0 rgba(255,255,255,.05);min-width:200px;max-width:90%;display:flex;align-items:center;justify-content:center}
+.rm-odometer .prop-result{background:transparent;border:none;box-shadow:none;padding:2px 4px;color:#ffd166}
+.rm-odometer .prop-result-level{color:#ffd166 !important;font-family:ui-monospace,monospace;text-shadow:0 0 6px rgba(255,209,102,.55)}
+.rm-odometer .prop-result-desc{color:#caa45a}
+.rm-odometer .prop-die{background:#1a1206;border:1px solid #ffd166;color:#ffd166;text-shadow:0 0 4px rgba(255,209,102,.5)}
+.rm-odometer .prop-die.match{background:#ffd166;color:#1a1206;border-color:#fff}
+.rm-odometer-empty{color:#6a5a30;font-size:11px;font-family:ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;text-shadow:0 0 6px rgba(255,209,102,.2)}
+
+/* Heal: result sits above the syringe with a clinical-blue cast. */
+.prop-result-slot-syringe{display:flex;justify-content:center;width:100%;margin-bottom:8px;min-height:0}
+.prop-result-slot-syringe .prop-result{background:rgba(8,28,48,.85);border-color:#2a6a8a}
+.prop-result-slot-syringe .prop-result.success{border-color:#76bd6b;box-shadow:0 0 14px rgba(118,189,107,.25)}
 
 /* Landscape: phone-as-gun layout. Anchor gun to lower-left so the trigger
    sits naturally where the user's left thumb rests. Eject/Slam float to
@@ -1843,7 +1894,7 @@ function applyState(d){
     cp.style.display='none';
   }
 }
-<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build f655092</div>
+<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build 9c0fead</div>
 </body></html>`;}
 
 function loadSlot(n){
@@ -5042,6 +5093,13 @@ function renderDicePicker(){
       <div class="dice-pool-formula">${attrVal} + ${skillVal}${sel.mod?` ${modSign}`:''}</div>
     </div>
   </div>`;
+  // Placeholder for the roll result — hoisted up here from below the card
+  // so the dice outcome lands right above the ROLL button, in view without
+  // scrolling. renderDicePicker rebuilds this card on every selection, so
+  // after innerHTML is set we splice the live #dice-result-area and
+  // #dice-action-btns nodes into these anchor points.
+  html+=`<div id="dice-result-anchor"></div>`;
+  html+=`<div id="dice-actions-anchor"></div>`;
   html+=`<div style="display:flex;justify-content:center;margin:14px 0 4px">
     <button class="roll-btn" onclick="doRoll()">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="20" rx="4"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/></svg>
@@ -5069,6 +5127,22 @@ function renderDicePicker(){
     html+=`</div>`;
   }
   el.innerHTML=html;
+  // Splice the live result + action-buttons nodes into the anchors above
+  // the ROLL button. They live as siblings of the card in the static HTML,
+  // so we move (not clone) the real DOM elements — renderDiceResult still
+  // targets them by id and updates flow through unchanged.
+  const resAnchor=el.querySelector('#dice-result-anchor');
+  const actAnchor=el.querySelector('#dice-actions-anchor');
+  const liveResult=document.getElementById('dice-result-area');
+  const liveActions=document.getElementById('dice-action-btns');
+  if(resAnchor&&liveResult&&liveResult.parentNode!==resAnchor.parentNode){
+    resAnchor.replaceWith(liveResult);
+  }else if(resAnchor&&liveResult){
+    resAnchor.replaceWith(liveResult);
+  }
+  if(actAnchor&&liveActions){
+    actAnchor.replaceWith(liveActions);
+  }
   // Keep the result area's hidden buttons / history rendering in sync if needed
   const hidden=document.getElementById('dice-count');
   if(hidden)hidden.textContent=pool;
@@ -5533,8 +5607,9 @@ function hackingModeRender(ctx){
   };
   // Cap per-line length defensively in case a script line is huge.
   const MAX_LINE=80;
-  let executing=false;
+  let executing=false, executed=false;
   const press=(key)=>{
+    if(executed&&key==='ENTER'){closeRollMode();return;}
     if(executing)return;
     if(key==='ENTER'){
       execute();return;
@@ -5574,7 +5649,27 @@ function hackingModeRender(ctx){
     playTone(660,0.18,'sawtooth',0.13);
     setTimeout(()=>playTone(990,0.18,'sawtooth',0.13),130);
     hapticBuzz([20,40,30]);
-    setTimeout(()=>{ctx.commit();},560);
+    // Resolve the dice in-place (instead of closing the overlay) so the
+    // player sees the result printed onto the terminal as the hack's payoff.
+    try{
+      const _sel=diceSel();
+      if(_currentRollMode&&_sel&&_sel.skill){
+        try{rememberModeForSkill(_currentRollMode.id,_sel.skill);}catch(_){}
+      }
+      doRoll();
+    }catch(e){console.error('doRoll failed during hack execute:',e);}
+    setTimeout(()=>{
+      screenEl.classList.remove('executing');
+      const resWrap=document.createElement('div');
+      resWrap.innerHTML=propRollResultHTML().replace('prop-result ','prop-result hack ');
+      screenEl.appendChild(resWrap.firstChild);
+      // Trailing hint line — press Enter again to dismiss the overlay.
+      const hint=document.createElement('div');
+      hint.className='rmh-line dim';hint.style.marginTop='4px';
+      hint.textContent='> press ↵ to disconnect_';
+      screenEl.appendChild(hint);
+      executed=true;executing=false;
+    },420);
   };
   // Event delegation on the keyboard root so we don't bind 30 listeners.
   kbd.addEventListener('click',e=>{
@@ -5710,16 +5805,20 @@ function handgunModeRender(ctx){
           </svg>
           <div class="rm-muzzle-flash" id="rm-muzzle"></div>
           <div class="rm-mag-silhouette" id="rm-mag-sil"></div>
+          <!-- Roll-result slot floats to the right of the muzzle so the player
+               sees the outcome the instant they fire, without leaving the
+               handgun overlay. -->
+          <div class="prop-result-slot-muzzle" id="rm-handgun-result"></div>
         </div>
         <div class="rm-handgun-actions">
-          <button class="rm-eject-btn" id="rm-eject" type="button">
-            <span class="ej-icon">⏏</span><span>Eject Mag</span>
+          <button class="rm-eject-btn" id="rm-eject" type="button" aria-label="Eject magazine">
+            <span class="ej-icon">⏏</span>
           </button>
-          <button class="rm-eject-btn" id="rm-slam" type="button">
-            <span class="ej-icon">⬆</span><span>Slam Mag</span>
+          <button class="rm-eject-btn" id="rm-slam" type="button" aria-label="Slam magazine">
+            <span class="ej-icon">⬆</span>
           </button>
-          <button class="rm-eject-btn rm-handgun-commit-btn" id="rm-handgun-commit" type="button">
-            <span class="ej-icon">🎲</span><span>Roll</span>
+          <button class="rm-eject-btn rm-handgun-commit-btn" id="rm-handgun-commit" type="button" aria-label="Roll">
+            <span class="ej-icon">🎲</span>
           </button>
         </div>
       </div>
@@ -5727,6 +5826,7 @@ function handgunModeRender(ctx){
       <div class="rm-handgun-fallback-note" id="rm-fallback-note"></div>
     </div>`;
 
+  const handgunWrap=ctx.body.querySelector('.rm-handgun');
   const gunSvgEl=ctx.body.querySelector('#rm-gun-svg');
   const muzzleEl=ctx.body.querySelector('#rm-muzzle');
   const magSilEl=ctx.body.querySelector('#rm-mag-sil');
@@ -5737,7 +5837,16 @@ function handgunModeRender(ctx){
   const commitBtn=ctx.body.querySelector('#rm-handgun-commit');
   const fallbackNote=ctx.body.querySelector('#rm-fallback-note');
 
-  // Eject — vanity-only. Mag silhouette drops out and fades.
+  // magOut gates firing. While true the trigger gives a dry click and the
+  // motion-shake auto-slams a new mag instead of firing — matches real
+  // handgun behavior and stops the player from "shooting" with no mag.
+  let magOut=false;
+  const dryClick=()=>{
+    try{playTone(180,0.04,'square',0.18);}catch(_){}
+    hapticBuzz(10);
+  };
+
+  // Eject — pure flair. Mag silhouette drops out and the gun goes "empty".
   const ejectMag=()=>{
     if(firing)return;
     magSilEl.classList.remove('inserting');
@@ -5745,11 +5854,17 @@ function handgunModeRender(ctx){
     magSilEl.classList.add('ejecting');
     playMagEject();
     hapticBuzz(28);
+    magOut=true;
+    if(!hasFired){
+      promptEl.textContent='Mag out · shake or slam to reload';
+    }else{
+      promptEl.textContent='Mag out · shake or slam to reload';
+    }
     setTimeout(()=>magSilEl.classList.remove('ejecting'),540);
   };
   ejectBtn.addEventListener('click',ejectMag);
 
-  // Slam — vanity-only. Mag silhouette slides up from below.
+  // Slam — re-seats the mag. Clears magOut so firing resumes.
   const slamMag=()=>{
     if(firing)return;
     magSilEl.classList.remove('ejecting');
@@ -5757,6 +5872,11 @@ function handgunModeRender(ctx){
     magSilEl.classList.add('inserting');
     playMagSlam();
     hapticBuzz([22,30,42]);
+    const wasOut=magOut;
+    magOut=false;
+    if(wasOut){
+      promptEl.textContent=hasFired?'Roll locked in — fire freely':'Tap the trigger · or jab phone forward';
+    }
     setTimeout(()=>magSilEl.classList.remove('inserting'),480);
   };
   slamBtn.addEventListener('click',slamMag);
@@ -5768,6 +5888,7 @@ function handgunModeRender(ctx){
   let hasFired=false;
   const fireGun=()=>{
     if(firing)return;
+    if(magOut){dryClick();return;}
     firing=true;
     playGunshot();
     hapticBuzz([35,45,30]);
@@ -5791,8 +5912,10 @@ function handgunModeRender(ctx){
       }
       try{doRoll();}catch(e){console.error('doRoll failed during handgun fire:',e);}
       commitBtn.classList.add('used');
-      commitBtn.innerHTML='<span class="ej-icon">🎬</span><span>Close</span>';
+      commitBtn.innerHTML='<span class="ej-icon">🎬</span>';
       promptEl.textContent='Roll locked in — fire freely';
+      const resEl=ctx.body.querySelector('#rm-handgun-result');
+      if(resEl) resEl.innerHTML=propRollResultHTML();
     }
     // Short cooldown — just long enough to let the muzzle flash render a
     // single frame. Players can mash the trigger at ~10 shots/sec for the
@@ -5852,12 +5975,45 @@ function handgunModeRender(ctx){
       const now=Date.now();
       if(mag>FIRE_THRESHOLD&&now-lastFire>FIRE_DEBOUNCE){
         lastFire=now;
-        fireGun();
+        // Shake-to-reload when the mag is out — otherwise you'd be jabbing
+        // a phone that goes click-click forever.
+        if(magOut) slamMag();
+        else fireGun();
       }
     };
     window.addEventListener('devicemotion',motionListener);
   };
   setupMotion();
+
+  // ─── Orientation: flip the gun + buttons 180° when the phone is held
+  // upside-down so a right-handed grip on the inverted device still has the
+  // trigger and action buttons under-thumb. Two signals — both work as a
+  // fallback for the other:
+  //   1. screen.orientation.angle === 180 (portrait-secondary)
+  //   2. deviceorientation.beta < -45 (top of phone tilted toward the user)
+  //      A genuine upside-down hold lands beta around ±180; a normal
+  //      "phone-as-gun" jab keeps beta ≈ 0..90.
+  const setFlipped=(on)=>{
+    if(!handgunWrap)return;
+    handgunWrap.classList.toggle('flipped', !!on);
+  };
+  const checkScreenAngle=()=>{
+    try{
+      const a=(screen&&screen.orientation&&screen.orientation.angle);
+      if(a===180) setFlipped(true);
+      else if(a===0||a===90||a===-90||a===270) setFlipped(false);
+    }catch(_){}
+  };
+  checkScreenAngle();
+  try{screen.orientation&&screen.orientation.addEventListener&&screen.orientation.addEventListener('change',checkScreenAngle);}catch(_){}
+  const orientationListener=(e)=>{
+    const beta=e.beta;
+    if(typeof beta!=='number')return;
+    // Phone tipped past horizontal toward the player's lap → upside-down hold.
+    if(beta<-45||beta>135) setFlipped(true);
+    else if(beta>-30&&beta<120) setFlipped(false);
+  };
+  try{window.addEventListener('deviceorientation',orientationListener);}catch(_){}
 
   // Cleanup on overlay teardown.
   const overlay=document.getElementById('roll-mode-overlay');
@@ -5865,6 +6021,8 @@ function handgunModeRender(ctx){
     const obs=new MutationObserver(()=>{
       if(!document.body.contains(overlay)){
         if(motionListener)window.removeEventListener('devicemotion',motionListener);
+        try{window.removeEventListener('deviceorientation',orientationListener);}catch(_){}
+        try{screen.orientation&&screen.orientation.removeEventListener&&screen.orientation.removeEventListener('change',checkScreenAngle);}catch(_){}
         obs.disconnect();
       }
     });
@@ -5909,6 +6067,9 @@ function healModeRender(ctx){
     <div class="rm-handgun rm-heal-wrap">
       <div class="rm-handgun-screen">
         <div class="rm-gun-name">${kitName}</div>
+        <!-- Result slot lives above the syringe so the outcome lands in
+             the player's eye-line the moment the plunger commits. -->
+        <div class="prop-result-slot-syringe" id="rm-heal-result"></div>
         <div class="rm-gun-art rm-heal-art">
           <svg class="rm-gun-svg" id="rm-heal-svg" width="240" height="69" viewBox="0 16 240 69" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <defs>
@@ -5959,11 +6120,11 @@ function healModeRender(ctx){
           </svg>
         </div>
         <div class="rm-handgun-actions">
-          <button class="rm-eject-btn" id="rm-heal-newvial" type="button">
-            <span class="ej-icon">♻</span><span>New Vial</span>
+          <button class="rm-eject-btn" id="rm-heal-newvial" type="button" aria-label="New vial">
+            <span class="ej-icon">♻</span>
           </button>
-          <button class="rm-eject-btn rm-handgun-commit-btn" id="rm-heal-commit" type="button">
-            <span class="ej-icon">🎲</span><span>Roll</span>
+          <button class="rm-eject-btn rm-handgun-commit-btn" id="rm-heal-commit" type="button" aria-label="Roll">
+            <span class="ej-icon">🎲</span>
           </button>
         </div>
       </div>
@@ -5995,8 +6156,10 @@ function healModeRender(ctx){
         try{rememberModeForSkill(_currentRollMode.id,_sel.skill);}catch(_){}
       }
       try{doRoll();}catch(e){console.error('doRoll failed during heal inject:',e);}
+      const resEl=ctx.body.querySelector('#rm-heal-result');
+      if(resEl) resEl.innerHTML=propRollResultHTML();
       commitBtn.classList.add('used');
-      commitBtn.innerHTML='<span class="ej-icon">🎬</span><span>Close</span>';
+      commitBtn.innerHTML='<span class="ej-icon">🎬</span>';
       promptEl.textContent='Dose delivered · New Vial to redo the gag';
     }
     playInject();
@@ -6179,17 +6342,23 @@ function driveModeRender(ctx){
             <text id="rm-gear-label" x="170" y="62" font-size="12" font-weight="bold" fill="#ff5070" text-anchor="middle" font-family="ui-monospace,monospace">N</text>
           </svg>
         </div>
+        <!-- Odometer-style readout pinned to the dashboard. Holds a dim
+             placeholder until the gas-pedal commit fires the roll, then
+             fills with the dice result. -->
+        <div class="rm-odometer" id="rm-drive-odometer">
+          <span class="rm-odometer-empty">— — — —</span>
+        </div>
         <div class="rm-gas-pad-row">
           <button class="rm-gas-pad" id="rm-gas-hit" type="button" aria-label="Gas pedal — press and hold">
-            <span class="rm-gas-pad-icon" aria-hidden="true"></span><span>GAS</span>
+            <span class="rm-gas-pad-icon" aria-hidden="true"></span>
           </button>
         </div>
         <div class="rm-handgun-actions">
-          <button class="rm-eject-btn" id="rm-drive-brake" type="button">
-            <span class="ej-icon">🅿</span><span>Brake</span>
+          <button class="rm-eject-btn" id="rm-drive-brake" type="button" aria-label="Brake">
+            <span class="ej-icon">🅿</span>
           </button>
-          <button class="rm-eject-btn rm-handgun-commit-btn" id="rm-drive-commit" type="button">
-            <span class="ej-icon">🎲</span><span>Roll</span>
+          <button class="rm-eject-btn rm-handgun-commit-btn" id="rm-drive-commit" type="button" aria-label="Roll">
+            <span class="ej-icon">🎲</span>
           </button>
         </div>
       </div>
@@ -6233,8 +6402,10 @@ function driveModeRender(ctx){
       try{rememberModeForSkill(_currentRollMode.id,_sel.skill);}catch(_){}
     }
     try{doRoll();}catch(e){console.error('doRoll failed during drive commit:',e);}
+    const odo=ctx.body.querySelector('#rm-drive-odometer');
+    if(odo) odo.innerHTML=propRollResultHTML();
     commitBtn.classList.add('used');
-    commitBtn.innerHTML='<span class="ej-icon">🎬</span><span>Close</span>';
+    commitBtn.innerHTML='<span class="ej-icon">🎬</span>';
     promptEl.textContent='Roll fired · keep shifting for the chase · Brake to reset';
     // Engine keeps running so the player can hold the pedal at redline and hear
     // it stutter against the limiter, like really flooring it on a car.
@@ -6862,6 +7033,26 @@ function renderDicePage(){
       </div>`;
     }
   }
+}
+
+// Compact result widget for prop overlays — handgun/hacking/drive/heal each
+// drop this into their own themed slot so the player sees the dice outcome
+// without leaving the prop. Returns '' when no roll has happened yet.
+function propRollResultHTML(){
+  const d=S.dice;
+  if(!d) return '';
+  const lvl=successLevel(d.matchCount);
+  const isSuccess=d.lvlNum>0;
+  const dice=d.dice.map(v=>{
+    const m=d.matchCount>=2&&v===d.matchFace;
+    return `<span class="prop-die${m?' match':''}">${v}</span>`;
+  }).join('');
+  const desc=d.matchCount>=2?`${d.matchCount}× ${d.matchFace}`:'No match';
+  return `<div class="prop-result ${isSuccess?'success':'fail'}">
+    <div class="prop-result-dice">${dice}</div>
+    <div class="prop-result-level" style="color:${lvl.color}">${d.level}</div>
+    <div class="prop-result-desc">${desc}</div>
+  </div>`;
 }
 
 function renderDiceResult(){
