@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Outgunned — Multiplayer</title>
-<meta name="build" content="eec8984-1778933256203">
+<meta name="build" content="cab6bb1-1778934530410">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -555,52 +555,79 @@ textarea{resize:vertical;min-height:70px}
   .roll-mode-overlay .roll-mode-footer{padding:4px 14px 10px}
 }
 
-/* M3 — Handgun mode (motion-driven: shake to fire, eject + slam to reload). */
+/* M3 — Handgun mode (single-jab fires; eject + slam are vanity-only flair). */
 .rm-handgun{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;max-width:380px}
-.rm-handgun-screen{background:linear-gradient(180deg,#1a1410 0%,#080604 100%);border:1px solid #2a1f15;border-radius:12px;padding:18px 16px;width:100%;display:flex;flex-direction:column;align-items:center;gap:12px;box-shadow:inset 0 0 40px rgba(0,0,0,.55),0 4px 20px rgba(0,0,0,.4)}
+.rm-handgun-screen{background:linear-gradient(180deg,#1a1410 0%,#080604 100%);border:1px solid #2a1f15;border-radius:12px;padding:18px 16px;width:100%;display:flex;flex-direction:column;align-items:center;gap:14px;box-shadow:inset 0 0 40px rgba(0,0,0,.55),0 4px 20px rgba(0,0,0,.4)}
 .rm-gun-name{font-size:14px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);text-shadow:0 0 8px rgba(230,57,70,.35)}
-.rm-gun-art{width:220px;height:110px;display:flex;align-items:center;justify-content:center;position:relative}
-.rm-gun-svg{width:100%;height:100%;transition:transform .06s;filter:drop-shadow(0 4px 6px rgba(0,0,0,.55));-webkit-tap-highlight-color:transparent}
-.rm-gun-svg.fire{animation:rmFireKick .26s ease-out}
+.rm-gun-art{width:240px;height:140px;display:flex;align-items:center;justify-content:center;position:relative;overflow:visible}
+.rm-gun-svg{width:240px;height:100px;transition:transform .06s;filter:drop-shadow(0 4px 8px rgba(0,0,0,.65));-webkit-tap-highlight-color:transparent}
+.rm-gun-svg.fire{animation:rmFireKick .28s ease-out}
 @keyframes rmFireKick{
   0%{transform:translateX(0) rotate(0deg)}
-  18%{transform:translateX(-10px) rotate(-7deg)}
+  16%{transform:translateX(-12px) rotate(-8deg)}
   100%{transform:translateX(0) rotate(0deg)}
 }
-.rm-muzzle-flash{position:absolute;left:6px;top:38%;width:70px;height:70px;background:radial-gradient(circle,#fff 0%,#ffe680 25%,#ff8a3c 55%,rgba(255,90,40,.2) 80%,transparent 100%);border-radius:50%;opacity:0;pointer-events:none;transform:translateY(-50%)}
-.rm-muzzle-flash.flash{animation:rmMuzzleFlash .22s ease-out}
+/* Muzzle flash sits at the right-hand tip of the gun (which points right). */
+.rm-muzzle-flash{position:absolute;right:-2px;top:50%;width:88px;height:88px;background:radial-gradient(circle,#fff 0%,#ffe680 22%,#ff8a3c 50%,rgba(255,90,40,.25) 80%,transparent 100%);border-radius:50%;opacity:0;pointer-events:none;transform:translate(20%,-50%)}
+.rm-muzzle-flash.flash{animation:rmMuzzleFlash .24s ease-out}
 @keyframes rmMuzzleFlash{
-  0%{opacity:0;transform:translateY(-50%) scale(.3)}
-  25%{opacity:1;transform:translateY(-50%) scale(1)}
-  100%{opacity:0;transform:translateY(-50%) scale(1.4)}
+  0%{opacity:0;transform:translate(20%,-50%) scale(.3)}
+  20%{opacity:1;transform:translate(20%,-50%) scale(1)}
+  100%{opacity:0;transform:translate(20%,-50%) scale(1.5)}
 }
-.rm-mag-display{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%}
-.rm-mag-label{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-variant-numeric:tabular-nums}
-.rm-mag-pip-row{display:flex;gap:4px;align-items:flex-end;min-height:34px}
-.rm-mag-bullet{width:13px;height:30px;border-radius:2px 2px 1px 1px;background:linear-gradient(180deg,#d4be72 0%,#a08847 50%,#705a2a 100%);border:1px solid #4a3d1a;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 1px 2px rgba(0,0,0,.4);transition:opacity .25s,transform .35s ease-in}
-.rm-mag-bullet.spent{background:linear-gradient(180deg,#3a3a3a,#1a1a1a);border-color:#222;opacity:.4;box-shadow:none}
-.rm-mag-bullet.ejecting{transform:translateY(48px) rotate(18deg);opacity:0}
-.rm-mag-status{font-size:11px;color:var(--muted);font-style:italic;text-align:center;min-height:16px;letter-spacing:.04em}
-.rm-mag-status.loaded{color:var(--green);font-style:normal;font-weight:600;letter-spacing:.05em}
-.rm-mag-status.empty{color:var(--yellow);font-style:normal;font-weight:600;letter-spacing:.05em}
-.rm-mag-status.depleted{color:var(--red);font-style:normal;font-weight:600;letter-spacing:.05em}
-.rm-eject-btn{padding:9px 18px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:background .1s,border-color .12s,transform .06s;-webkit-tap-highlight-color:transparent;display:inline-flex;align-items:center;gap:6px;font-family:inherit}
-.rm-eject-btn:hover:not([disabled]){border-color:var(--accent)}
-.rm-eject-btn:active:not([disabled]){background:var(--accent);color:#fff;transform:translateY(1px)}
-.rm-eject-btn[disabled]{opacity:.4;cursor:not-allowed}
-.rm-eject-btn .ej-icon{font-size:14px;line-height:1}
-.rm-handgun-prompt{font-size:13px;color:var(--text);font-weight:700;letter-spacing:.08em;text-transform:uppercase;text-align:center;padding:10px 16px;border:1px dashed var(--border);border-radius:8px;background:var(--surface2);min-width:240px;transition:color .15s,border-color .15s}
-.rm-handgun-prompt.armed{border-color:var(--accent);color:var(--accent);border-style:solid;animation:rmPromptPulse 1.4s ease-in-out infinite}
-.rm-handgun-prompt.reload{border-color:var(--yellow);color:var(--yellow);border-style:solid}
-.rm-handgun-prompt.empty{border-color:var(--red);color:var(--red);border-style:solid}
-@keyframes rmPromptPulse{0%,100%{opacity:.85}50%{opacity:1}}
-.rm-handgun-fallback-btn{padding:14px 28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#7a1e25);color:#fff;border:none;font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;display:none;-webkit-tap-highlight-color:transparent;transition:filter .12s,transform .06s;font-family:inherit}
-.rm-handgun-fallback-btn:hover{filter:brightness(1.1)}
-.rm-handgun-fallback-btn:active{transform:scale(.96)}
-.rm-handgun-fallback-btn.show{display:inline-block}
-.rm-handgun-fallback-btn.slam{background:linear-gradient(135deg,#3a8fc5,#1a4870)}
-.rm-handgun-fallback-note{font-size:10px;color:var(--muted);text-align:center;font-style:italic;max-width:300px;line-height:1.4;letter-spacing:.02em}
-.rm-handgun-fallback-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+/* Vanity mag silhouette — only visible during eject/insert animations. */
+.rm-mag-silhouette{position:absolute;left:25%;top:50%;width:22px;height:32px;background:linear-gradient(180deg,#5e5e5e 0%,#1f1f1f 100%);border:1px solid #0a0a0a;border-radius:2px 2px 1px 1px;opacity:0;pointer-events:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 2px 4px rgba(0,0,0,.5);transform:translateY(0)}
+.rm-mag-silhouette.ejecting{animation:rmMagEject .5s ease-in forwards}
+.rm-mag-silhouette.inserting{animation:rmMagInsert .42s ease-out forwards}
+@keyframes rmMagEject{
+  0%{opacity:1;transform:translateY(0) rotate(0deg)}
+  100%{opacity:0;transform:translateY(56px) rotate(22deg)}
+}
+@keyframes rmMagInsert{
+  0%{opacity:1;transform:translateY(60px) rotate(0deg)}
+  100%{opacity:0;transform:translateY(0) rotate(0deg)}
+}
+.rm-handgun-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.rm-eject-btn{padding:9px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:background .1s,border-color .12s,transform .06s;-webkit-tap-highlight-color:transparent;display:inline-flex;align-items:center;gap:6px;font-family:inherit}
+.rm-eject-btn:hover{border-color:var(--accent)}
+.rm-eject-btn:active{background:var(--accent);color:#fff;transform:translateY(1px)}
+.rm-eject-btn .ej-icon{font-size:13px;line-height:1}
+.rm-handgun-prompt{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.08em;text-transform:uppercase;text-align:center;padding:6px 12px;border-radius:6px;font-style:italic}
+/* Trigger tap target — invisible ellipse over the trigger guard area.
+   Cursor + hint pulse communicate "this is the fire control" without a
+   separate button. The whole gun feels like a gun, not a UI. */
+.rm-trigger-hit{cursor:pointer;fill:rgba(230,57,70,0);stroke:rgba(230,57,70,.55);stroke-width:0;-webkit-tap-highlight-color:transparent;animation:rmTriggerHintPulse 2s ease-in-out infinite}
+.rm-trigger-hit:hover{fill:rgba(230,57,70,.18)}
+.rm-trigger-hit:active{fill:rgba(230,57,70,.45)}
+.rm-trigger-hit.firing{animation:rmTriggerFlash .26s ease-out}
+@keyframes rmTriggerHintPulse{
+  0%,100%{stroke-width:0;stroke-opacity:0}
+  50%{stroke-width:2.2;stroke-opacity:.55}
+}
+@keyframes rmTriggerFlash{
+  0%{fill:rgba(255,255,255,.6);stroke-width:3;stroke-opacity:1}
+  100%{fill:rgba(230,57,70,0);stroke-width:0;stroke-opacity:0}
+}
+.rm-handgun-fallback-note{font-size:10px;color:var(--muted);text-align:center;font-style:italic;max-width:320px;line-height:1.45;letter-spacing:.02em}
+
+/* Landscape: phone-as-gun layout. Anchor gun to lower-left so the trigger
+   sits naturally where the user's left thumb rests. Eject/Slam float to
+   top-right. Hide most other chrome — the visual IS the gun. */
+@media (orientation:landscape) and (max-height:560px){
+  .roll-mode-overlay .rm-handgun{max-width:none;width:100%;height:100%;position:relative;padding:0;gap:0;align-items:stretch}
+  .roll-mode-overlay .rm-handgun-screen{background:transparent;border:none;box-shadow:none;padding:0;width:100%;height:100%;gap:0;position:relative;align-items:flex-start}
+  .roll-mode-overlay .rm-gun-name{position:absolute;top:8px;left:10px;font-size:11px;letter-spacing:.14em}
+  .roll-mode-overlay .rm-gun-art{position:absolute;left:3%;bottom:4%;width:62vw;max-width:none;height:auto;aspect-ratio:240/100}
+  .roll-mode-overlay .rm-gun-svg{width:100%;height:auto}
+  .roll-mode-overlay .rm-handgun-actions{position:absolute;top:8px;right:10px;flex-direction:column;gap:6px}
+  .roll-mode-overlay .rm-eject-btn{font-size:10px;padding:6px 12px;letter-spacing:.06em}
+  .roll-mode-overlay .rm-handgun-prompt{position:absolute;bottom:8px;right:14px;font-size:10px;padding:4px 10px;max-width:40vw}
+  .roll-mode-overlay .rm-handgun-fallback-note{position:absolute;top:46%;right:3%;transform:translateY(-50%);font-size:9px;max-width:30vw;text-align:right}
+  .roll-mode-overlay .roll-mode-body{padding:0}
+  .roll-mode-overlay .roll-mode-header{padding:6px 12px 2px}
+  .roll-mode-overlay .roll-mode-meta{padding:0 12px 2px;font-size:10px;text-align:left}
+  .roll-mode-overlay .roll-mode-footer{padding:2px 12px 4px}
+}
 </style>
 </head>
 <body>
@@ -1741,7 +1768,7 @@ function applyState(d){
     cp.style.display='none';
   }
 }
-<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build eec8984</div>
+<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build cab6bb1</div>
 </body></html>`;}
 
 function loadSlot(n){
@@ -4988,50 +5015,61 @@ function renderDicePicker(){
 // ============================================================
 const ROLL_MODES=[
   // Core firearms — one-handed mag-based guns (Pistol, Revolver, SMG, Viper,
-  // OSH Pistol/Machine Gun, etc.). Item-only; no Shoot-skill fallback. If
-  // the character doesn't own a matching gun, the chip doesn't appear.
-  {id:'handgun', name:'Handgun', icon:'🔫', desc:'Shake to fire · Eject + slam to reload', needsMotion:true,  render:handgunModeRender,
+  // OSH Pistol/Machine Gun, etc.). Item-only; no Shoot-skill fallback.
+  {id:'handgun', book:'core', name:'Handgun', icon:'🔫', desc:'Tap trigger or jab phone to fire · eject + slam are vanity', needsMotion:true,  render:handgunModeRender,
     appliesTo:ctx=>ctx.items.some(it=>it.category==='gun'&&!it.twoHand&&!(it.feats||[]).includes('single_shot')&&!(it.feats||[]).includes('energy_weapon'))},
-  // Two-handed guns: shotguns, rifles, machine guns. One umbrella for M0;
+  // Two-handed guns: shotguns, rifles, machine guns. One umbrella for now;
   // a future milestone can split rifle vs shotgun if the feel demands it.
-  {id:'shotgun', name:'Long Gun', icon:'💥', desc:'Pump and blast', needsMotion:true, render:placeholderModeRender,
+  {id:'shotgun', book:'core', name:'Long Gun', icon:'💥', desc:'Pump and blast', needsMotion:true, render:placeholderModeRender,
     appliesTo:ctx=>ctx.items.some(it=>it.category==='gun'&&it.twoHand&&!(it.feats||[]).includes('energy_weapon'))},
-  // OSH expansion — energy weapons (Laser Pistol/Rifle). Demonstrates that
-  // an expansion item produces its own chip with zero registry changes
-  // beyond this entry's predicate.
-  {id:'laser', name:'Laser', icon:'🛸', desc:'Charge & discharge', needsMotion:true, render:placeholderModeRender,
+  // OSH expansion — energy weapons (Laser Pistol/Rifle). Only appears for
+  // characters with OSH content enabled. A future sci-fi book adding
+  // lightsabers would register its own Setpiece with book:'<that-book>'.
+  {id:'laser', book:'osh', name:'Laser', icon:'🛸', desc:'Charge & discharge', needsMotion:true, render:placeholderModeRender,
     appliesTo:ctx=>ctx.items.some(it=>(it.feats||[]).includes('energy_weapon'))},
-  // Hacking — fires on the Know skill (FOCUS · the knowledge / research /
-  // computer skill in Outgunned) OR when the character owns any item
-  // tagged rollMode:'hacking' (Portable Computer, OSH Laptop, future
-  // expansion gear). Items declare their own mode in og-data.js so
-  // expansion content participates automatically.
-  {id:'hacking', name:'Hacking', icon:'⌨️', desc:'Type to roll', needsMotion:false, render:hackingModeRender,
+  // Hacking — fires on the Know skill OR when the character owns any item
+  // tagged rollMode:'hacking' (Portable Computer = core, OSH Laptop, etc).
+  // The Setpiece itself is core; expansion items extend who triggers it.
+  {id:'hacking', book:'core', name:'Hacking', icon:'⌨️', desc:'Type to roll', needsMotion:false, render:hackingModeRender,
     appliesTo:ctx=>ctx.sel.skill==='Know'||ctx.items.some(it=>it.rollMode==='hacking')},
-  // Melee — any blade/club from any book. Hits core Knife/Sword,
-  // OSH Sword/Axe + Mace/Hammer, WoK Katana, etc. Requires an actual
-  // melee item; an unarmed Fight roll uses Fists below.
-  {id:'knife', name:'Blade', icon:'🔪', desc:'Slash to strike', needsMotion:true, render:placeholderModeRender,
+  // Melee — any blade/club from any book. Requires an actual melee item;
+  // an unarmed Fight roll uses Fists below.
+  {id:'knife', book:'core', name:'Blade', icon:'🔪', desc:'Slash to strike', needsMotion:true, render:placeholderModeRender,
     appliesTo:ctx=>ctx.items.some(it=>it.category==='melee')},
   // Unarmed — Fight skill, no weapon needed. Real screen detects the
   // sudden deceleration of a thrown punch (impact-on-stop rather than
   // peak acceleration) and fires the impact SFX on stop.
-  {id:'fists', name:'Fists', icon:'👊', desc:'Punch — sound fires on impact', needsMotion:true, render:placeholderModeRender,
+  {id:'fists', book:'core', name:'Fists', icon:'👊', desc:'Punch — sound fires on impact', needsMotion:true, render:placeholderModeRender,
     appliesTo:ctx=>ctx.sel.skill==='Fight'},
-  // WoK expansion — named perfect katanas (and any 'traditional' melee).
-  // Sits alongside Blade rather than replacing it so the player can pick
-  // whichever feels right for the moment.
-  {id:'katana', name:'Katana', icon:'🗡️', desc:'One perfect cut', needsMotion:true, render:placeholderModeRender,
+  // WoK expansion — named "perfect" katanas (and any 'traditional' melee).
+  // Only appears for characters with WoK content enabled. Sits alongside
+  // Blade so the player picks whichever feels right.
+  {id:'katana', book:'wok', name:'Katana', icon:'🗡️', desc:'One perfect cut', needsMotion:true, render:placeholderModeRender,
     appliesTo:ctx=>ctx.items.some(it=>it.category==='melee'&&(it.feats||[]).includes('traditional'))},
   // Drive — any owned ride, or the Drive skill.
-  {id:'drive', name:'Drive', icon:'🏎️', desc:'Tilt to steer', needsMotion:true, render:placeholderModeRender,
+  {id:'drive', book:'core', name:'Drive', icon:'🏎️', desc:'Tilt to steer', needsMotion:true, render:placeholderModeRender,
     appliesTo:ctx=>ctx.items.some(it=>it.category==='ride')||ctx.sel.skill==='Drive'},
-  // Lockpick — Dexterity (CRIME attribute) is Outgunned's fine-motor
-  // skill: picking locks, disabling traps, sleight of hand. Future items
-  // (lockpick set, multitool) can tag rollMode:'lockpick' the same way.
-  {id:'lockpick', name:'Lockpick', icon:'🔓', desc:'Steady your hand', needsMotion:true, render:placeholderModeRender,
+  // Lockpick — Dexterity (CRIME attribute) is Outgunned's fine-motor skill.
+  // Future items can tag rollMode:'lockpick' the same way.
+  {id:'lockpick', book:'core', name:'Lockpick', icon:'🔓', desc:'Steady your hand', needsMotion:true, render:placeholderModeRender,
     appliesTo:ctx=>ctx.sel.skill==='Dexterity'||ctx.items.some(it=>it.rollMode==='lockpick')},
 ];
+// Is this Setpiece accessible to the active character? Core is always
+// accessible. Expansion Setpieces (osh, wok, future books) only show up
+// when the character has ANY inclusion from that book enabled — so a
+// pure-core character never sees Lasers / Katanas / future lightsabers,
+// even when "Show all Setpieces" is on.
+function setpieceBookAccessible(book){
+  if(!book||book==='core')return true;
+  const ch=S.char;if(!ch)return false;
+  const game=(typeof BOOK_META!=='undefined'&&BOOK_META[book]?.game)||book;
+  if(ch.coreBook===game)return true;
+  const inc=ch.include&&ch.include[game];
+  if(!inc)return false;
+  // Any inclusion category counts — Setpieces aren't tied to a specific
+  // content type within their book.
+  return Object.values(inc).some(v=>!!v);
+}
 function rollModeById(id){return ROLL_MODES.find(m=>m.id===id);}
 // Build the per-character chip context: owned items resolved through
 // itemById, plus the current selection. Safe when no character is loaded.
@@ -5099,6 +5137,10 @@ function setRollSetting(key,on){
 // the existing og_rollModesHidden inversion.
 function audioOn(){return rollSetting('audio',true);}
 function hapticsOn(){return rollSetting('haptics',true);}
+// "Show all Setpieces" — defaults ON for now. When true, every Setpiece
+// chip appears in the strip regardless of skill/loadout. The per-mode
+// appliesTo predicates remain intact and re-engage when this is OFF.
+function setpiecesAlwaysVisible(){return rollSetting('alwaysShow',true);}
 
 // --- Audio helper. Lazy AudioContext so iOS doesn't fight us on boot.
 // All emitters short-circuit when the audio setting is off. ---
@@ -5398,223 +5440,159 @@ function hackingModeRender(ctx){
   renderBuf();
 }
 
-// --- M3 — Handgun mode: shake to fire, eject button drops the mag,
-// downward "slam" gesture seats a fresh mag from the spare supply.
-// Each eject+slam cycle decrements the persistent mag count by 1
-// (the in-chamber mag is "lost" on eject; slam pulls one from spare).
-// Firing itself does NOT decrement — the rulebook only consumes mags on
-// failure / Full Auto / Cover, which is handled by the roll resolver.
+// --- M3 — Handgun mode (revised). Unlimited ammo; eject + slam are pure
+// flair the player can trigger any time for RP value. Fire is the only
+// thing that commits a roll. Motion path: single sharp forward jab fires.
+// A prominent FIRE button is always visible — motion is a bonus on top.
+// The "shake" approach was dropped because iOS Shake-to-Undo intercepts
+// sustained oscillation; a single peak with aggressive debounce fires
+// before the OS detection completes.
 function handgunModeRender(ctx){
-  // Find the equipped one-handed mag-based gun. Predicate mirrors the chip's
-  // appliesTo so the gun shown matches the gun that lit the chip.
   const gun=ctx.items.find(it=>it.category==='gun'&&!it.twoHand&&!(it.feats||[]).includes('single_shot')&&!(it.feats||[]).includes('energy_weapon'));
   const gunName=gun?gun.name:'Handgun';
-  const ch=ctx.char;
-  const entry=(ch&&ch.loadout&&gun)?ch.loadout.items.find(e=>e.itemId===gun.id):null;
-  const cap=gun?(gun.mag||4):4;
-  let mags=entry?(entry.mags||0):cap;
-  // Local overlay state — persists only for the duration of the overlay.
-  // Chamber starts loaded as long as the player has any mags; if they
-  // arrived with mags=0 the gun is already dry on open.
-  let loaded=mags>0;
   let firing=false;
-  let motionState=null;
 
   ctx.body.innerHTML=`
     <div class="rm-handgun">
       <div class="rm-handgun-screen">
         <div class="rm-gun-name">${gunName}</div>
         <div class="rm-gun-art">
-          <div class="rm-muzzle-flash" id="rm-muzzle"></div>
           <svg class="rm-gun-svg" id="rm-gun-svg" viewBox="0 0 240 100" aria-hidden="true">
-            <!-- Stylized one-handed semi-auto silhouette: slide, frame, grip, trigger guard. -->
-            <path d="M30 50 L30 35 L155 35 L165 40 L210 40 L210 56 L175 56 L175 61 L160 61 L152 56 L82 56 L82 70 L72 82 L52 82 L46 70 L46 56 L30 56 Z" fill="#2b2b2b" stroke="#0e0e0e" stroke-width="1.5"/>
-            <rect x="56" y="44" width="14" height="20" fill="#0a0a0a" opacity=".75"/>
-            <circle cx="168" cy="47" r="2.5" fill="#5a5a5a"/>
-            <rect x="38" y="38" width="110" height="2.5" fill="#1a1a1a"/>
-            <rect x="80" y="58" width="2" height="14" fill="#0e0e0e"/>
+            <defs>
+              <linearGradient id="rm-gun-grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#b8b8b8"/>
+                <stop offset="35%" stop-color="#7a7a7a"/>
+                <stop offset="100%" stop-color="#2e2e2e"/>
+              </linearGradient>
+            </defs>
+            <!-- Frame + slide + grip silhouette. Gun points right (muzzle at x=210). -->
+            <path d="M30 50 L30 35 L155 35 L165 40 L210 40 L210 56 L175 56 L175 61 L160 61 L152 56 L82 56 L82 70 L72 82 L52 82 L46 70 L46 56 L30 56 Z"
+                  fill="url(#rm-gun-grad)" stroke="#c5c5c5" stroke-width="1.6" stroke-linejoin="round"/>
+            <!-- Trigger guard interior. -->
+            <ellipse cx="63" cy="56" rx="9" ry="11" fill="#0a0a0a"/>
+            <!-- Trigger curl inside the guard. -->
+            <path d="M61 50 Q58 56 61 62" stroke="#3a3a3a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <!-- Slide separation line. -->
+            <line x1="40" y1="42" x2="200" y2="42" stroke="#3a3a3a" stroke-width="1"/>
+            <!-- Front sight. -->
+            <rect x="178" y="32" width="6" height="4" fill="#a8a8a8"/>
+            <!-- Grip checkering hints. -->
+            <line x1="58" y1="64" x2="80" y2="64" stroke="#1a1a1a" stroke-width="0.6"/>
+            <line x1="56" y1="71" x2="78" y2="71" stroke="#1a1a1a" stroke-width="0.6"/>
+            <line x1="54" y1="78" x2="76" y2="78" stroke="#1a1a1a" stroke-width="0.6"/>
+            <!-- Invisible tap target over the trigger area. Slightly larger than
+                 the trigger guard to make thumb-tapping forgiving. -->
+            <ellipse class="rm-trigger-hit" id="rm-trigger-hit" cx="63" cy="58" rx="16" ry="18" stroke-linecap="round"/>
           </svg>
+          <div class="rm-muzzle-flash" id="rm-muzzle"></div>
+          <div class="rm-mag-silhouette" id="rm-mag-sil"></div>
         </div>
-        <div class="rm-mag-display">
-          <div class="rm-mag-label" id="rm-mag-label">Mags · ${mags}/${cap}</div>
-          <div class="rm-mag-pip-row" id="rm-mag-pips"></div>
-          <div class="rm-mag-status loaded" id="rm-mag-status">${loaded?'Chamber loaded':'Empty — out of mags'}</div>
+        <div class="rm-handgun-actions">
+          <button class="rm-eject-btn" id="rm-eject" type="button">
+            <span class="ej-icon">⏏</span><span>Eject Mag</span>
+          </button>
+          <button class="rm-eject-btn" id="rm-slam" type="button">
+            <span class="ej-icon">⬆</span><span>Slam Mag</span>
+          </button>
         </div>
-        <button class="rm-eject-btn" id="rm-eject" type="button">
-          <span class="ej-icon">⏏</span><span>Eject Mag</span>
-        </button>
       </div>
-      <div class="rm-handgun-prompt armed" id="rm-prompt">Shake to fire</div>
-      <div class="rm-handgun-fallback-row">
-        <button class="rm-handgun-fallback-btn" id="rm-fallback-fire" type="button">Fire</button>
-        <button class="rm-handgun-fallback-btn slam" id="rm-fallback-slam" type="button">Slam Reload</button>
-      </div>
+      <div class="rm-handgun-prompt" id="rm-prompt">Tap the trigger · or jab phone forward</div>
       <div class="rm-handgun-fallback-note" id="rm-fallback-note"></div>
     </div>`;
 
-  const pipsEl=ctx.body.querySelector('#rm-mag-pips');
-  const labelEl=ctx.body.querySelector('#rm-mag-label');
-  const statusEl=ctx.body.querySelector('#rm-mag-status');
-  const ejectBtn=ctx.body.querySelector('#rm-eject');
-  const promptEl=ctx.body.querySelector('#rm-prompt');
   const gunSvgEl=ctx.body.querySelector('#rm-gun-svg');
   const muzzleEl=ctx.body.querySelector('#rm-muzzle');
-  const fireFallback=ctx.body.querySelector('#rm-fallback-fire');
-  const slamFallback=ctx.body.querySelector('#rm-fallback-slam');
+  const magSilEl=ctx.body.querySelector('#rm-mag-sil');
+  const ejectBtn=ctx.body.querySelector('#rm-eject');
+  const slamBtn=ctx.body.querySelector('#rm-slam');
+  const triggerHitEl=ctx.body.querySelector('#rm-trigger-hit');
+  const promptEl=ctx.body.querySelector('#rm-prompt');
   const fallbackNote=ctx.body.querySelector('#rm-fallback-note');
 
-  const renderPips=()=>{
-    pipsEl.innerHTML='';
-    for(let i=0;i<cap;i++){
-      const b=document.createElement('div');
-      b.className='rm-mag-bullet'+(i<mags?'':' spent');
-      pipsEl.appendChild(b);
-    }
-    labelEl.textContent=`Mags · ${mags}/${cap}`;
-  };
-  const updateStatus=()=>{
-    if(loaded){
-      statusEl.className='rm-mag-status loaded';
-      statusEl.textContent='Chamber loaded';
-      promptEl.className='rm-handgun-prompt armed';
-      promptEl.textContent='Shake to fire';
-      ejectBtn.disabled=false;
-    } else if(mags>0){
-      statusEl.className='rm-mag-status empty';
-      statusEl.textContent='Slam to seat a fresh mag';
-      promptEl.className='rm-handgun-prompt reload';
-      promptEl.textContent='Reload first';
-      ejectBtn.disabled=true;
-    } else {
-      statusEl.className='rm-mag-status depleted';
-      statusEl.textContent='No mags · find more before next firefight';
-      promptEl.className='rm-handgun-prompt empty';
-      promptEl.textContent='Out of ammo';
-      ejectBtn.disabled=true;
-    }
-  };
-  renderPips();
-  updateStatus();
-
-  // Persist mag count back to the loadout entry. Called only on slam reload,
-  // which is the action that consumes a mag.
-  const persistMags=()=>{
-    if(entry){entry.mags=mags;save();}
-  };
-
-  // ─── Eject (manual button or via motion later if we want) ─────────────────
+  // Eject — vanity-only. Mag silhouette drops out and fades.
   const ejectMag=()=>{
-    if(!loaded||firing)return;
-    loaded=false;
-    // Briefly animate the rightmost lit bullet dropping out, then re-render.
-    const lit=pipsEl.querySelectorAll('.rm-mag-bullet:not(.spent)');
-    const last=lit[lit.length-1];
-    if(last){last.classList.add('ejecting');}
+    if(firing)return;
+    magSilEl.classList.remove('inserting');
+    void magSilEl.offsetWidth;     // force reflow so the animation restarts cleanly
+    magSilEl.classList.add('ejecting');
     playMagEject();
     hapticBuzz(28);
-    setTimeout(()=>{renderPips();updateStatus();},340);
-    updateStatus();
+    setTimeout(()=>magSilEl.classList.remove('ejecting'),540);
   };
   ejectBtn.addEventListener('click',ejectMag);
 
-  // ─── Fire (commits the roll) ──────────────────────────────────────────────
+  // Slam — vanity-only. Mag silhouette slides up from below.
+  const slamMag=()=>{
+    if(firing)return;
+    magSilEl.classList.remove('ejecting');
+    void magSilEl.offsetWidth;
+    magSilEl.classList.add('inserting');
+    playMagSlam();
+    hapticBuzz([22,30,42]);
+    setTimeout(()=>magSilEl.classList.remove('inserting'),480);
+  };
+  slamBtn.addEventListener('click',slamMag);
+
+  // Fire — unlimited ammo, always works. Commits the roll.
   const fireGun=()=>{
     if(firing)return;
-    if(!loaded){
-      // Dry-fire — feedback only, no commit.
-      playTone(1400,0.018,'square',0.05);
-      hapticBuzz(10);
-      return;
-    }
     firing=true;
     playGunshot();
-    hapticBuzz([35,40,30]);
+    hapticBuzz([35,45,30]);
     gunSvgEl.classList.add('fire');
     muzzleEl.classList.add('flash');
+    triggerHitEl.classList.remove('firing');
+    void triggerHitEl.getBoundingClientRect();   // reflow so the animation restarts
+    triggerHitEl.classList.add('firing');
     setTimeout(()=>{
       gunSvgEl.classList.remove('fire');
       muzzleEl.classList.remove('flash');
+      triggerHitEl.classList.remove('firing');
     },300);
     setTimeout(()=>ctx.commit(),540);
   };
+  // The trigger guard area inside the SVG is the only fire affordance —
+  // no separate FIRE button. Physical-mapping: phone-as-gun, thumb on trigger.
+  triggerHitEl.addEventListener('click',fireGun);
 
-  // ─── Slam reload ──────────────────────────────────────────────────────────
-  const slamReload=()=>{
-    if(loaded||firing)return;
-    if(mags<=0){
-      // Dry slam — empty click feedback, no state change.
-      playTone(900,0.025,'square',0.06);
-      hapticBuzz(8);
-      return;
-    }
-    mags-=1;        // the slammed mag was a spare; it's now in the chamber
-    loaded=true;
-    persistMags();
-    renderPips();
-    playMagSlam();
-    hapticBuzz([22,30,42]);
-    updateStatus();
-  };
-
-  fireFallback.addEventListener('click',fireGun);
-  slamFallback.addEventListener('click',slamReload);
-
-  // ─── Motion handling ──────────────────────────────────────────────────────
-  // Shake = sustained accel magnitude crosses threshold (any direction).
-  // Slam = single-axis peak spike; only triggers when chamber is empty.
-  // Both have separate debounce windows so a wild gesture doesn't fire +
-  // reload in the same tick.
-  let lastShake=0, lastSlam=0;
-  const SHAKE_THRESHOLD=18;  // m/s² magnitude (without gravity baseline)
-  const SLAM_THRESHOLD=24;   // single-axis peak (downward jerk)
-  const SHAKE_DEBOUNCE=650;
-  const SLAM_DEBOUNCE=720;
+  // ─── Motion: single sharp jab fires. NOT a sustained shake.
+  // iOS Shake-to-Undo requires multiple oscillations within ~0.5s. A single
+  // sharp peak with a 1.2s debounce fires before any oscillation pattern
+  // develops, so the system Undo dialog won't intercept.
+  let lastFire=0;
+  const FIRE_THRESHOLD=15;     // m/s² peak in any direction (no-gravity reading)
+  const FIRE_DEBOUNCE=1200;
   let motionListener=null;
 
-  const showFallback=(reason)=>{
-    fireFallback.classList.add('show');
-    slamFallback.classList.add('show');
-    promptEl.style.display='none';
-    fallbackNote.textContent=reason;
-  };
-
-  const enableMotion=async()=>{
-    motionState=await requestMotionAccess();
-    if(motionState==='unsupported'){
-      showFallback('Motion sensors not available — use the buttons.');
+  const setupMotion=async()=>{
+    const state=await requestMotionAccess();
+    if(state==='unsupported'){
+      promptEl.style.display='none';
+      fallbackNote.textContent='Motion sensors not available — tap FIRE.';
       return;
     }
-    if(motionState==='denied'){
-      showFallback('Motion access denied — use the buttons. (Re-enable in Settings → Roll Settings.)');
+    if(state==='denied'){
+      promptEl.style.display='none';
+      fallbackNote.textContent='Motion access denied — tap FIRE. (Re-enable in roll-mode Settings if you change your mind.)';
       return;
     }
+    fallbackNote.textContent='Tip: a single sharp forward jab beats a back-and-forth shake (iOS reads sustained shake as "Undo").';
     motionListener=(e)=>{
-      // Prefer pure acceleration (no gravity) if the device exposes it.
       const aRaw=e.acceleration;
       const a=(aRaw&&(aRaw.x!=null||aRaw.y!=null||aRaw.z!=null))?aRaw:(e.accelerationIncludingGravity||{});
       const ax=a.x||0, ay=a.y||0, az=a.z||0;
       const mag=Math.sqrt(ax*ax+ay*ay+az*az);
       const now=Date.now();
-      // Shake-to-fire (any-direction magnitude).
-      if(mag>SHAKE_THRESHOLD&&now-lastShake>SHAKE_DEBOUNCE&&loaded){
-        lastShake=now;
+      if(mag>FIRE_THRESHOLD&&now-lastFire>FIRE_DEBOUNCE){
+        lastFire=now;
         fireGun();
-        return;
-      }
-      // Slam reload (single-axis peak; only when empty AND mags available).
-      if(!loaded&&mags>0&&now-lastSlam>SLAM_DEBOUNCE){
-        const peak=Math.max(Math.abs(ax),Math.abs(ay),Math.abs(az));
-        if(peak>SLAM_THRESHOLD){
-          lastSlam=now;
-          slamReload();
-        }
       }
     };
     window.addEventListener('devicemotion',motionListener);
   };
-  enableMotion();
+  setupMotion();
 
-  // ─── Cleanup on overlay teardown ──────────────────────────────────────────
+  // Cleanup on overlay teardown.
   const overlay=document.getElementById('roll-mode-overlay');
   if(overlay){
     const obs=new MutationObserver(()=>{
@@ -5655,24 +5633,34 @@ function setRollModesHidden(v){
 }
 function renderRollModeStrip(){
   if(rollModesHidden()){
-    return `<div class="roll-mode-hidden-pill"><button onclick="setRollModesHidden(false)">🎲 Show roll modes</button></div>`;
+    return `<div class="roll-mode-hidden-pill"><button onclick="setRollModesHidden(false)">🎬 Show Setpieces</button></div>`;
   }
   const ctx=rollModeContext();
-  const visible=ROLL_MODES.filter(m=>{try{return m.appliesTo(ctx);}catch(_){return false;}});
+  // Two-stage filter:
+  //   1. Book accessibility — pure-core characters never see expansion
+  //      Setpieces (Lasers / Katanas / future Lightsabers). This filter
+  //      always applies, regardless of the Always-Show toggle.
+  //   2. Predicate — when "Show all Setpieces" is OFF, additionally require
+  //      the per-mode appliesTo to match the current loadout + skill.
+  const accessible=ROLL_MODES.filter(m=>setpieceBookAccessible(m.book));
+  const visible=setpiecesAlwaysVisible()
+    ? accessible
+    : accessible.filter(m=>{try{return m.appliesTo(ctx);}catch(_){return false;}});
   // Trailing controls (settings + hide) are constant regardless of what
   // applies — pulled into a helper so empty/populated states match.
-  const trailing=`<button class="roll-mode-settings-btn" onclick="openRollSettings()" title="Roll mode settings" aria-label="Settings">⚙</button>
+  const trailing=`<button class="roll-mode-settings-btn" onclick="openRollSettings()" title="Setpiece settings" aria-label="Settings">⚙</button>
     <button class="roll-mode-toggle" onclick="setRollModesHidden(true)" title="Hide for quiet play">Hide</button>`;
   if(!visible.length){
-    // Nothing matches the current loadout + skill. Keep settings + hide
-    // present so the section stays discoverable for future rolls.
-    return `<div class="roll-mode-strip"><span class="roll-mode-strip-label">Modes</span><span class="muted" style="font-size:11px;font-style:italic">No themed modes for this roll yet — buy gear or pick a different skill.</span>${trailing}</div>`;
+    // Nothing matches the current loadout + skill (only possible when
+    // alwaysShow is OFF). Keep settings + hide present so the strip
+    // remains discoverable.
+    return `<div class="roll-mode-strip"><span class="roll-mode-strip-label">Setpieces</span><span class="muted" style="font-size:11px;font-style:italic">Nothing fits this roll — gear up, pick a different skill, or flip "Show all Setpieces" on in settings.</span>${trailing}</div>`;
   }
   // Float primary to the front so it sits first in the row and gets the
   // accent treatment. Rest of the modes follow in registry order.
   const primary=primaryModeForSel(ctx,visible);
   const ordered=primary?[primary,...visible.filter(m=>m.id!==primary.id)]:visible;
-  let h=`<div class="roll-mode-strip"><span class="roll-mode-strip-label">Modes</span>`;
+  let h=`<div class="roll-mode-strip"><span class="roll-mode-strip-label">Setpieces</span>`;
   ordered.forEach(m=>{
     const isPrimary=primary&&m.id===primary.id;
     h+=`<button class="roll-mode-chip${isPrimary?' primary':''}" data-mode="${m.id}" onclick="openRollMode('${m.id}')" title="${m.desc}${isPrimary?' · suggested for '+ctx.sel.skill:''}">
@@ -5710,27 +5698,35 @@ function openRollSettings(){
   const themedOn=!rollModesHidden();
   const audio=audioOn();
   const haptics=hapticsOn();
+  const alwaysShow=setpiecesAlwaysVisible();
   const motion=_motionState||'unknown';
   const motionTxt=motion==='granted'?'Granted':motion==='denied'?'Denied':motion==='unsupported'?'Unsupported':'Not yet requested';
   const motionCls=motion==='granted'?'granted':motion==='denied'?'denied':'';
   wrap.innerHTML=`
     <div class="roll-mode-header">
-      <h2><span class="rmh-icon">⚙</span>Roll Settings</h2>
+      <h2><span class="rmh-icon">⚙</span>Setpiece Settings</h2>
       <button class="rmh-close" onclick="closeRollMode()" aria-label="Close">×</button>
     </div>
     <div class="roll-mode-body">
       <div class="rm-settings">
         <div class="rm-settings-row">
           <div class="rms-label">
-            <div class="rms-title">Themed roll modes</div>
-            <div class="rms-sub">Show the chip strip under the ROLL button.</div>
+            <div class="rms-title">Setpieces</div>
+            <div class="rms-sub">Show the chip strip of themed roll experiences under the ROLL button.</div>
           </div>
           <label class="rm-toggle"><input type="checkbox" ${themedOn?'checked':''} onchange="setRollModesHidden(!this.checked);_rollSettingsRefresh()"><span class="rmt-track"></span><span class="rmt-knob"></span></label>
         </div>
         <div class="rm-settings-row">
           <div class="rms-label">
+            <div class="rms-title">Show all Setpieces</div>
+            <div class="rms-sub">When on, every chip appears regardless of skill or gear (good for testing). Off uses the per-mode predicates.</div>
+          </div>
+          <label class="rm-toggle"><input type="checkbox" ${alwaysShow?'checked':''} onchange="setRollSetting('alwaysShow',this.checked);_rollSettingsRefresh()"><span class="rmt-track"></span><span class="rmt-knob"></span></label>
+        </div>
+        <div class="rm-settings-row">
+          <div class="rms-label">
             <div class="rms-title">Sound effects</div>
-            <div class="rms-sub">Clicks, bangs, keystrokes during themed rolls.</div>
+            <div class="rms-sub">Clicks, bangs, keystrokes during Setpiece rolls.</div>
           </div>
           <label class="rm-toggle"><input type="checkbox" ${audio?'checked':''} onchange="setRollSetting('audio',this.checked);if(this.checked){try{audioCtx()&&audioCtx().resume&&audioCtx().resume();playClick();}catch(_){}}"><span class="rmt-track"></span><span class="rmt-knob"></span></label>
         </div>
@@ -5744,7 +5740,7 @@ function openRollSettings(){
         <div class="rm-settings-row">
           <div class="rms-label">
             <div class="rms-title">Motion access</div>
-            <div class="rms-sub">Required for shake / tilt / punch modes on iOS 13+.</div>
+            <div class="rms-sub">Required for shake / jab / tilt / punch Setpieces on iOS 13+.</div>
           </div>
           <span class="rms-status ${motionCls}">${motionTxt}</span>
         </div>
