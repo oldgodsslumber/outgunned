@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Outgunned — Multiplayer</title>
-<meta name="build" content="1a1a432-1778939950805">
+<meta name="build" content="8b2a0c5-1778940475708">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -632,10 +632,10 @@ textarea{resize:vertical;min-height:70px}
 .rm-plunger-group.dragging .rm-trigger-hit{animation:none;stroke-opacity:0}
 
 /* Drive Setpiece — full-height uncropped dashboard view. Tach + gas pedal
-   share the panel. Wrapper override allows the dashboard to use the same
-   wider horizontal space as the heal slider. */
-.rm-handgun.rm-drive-wrap{max-width:760px}
-.rm-gun-art.rm-drive-art{width:min(700px, 92vw);max-width:700px;height:auto;aspect-ratio:240/100;clip-path:none;overflow:visible;border-radius:8px}
+   share the panel. Wider wrapper than handgun so the gas pedal can land
+   in the right-thumb reach zone on landscape phones. */
+.rm-handgun.rm-drive-wrap{max-width:840px}
+.rm-gun-art.rm-drive-art{width:min(820px, 96vw);max-width:820px;height:auto;aspect-ratio:240/100;clip-path:none;overflow:visible;border-radius:8px}
 .rm-gun-art.rm-drive-art .rm-gun-svg{width:100%;height:auto}
 /* Gas pedal — translates down-right when pressed to mimic a pivot. */
 .rm-gas-pedal{cursor:pointer;touch-action:none;-webkit-user-select:none;user-select:none;transition:transform .1s ease-out}
@@ -1812,7 +1812,7 @@ function applyState(d){
     cp.style.display='none';
   }
 }
-<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build 1a1a432</div>
+<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build 8b2a0c5</div>
 </body></html>`;}
 
 function loadSlot(n){
@@ -6003,7 +6003,6 @@ function driveModeRender(ctx){
   let pressing=false, hasFired=false;
   let revLevel=0;                  // 0 (idle) → 1 (redline)
   let revAnimationId=null;
-  let revSoundInterval=null;
   let pressStartTime=0;
   const REV_DURATION_MS=1400;
   const HAPTIC_THRESHOLDS=[0.25,0.5,0.75];
@@ -6050,23 +6049,25 @@ function driveModeRender(ctx){
             <circle cx="80" cy="70" r="4" fill="#3a3a3a" stroke="#bbb" stroke-width="0.6"/>
             <!-- "RPM" label. -->
             <text x="80" y="93" font-size="6" fill="#9a9a9a" text-anchor="middle" font-family="Helvetica,sans-serif" letter-spacing="1">RPM x1000</text>
-            <!-- Gas pedal group. Translates down-right when pressed via CSS class. -->
+            <!-- Gas pedal group. Anchored to the right edge of the viewBox so
+                 it lands in the right thumb's natural reach zone in landscape.
+                 Translates down-right when pressed via CSS class. -->
             <g class="rm-gas-pedal" id="rm-gas-pedal">
               <!-- Drop shadow under the pedal -->
-              <polygon points="178,32 232,27 232,82 178,77" fill="#0a0a0a" opacity="0.55"/>
+              <polygon points="188,32 242,27 242,82 188,77" fill="#0a0a0a" opacity="0.55"/>
               <!-- Pedal face -->
-              <polygon points="180,30 230,25 230,80 180,75" fill="url(#rm-pedal-grad)" stroke="#1a1a1a" stroke-width="1.5"/>
+              <polygon points="190,30 240,25 240,80 190,75" fill="url(#rm-pedal-grad)" stroke="#1a1a1a" stroke-width="1.5"/>
               <!-- Foot grip hatching -->
               <g stroke="#1a1a1a" stroke-width="1" opacity="0.55">
-                <line x1="186" y1="38" x2="225" y2="33"/>
-                <line x1="187" y1="48" x2="225" y2="43"/>
-                <line x1="188" y1="58" x2="225" y2="53"/>
-                <line x1="189" y1="68" x2="225" y2="63"/>
+                <line x1="196" y1="38" x2="235" y2="33"/>
+                <line x1="197" y1="48" x2="235" y2="43"/>
+                <line x1="198" y1="58" x2="235" y2="53"/>
+                <line x1="199" y1="68" x2="235" y2="63"/>
               </g>
               <!-- "GAS" label -->
-              <text x="205" y="58" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Helvetica,sans-serif" letter-spacing="1.5">GAS</text>
-              <!-- Tap target -->
-              <rect class="rm-trigger-hit" id="rm-gas-hit" x="170" y="20" width="68" height="68" rx="4"/>
+              <text x="215" y="58" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Helvetica,sans-serif" letter-spacing="1.5">GAS</text>
+              <!-- Tap target — generous, extends a touch past the right edge -->
+              <rect class="rm-trigger-hit" id="rm-gas-hit" x="160" y="18" width="84" height="72" rx="4"/>
             </g>
           </svg>
         </div>
@@ -6105,15 +6106,16 @@ function driveModeRender(ctx){
     commitBtn.classList.add('used');
     commitBtn.innerHTML='<span class="ej-icon">🎬</span><span>Close</span>';
     promptEl.textContent='Throttle committed · Brake to redo the gag';
+    stopEngine(false);                // engine drops out before the screech bites
     playScreech();
     hapticBuzz([35,30,40,25]);
-    if(revSoundInterval){clearInterval(revSoundInterval);revSoundInterval=null;}
   };
 
   const tickRev=(time)=>{
     const elapsed=time-pressStartTime;
     revLevel=Math.min(1, elapsed/REV_DURATION_MS);
     updateTach();
+    setEngineFreq(revLevel);          // engine pitch follows the needle
     HAPTIC_THRESHOLDS.forEach(t=>{
       if(lastHapticPct<t&&revLevel>=t)hapticBuzz(12);
     });
@@ -6129,7 +6131,7 @@ function driveModeRender(ctx){
 
   const stopRev=()=>{
     if(revAnimationId){cancelAnimationFrame(revAnimationId);revAnimationId=null;}
-    if(revSoundInterval){clearInterval(revSoundInterval);revSoundInterval=null;}
+    stopEngine(false);                // fade engine sound out smoothly
     if(hasFired)return;
     // Settle needle back to 0 with an ease-out fall.
     const startLevel=revLevel;
@@ -6146,15 +6148,63 @@ function driveModeRender(ctx){
     lastHapticPct=0;
   };
 
+  // ─── Sustained engine sound — continuous oscillator that modulates with
+  // the rev level. Replaces the previous pulsed setInterval approach so
+  // holding the pedal actually sustains the rev tone like a real engine,
+  // and releasing fades it out smoothly.
+  let engineOsc=null, engineGain=null;
+  const startEngine=()=>{
+    if(!audioOn())return;
+    const _ctx=audioCtx();if(!_ctx)return;
+    if(engineOsc){
+      // Already running (probably mid-fade). Ramp gain back up.
+      try{
+        engineGain.gain.cancelScheduledValues(_ctx.currentTime);
+        engineGain.gain.setValueAtTime(engineGain.gain.value||0,_ctx.currentTime);
+        engineGain.gain.linearRampToValueAtTime(0.14,_ctx.currentTime+0.06);
+      }catch(_){}
+      return;
+    }
+    try{
+      engineOsc=_ctx.createOscillator();
+      engineGain=_ctx.createGain();
+      engineOsc.type='sawtooth';
+      engineOsc.frequency.value=95;
+      engineGain.gain.value=0;
+      engineOsc.connect(engineGain).connect(_ctx.destination);
+      engineOsc.start();
+      engineGain.gain.linearRampToValueAtTime(0.14,_ctx.currentTime+0.08);
+    }catch(_){engineOsc=null;engineGain=null;}
+  };
+  const setEngineFreq=(level)=>{
+    if(!engineOsc)return;
+    const _ctx=audioCtx();if(!_ctx)return;
+    try{engineOsc.frequency.setTargetAtTime(95+level*355,_ctx.currentTime,0.04);}catch(_){}
+  };
+  const stopEngine=(immediate)=>{
+    if(!engineOsc)return;
+    const _ctx=audioCtx();
+    const osc=engineOsc,gain=engineGain;
+    engineOsc=null;engineGain=null;
+    if(!_ctx){try{osc.stop();}catch(_){}return;}
+    const fade=immediate?0.02:0.20;
+    try{
+      gain.gain.cancelScheduledValues(_ctx.currentTime);
+      gain.gain.setValueAtTime(gain.gain.value||0,_ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0,_ctx.currentTime+fade);
+      osc.stop(_ctx.currentTime+fade+0.02);
+    }catch(_){}
+  };
+
   pedalHit.addEventListener('pointerdown',(e)=>{
     if(hasFired)return;
     pressing=true;
     pedalGroup.classList.add('pressed');
     try{pedalHit.setPointerCapture(e.pointerId);}catch(_){}
-    playRevStart();
+    playRevStart();           // one-shot ignition kick
+    startEngine();            // sustained engine tone (modulated by setEngineFreq)
     pressStartTime=performance.now()-revLevel*REV_DURATION_MS;  // resume from current rev if mid-settle
     revAnimationId=requestAnimationFrame(tickRev);
-    revSoundInterval=setInterval(()=>playRevPulse(revLevel),200);
     e.preventDefault();
   });
   const endPress=(e)=>{
@@ -6194,6 +6244,20 @@ function driveModeRender(ctx){
       ctx.commit();
     }
   });
+
+  // Cleanup on overlay teardown — stop the engine if it's still running so
+  // the audio doesn't bleed into other Setpieces if the player closes mid-rev.
+  const overlay=document.getElementById('roll-mode-overlay');
+  if(overlay){
+    const obs=new MutationObserver(()=>{
+      if(!document.body.contains(overlay)){
+        stopEngine(true);
+        if(revAnimationId)cancelAnimationFrame(revAnimationId);
+        obs.disconnect();
+      }
+    });
+    obs.observe(document.body,{childList:true});
+  }
 
   updateTach();
   }catch(err){
