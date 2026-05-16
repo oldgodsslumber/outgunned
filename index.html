@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Outgunned — Multiplayer</title>
-<meta name="build" content="e696cf3-1778893540789">
+<meta name="build" content="8bf3b85-1778898229205">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -431,6 +431,46 @@ textarea{resize:vertical;min-height:70px}
 .theme-option{padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;text-align:center;transition:border-color .15s}
 .theme-option:hover,.theme-option.active{border-color:var(--accent);color:var(--accent)}
 @media(max-width:767px){#theme-mobile-btn{display:flex!important}#theme-picker{display:none}}
+
+/* ===== Roll Modes (M0) =====
+   Chip strip lives under the big ROLL button. Each chip opens a themed
+   overlay that lets the player commit the roll in a different way (shake
+   to fire, type to hack, etc). Audio + motion permission flow lives on
+   each mode; the actual dice resolution always falls through to doRoll(). */
+.roll-mode-strip{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:8px 0 2px;align-items:center}
+.roll-mode-strip-label{font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.roll-mode-chip{display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border:1px solid var(--border);border-radius:99px;background:var(--surface2);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;user-select:none;transition:border-color .12s,background .12s,transform .08s;-webkit-tap-highlight-color:transparent}
+.roll-mode-chip:hover{border-color:var(--accent)}
+.roll-mode-chip:active{transform:scale(.96)}
+.roll-mode-chip .rmc-icon{font-size:14px;line-height:1}
+.roll-mode-chip .rmc-name{letter-spacing:.02em}
+.roll-mode-toggle{margin-left:auto;font-size:10px;color:var(--muted);background:none;border:none;cursor:pointer;padding:4px 6px;letter-spacing:.05em;text-transform:uppercase;font-weight:700}
+.roll-mode-toggle:hover{color:var(--accent)}
+.roll-mode-hidden-pill{display:flex;justify-content:center;margin:6px 0}
+.roll-mode-hidden-pill button{font-size:10px;color:var(--muted);background:var(--surface2);border:1px dashed var(--border);border-radius:99px;padding:4px 12px;cursor:pointer;letter-spacing:.05em;text-transform:uppercase;font-weight:700}
+.roll-mode-hidden-pill button:hover{color:var(--accent);border-color:var(--accent)}
+
+.roll-mode-overlay{position:fixed;inset:0;background:rgba(8,10,14,.92);z-index:500;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);animation:rmFade .18s ease-out;overflow-y:auto;-webkit-overflow-scrolling:touch}
+@keyframes rmFade{from{opacity:0}to{opacity:1}}
+.roll-mode-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px;flex-shrink:0;gap:12px}
+.roll-mode-header h2{margin:0;font-size:18px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.roll-mode-header h2 .rmh-icon{font-size:22px}
+.roll-mode-header .rmh-close{background:none;border:1px solid var(--border);color:var(--text);width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.roll-mode-header .rmh-close:hover{border-color:var(--accent);color:var(--accent)}
+.roll-mode-meta{padding:0 16px 8px;color:var(--muted);font-size:12px;text-align:center}
+.roll-mode-meta strong{color:var(--accent);font-weight:800;font-size:14px;letter-spacing:.03em}
+.roll-mode-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 16px;gap:18px;min-height:0}
+.roll-mode-footer{padding:8px 16px 16px;display:flex;justify-content:center;flex-shrink:0}
+.roll-mode-cancel{font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;letter-spacing:.06em;text-transform:uppercase;font-weight:700;padding:8px 14px}
+.roll-mode-cancel:hover{color:var(--accent)}
+
+/* Big circular FIRE button — the placeholder commit affordance for M0.
+   Real modes (handgun shake, hacking keyboard) replace this with their own. */
+.rm-fire-btn{width:140px;height:140px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#ff7a85,var(--accent) 55%,#7a1e25);border:3px solid rgba(255,255,255,.15);color:#fff;font-size:18px;font-weight:900;letter-spacing:.18em;cursor:pointer;box-shadow:0 8px 30px rgba(230,57,70,.5),inset 0 -4px 12px rgba(0,0,0,.25);transition:transform .08s,box-shadow .15s;-webkit-tap-highlight-color:transparent}
+.rm-fire-btn:active{transform:scale(.94);box-shadow:0 4px 18px rgba(230,57,70,.4),inset 0 -2px 8px rgba(0,0,0,.4)}
+.rm-fire-btn:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
+.rm-placeholder-note{color:var(--muted);font-size:11px;text-align:center;max-width:280px;line-height:1.5;font-style:italic}
+.rm-placeholder-note code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10px;background:var(--surface2);padding:1px 5px;border-radius:3px;border:1px solid var(--border);font-style:normal}
 </style>
 </head>
 <body>
@@ -1571,7 +1611,7 @@ function applyState(d){
     cp.style.display='none';
   }
 }
-<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build e696cf3</div>
+<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build 8bf3b85</div>
 </body></html>`;}
 
 function loadSlot(n){
@@ -4774,6 +4814,8 @@ function renderDicePicker(){
       ROLL ${sel.attr} + ${sel.skill}
     </button>
   </div>`;
+  // Themed roll modes: chips derived from owned items + selected skill.
+  html+=renderRollModeStrip();
   // Feats — click to mark as applied to this roll (visual reminder for Free Re-rolls etc.)
   if(ch&&(ch.feats||[]).length){
     html+=`<div class="label" style="margin-top:14px;margin-bottom:6px">Feats <span style="font-weight:400;font-size:10px;color:var(--muted)">— tap any that apply to this roll</span></div>`;
@@ -4798,6 +4840,217 @@ function renderDicePicker(){
   if(hidden)hidden.textContent=pool;
 }
 
+
+// ============================================================
+// ROLL MODES (M0) — registry, overlay, audio + motion helpers.
+// Chips are *derived* from what the character actually owns plus the
+// currently-selected skill. Each mode declares an appliesTo(ctx) predicate
+// that consults ctx.items (owned loadout) and ctx.sel.skill. This means
+// expansions plug in automatically — a WoK Katana or an OSH Laser Pistol
+// produces its own chip without any registry change, because the matching
+// is feat/category/name-based rather than hard-coded.
+//
+// Each mode's render(ctx) fills the overlay body. ctx.commit() closes the
+// overlay and runs the standard doRoll(). Audio + motion init must happen
+// inside a user gesture; we lazy-init both on first need.
+// ============================================================
+const ROLL_MODES=[
+  // Core firearms — anything one-handed or with no two-hand flag, plus a
+  // skill fallback on Shoot so the chip surfaces even pre-purchase.
+  {id:'handgun', name:'Handgun', icon:'🔫', desc:'Shake to fire', needsMotion:true,  render:placeholderModeRender,
+    appliesTo:ctx=>ctx.items.some(it=>it.category==='gun'&&!it.twoHand&&!(it.feats||[]).includes('single_shot')&&!(it.feats||[]).includes('energy_weapon'))||ctx.sel.skill==='Shoot'},
+  // Two-handed guns: shotguns, rifles, machine guns. One umbrella for M0;
+  // a future milestone can split rifle vs shotgun if the feel demands it.
+  {id:'shotgun', name:'Long Gun', icon:'💥', desc:'Pump and blast', needsMotion:true, render:placeholderModeRender,
+    appliesTo:ctx=>ctx.items.some(it=>it.category==='gun'&&it.twoHand&&!(it.feats||[]).includes('energy_weapon'))},
+  // OSH expansion — energy weapons (Laser Pistol/Rifle). Demonstrates that
+  // an expansion item produces its own chip with zero registry changes
+  // beyond this entry's predicate.
+  {id:'laser', name:'Laser', icon:'🛸', desc:'Charge & discharge', needsMotion:true, render:placeholderModeRender,
+    appliesTo:ctx=>ctx.items.some(it=>(it.feats||[]).includes('energy_weapon'))},
+  // Hacking — purely skill-driven for now (Outgunned uses Crime for
+  // electronic infiltration). Expansions could add a 'tech' skill that
+  // also lights this chip.
+  {id:'hacking', name:'Hacking', icon:'⌨️', desc:'Type to roll', needsMotion:false, render:placeholderModeRender,
+    appliesTo:ctx=>ctx.sel.skill==='Crime'},
+  // Melee — any blade/club from any book. Hits core Knife/Sword,
+  // OSH Sword/Axe + Mace/Hammer, WoK Katana, etc. Also fires on Fight.
+  {id:'knife', name:'Blade', icon:'🔪', desc:'Slash to strike', needsMotion:true, render:placeholderModeRender,
+    appliesTo:ctx=>ctx.items.some(it=>it.category==='melee')||ctx.sel.skill==='Fight'},
+  // WoK expansion — named perfect katanas (and any 'traditional' melee).
+  // Sits alongside Blade rather than replacing it so the player can pick
+  // whichever feels right for the moment.
+  {id:'katana', name:'Katana', icon:'🗡️', desc:'One perfect cut', needsMotion:true, render:placeholderModeRender,
+    appliesTo:ctx=>ctx.items.some(it=>it.category==='melee'&&(it.feats||[]).includes('traditional'))},
+  // Drive — any owned ride, or the Drive skill.
+  {id:'drive', name:'Drive', icon:'🏎️', desc:'Tilt to steer', needsMotion:true, render:placeholderModeRender,
+    appliesTo:ctx=>ctx.items.some(it=>it.category==='ride')||ctx.sel.skill==='Drive'},
+  // Lockpick — Outgunned's "Stuff" skill (FOCUS) covers picking locks,
+  // disabling traps, and similar fine-motor work.
+  {id:'lockpick', name:'Lockpick', icon:'🔓', desc:'Steady your hand', needsMotion:true, render:placeholderModeRender,
+    appliesTo:ctx=>ctx.sel.skill==='Stuff'},
+];
+function rollModeById(id){return ROLL_MODES.find(m=>m.id===id);}
+// Build the per-character chip context: owned items resolved through
+// itemById, plus the current selection. Safe when no character is loaded.
+function rollModeContext(){
+  const ch=S.char;
+  const sel=diceSel();
+  const items=[];
+  if(ch&&ch.loadout&&ch.loadout.items){
+    ch.loadout.items.forEach(e=>{const it=itemById(e.itemId);if(it)items.push(it);});
+  }
+  return {char:ch,sel,items};
+}
+
+// --- Audio helper. Lazy AudioContext so iOS doesn't fight us on boot. ---
+let _audioCtx=null;
+function audioCtx(){
+  if(_audioCtx)return _audioCtx;
+  try{_audioCtx=new (window.AudioContext||window.webkitAudioContext)();}catch(_){_audioCtx=null;}
+  return _audioCtx;
+}
+function playTone(freq,dur,type,gain){
+  const ctx=audioCtx();if(!ctx)return;
+  const o=ctx.createOscillator(),g=ctx.createGain();
+  o.type=type||'sine';o.frequency.value=freq;
+  g.gain.value=gain==null?0.15:gain;
+  g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+(dur||0.12));
+  o.connect(g).connect(ctx.destination);
+  o.start();o.stop(ctx.currentTime+(dur||0.12)+0.02);
+}
+function playNoise(dur,gain){
+  const ctx=audioCtx();if(!ctx)return;
+  const buf=ctx.createBuffer(1,ctx.sampleRate*(dur||0.15),ctx.sampleRate);
+  const data=buf.getChannelData(0);
+  for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*(1-i/data.length);
+  const src=ctx.createBufferSource();src.buffer=buf;
+  const g=ctx.createGain();g.gain.value=gain==null?0.18:gain;
+  src.connect(g).connect(ctx.destination);src.start();
+}
+function playClick(){playTone(820,0.06,'square',0.12);}
+
+// --- Motion permission helper. iOS 13+ requires this inside a user
+// gesture; on Android/desktop the API may not exist at all. Cached for
+// the session — caller should always treat as async. ---
+let _motionState=null;  // 'granted'|'denied'|'unsupported'|null
+async function requestMotionAccess(){
+  if(_motionState)return _motionState;
+  if(typeof DeviceMotionEvent==='undefined'){_motionState='unsupported';return _motionState;}
+  if(typeof DeviceMotionEvent.requestPermission==='function'){
+    try{
+      const res=await DeviceMotionEvent.requestPermission();
+      _motionState=(res==='granted')?'granted':'denied';
+    }catch(_){ _motionState='denied'; }
+  } else {
+    // Non-iOS: permission isn't gated, but check that events actually fire.
+    _motionState='granted';
+  }
+  return _motionState;
+}
+
+// --- Overlay open / close / commit. The single bridge from any themed
+// mode back into doRoll() is commitRoll(); themed reveal happens before
+// the overlay closes, then the normal result banner takes over. ---
+let _currentRollMode=null;
+function openRollMode(modeId){
+  const mode=rollModeById(modeId);if(!mode)return;
+  _currentRollMode=mode;
+  // Tear down any previous overlay (defensive).
+  closeRollMode(true);
+  const sel=diceSel();
+  const {attrVal,skillVal}=getCharVals(sel.attr,sel.skill);
+  const pool=Math.max(1,attrVal+skillVal+(sel.mod||0));
+  const wrap=document.createElement('div');
+  wrap.className='roll-mode-overlay';
+  wrap.id='roll-mode-overlay';
+  wrap.innerHTML=`
+    <div class="roll-mode-header">
+      <h2><span class="rmh-icon">${mode.icon}</span>${mode.name}</h2>
+      <button class="rmh-close" onclick="closeRollMode()" aria-label="Close">×</button>
+    </div>
+    <div class="roll-mode-meta">
+      Rolling <strong>${sel.attr} + ${sel.skill}</strong> · Pool ${pool}
+    </div>
+    <div class="roll-mode-body" id="roll-mode-body"></div>
+    <div class="roll-mode-footer">
+      <button class="roll-mode-cancel" onclick="closeRollMode()">Cancel · Use Classic Roll</button>
+    </div>`;
+  document.body.appendChild(wrap);
+  document.body.style.overflow='hidden';
+  const ctx={
+    mode, sel, pool,
+    body: wrap.querySelector('#roll-mode-body'),
+    commit: commitRoll,
+    close: closeRollMode,
+  };
+  // Kick off motion request now while we're still in the chip-tap gesture.
+  if(mode.needsMotion){
+    requestMotionAccess().then(state=>{ ctx.motionState=state; });
+  }
+  // Boot audio on the same gesture so iOS unlocks it.
+  try{audioCtx()&&audioCtx().resume&&audioCtx().resume();}catch(_){}
+  mode.render(ctx);
+}
+function closeRollMode(silent){
+  const el=document.getElementById('roll-mode-overlay');
+  if(el)el.remove();
+  document.body.style.overflow='';
+  if(!silent)_currentRollMode=null;
+}
+function commitRoll(){
+  // Themed reveal stays inside the overlay; once closed, the normal result
+  // banner is what the player reads. Roll resolution = the existing path.
+  closeRollMode();
+  doRoll();
+}
+
+// --- M0 placeholder render. Every themed mode uses this for now — proves
+// the chip → overlay → commit → doRoll() pipeline. Each subsequent
+// milestone replaces this with a real themed UI. ---
+function placeholderModeRender(ctx){
+  ctx.body.innerHTML=`
+    <button class="rm-fire-btn" id="rm-fire">FIRE</button>
+    <div class="rm-placeholder-note">
+      <strong style="color:var(--text);font-style:normal">${ctx.mode.name} mode</strong> · ${ctx.mode.desc}<br>
+      Tap <code>FIRE</code> to commit this roll. The themed interaction lands in a later milestone.
+    </div>`;
+  const btn=ctx.body.querySelector('#rm-fire');
+  btn.addEventListener('click',()=>{
+    playClick();
+    ctx.commit();
+  });
+}
+
+// --- Chip strip + hide toggle. State persists in localStorage so it
+// survives reloads without touching the save() pipeline. ---
+function rollModesHidden(){return localStorage.getItem('og_rollModesHidden')==='1';}
+function setRollModesHidden(v){
+  if(v)localStorage.setItem('og_rollModesHidden','1');
+  else localStorage.removeItem('og_rollModesHidden');
+  renderDicePicker();
+}
+function renderRollModeStrip(){
+  if(rollModesHidden()){
+    return `<div class="roll-mode-hidden-pill"><button onclick="setRollModesHidden(false)">🎲 Show roll modes</button></div>`;
+  }
+  const ctx=rollModeContext();
+  const visible=ROLL_MODES.filter(m=>{try{return m.appliesTo(ctx);}catch(_){return false;}});
+  if(!visible.length){
+    // Nothing matches the current loadout + skill. Keep the hide affordance
+    // present so the section stays discoverable for future rolls.
+    return `<div class="roll-mode-strip"><span class="roll-mode-strip-label">Modes</span><span class="muted" style="font-size:11px;font-style:italic">No themed modes for this roll yet — buy gear or pick a different skill.</span><button class="roll-mode-toggle" onclick="setRollModesHidden(true)" title="Hide for quiet play">Hide</button></div>`;
+  }
+  let h=`<div class="roll-mode-strip"><span class="roll-mode-strip-label">Modes</span>`;
+  visible.forEach(m=>{
+    h+=`<button class="roll-mode-chip" onclick="openRollMode('${m.id}')" title="${m.desc}">
+      <span class="rmc-icon">${m.icon}</span><span class="rmc-name">${m.name}</span>
+    </button>`;
+  });
+  h+=`<button class="roll-mode-toggle" onclick="setRollModesHidden(true)" title="Hide for quiet play">Hide</button>`;
+  h+=`</div>`;
+  return h;
+}
 
 function doRoll(){
   const sel=diceSel();
