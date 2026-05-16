@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Outgunned — Multiplayer</title>
-<meta name="build" content="359131f-1778898343724">
+<meta name="build" content="512f382-1778898563396">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -471,6 +471,40 @@ textarea{resize:vertical;min-height:70px}
 .rm-fire-btn:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
 .rm-placeholder-note{color:var(--muted);font-size:11px;text-align:center;max-width:280px;line-height:1.5;font-style:italic}
 .rm-placeholder-note code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10px;background:var(--surface2);padding:1px 5px;border-radius:3px;border:1px solid var(--border);font-style:normal}
+
+/* M1 — primary-mode emphasis + pulse on arrival from skill tap. */
+.roll-mode-chip.primary{border-color:var(--accent);background:rgba(230,57,70,.12);color:var(--text);box-shadow:0 0 0 1px var(--accent) inset}
+.roll-mode-chip.primary::before{content:'★';color:var(--accent);font-size:10px;margin-right:1px;line-height:1}
+.roll-mode-chip.primary .rmc-name{color:var(--accent);font-weight:700}
+@keyframes rmPrimaryPulse{
+  0%{box-shadow:0 0 0 1px var(--accent) inset,0 0 0 0 rgba(230,57,70,.6)}
+  60%{box-shadow:0 0 0 1px var(--accent) inset,0 0 0 10px rgba(230,57,70,0)}
+  100%{box-shadow:0 0 0 1px var(--accent) inset,0 0 0 0 rgba(230,57,70,0)}
+}
+.roll-mode-chip.primary.suggested-pulse{animation:rmPrimaryPulse 1.1s ease-out 2}
+
+/* M1 — settings gear (slot next to the Hide toggle in the strip). */
+.roll-mode-settings-btn{font-size:14px;color:var(--muted);background:none;border:none;cursor:pointer;padding:4px 6px;line-height:1}
+.roll-mode-settings-btn:hover{color:var(--accent)}
+
+/* M1 — settings panel (rendered into a roll-mode-overlay shell). */
+.rm-settings{width:100%;max-width:420px;display:flex;flex-direction:column;gap:8px}
+.rm-settings-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px}
+.rm-settings-row .rms-label{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.rm-settings-row .rms-title{font-size:13px;font-weight:700;color:var(--text)}
+.rm-settings-row .rms-sub{font-size:11px;color:var(--muted);line-height:1.35}
+.rm-settings-row .rms-status{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:99px;background:var(--surface);border:1px solid var(--border);color:var(--muted);font-variant-numeric:tabular-nums}
+.rm-settings-row .rms-status.granted{color:var(--green);border-color:rgba(46,204,113,.4)}
+.rm-settings-row .rms-status.denied{color:var(--red);border-color:rgba(231,76,60,.4)}
+/* Tiny iOS-style toggle switch — independent of the existing form
+   inputs so it can sit cleanly inside a row without inheriting border
+   or radius weirdness. */
+.rm-toggle{position:relative;width:42px;height:24px;flex-shrink:0;cursor:pointer;display:inline-block;-webkit-tap-highlight-color:transparent}
+.rm-toggle input{display:none}
+.rm-toggle .rmt-track{position:absolute;inset:0;background:var(--surface);border:1px solid var(--border);border-radius:99px;transition:background .15s,border-color .15s}
+.rm-toggle .rmt-knob{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--muted);transition:left .18s cubic-bezier(.4,1.4,.5,1),background .15s}
+.rm-toggle input:checked ~ .rmt-track{background:rgba(230,57,70,.18);border-color:var(--accent)}
+.rm-toggle input:checked ~ .rmt-knob{left:22px;background:var(--accent)}
 </style>
 </head>
 <body>
@@ -1611,7 +1645,7 @@ function applyState(d){
     cp.style.display='none';
   }
 }
-<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build 359131f</div>
+<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build 512f382</div>
 </body></html>`;}
 
 function loadSlot(n){
@@ -3474,9 +3508,11 @@ function promptSetRes(key){
   save();renderSheet();maybeDicePage();
 }
 // Tap a skill row → jump to Dice tab with attr+skill preselected. setDiceSkill auto-locks the attribute.
+// Then briefly pulse the primary mode chip so the next move is visually obvious.
 function rollFromSkill(skill){
   setDiceSkill(skill);
   showTab('dice');
+  pulsePrimaryChip();
 }
 // Mobile: long-press a condition chip to show its penalty popover.
 function condPopover(btn){
@@ -4909,7 +4945,63 @@ function rollModeContext(){
   return {char:ch,sel,items};
 }
 
-// --- Audio helper. Lazy AudioContext so iOS doesn't fight us on boot. ---
+// M1 — Default primary mode by skill name. The chip strip floats this
+// mode to the front and emphasizes it visually. A character's per-skill
+// override (set when the player commits via a mode) wins over this map.
+const SKILL_PRIMARY_MODE={
+  Shoot:'handgun',
+  Fight:'fists',
+  Crime:'hacking',
+  Drive:'drive',
+  Stuff:'lockpick',
+};
+// Resolve the primary mode for the current selection. Falls back through:
+//   1) per-character per-skill memory (S.char.rollModePrefs)
+//   2) default SKILL_PRIMARY_MODE map
+//   3) null (no emphasis — just sort by registry order)
+// In every case we only return a mode that *actually applies* given the
+// current loadout, so a remembered 'handgun' won't be primary on a
+// character who has since dropped all firearms.
+function primaryModeForSel(ctx,visible){
+  const skill=ctx.sel&&ctx.sel.skill;
+  const ch=ctx.char;
+  if(skill&&ch&&ch.rollModePrefs&&ch.rollModePrefs[skill]){
+    const m=visible.find(v=>v.id===ch.rollModePrefs[skill]);
+    if(m)return m;
+  }
+  if(skill&&SKILL_PRIMARY_MODE[skill]){
+    const m=visible.find(v=>v.id===SKILL_PRIMARY_MODE[skill]);
+    if(m)return m;
+  }
+  return null;
+}
+// Remember "the player used mode X for skill Y on this character" so the
+// strip lands them on the same mode next time. Wiped when the character
+// rolls a different mode for the same skill, so it tracks recency.
+function rememberModeForSkill(modeId,skill){
+  if(!S.char||!skill||!modeId)return;
+  if(!S.char.rollModePrefs)S.char.rollModePrefs={};
+  S.char.rollModePrefs[skill]=modeId;
+}
+
+// --- M1 — Roll-mode settings. localStorage keyed so they persist
+// across reloads independent of save() and survive a missing character. ---
+function rollSetting(key,def){
+  const v=localStorage.getItem('og_rs_'+key);
+  if(v==null)return def;
+  return v==='1';
+}
+function setRollSetting(key,on){
+  if(on)localStorage.setItem('og_rs_'+key,'1');
+  else localStorage.setItem('og_rs_'+key,'0');
+}
+// Audio defaults ON. Haptics defaults ON. Master "themed rolls" reuses
+// the existing og_rollModesHidden inversion.
+function audioOn(){return rollSetting('audio',true);}
+function hapticsOn(){return rollSetting('haptics',true);}
+
+// --- Audio helper. Lazy AudioContext so iOS doesn't fight us on boot.
+// All emitters short-circuit when the audio setting is off. ---
 let _audioCtx=null;
 function audioCtx(){
   if(_audioCtx)return _audioCtx;
@@ -4917,6 +5009,7 @@ function audioCtx(){
   return _audioCtx;
 }
 function playTone(freq,dur,type,gain){
+  if(!audioOn())return;
   const ctx=audioCtx();if(!ctx)return;
   const o=ctx.createOscillator(),g=ctx.createGain();
   o.type=type||'sine';o.frequency.value=freq;
@@ -4926,6 +5019,7 @@ function playTone(freq,dur,type,gain){
   o.start();o.stop(ctx.currentTime+(dur||0.12)+0.02);
 }
 function playNoise(dur,gain){
+  if(!audioOn())return;
   const ctx=audioCtx();if(!ctx)return;
   const buf=ctx.createBuffer(1,ctx.sampleRate*(dur||0.15),ctx.sampleRate);
   const data=buf.getChannelData(0);
@@ -4935,6 +5029,11 @@ function playNoise(dur,gain){
   src.connect(g).connect(ctx.destination);src.start();
 }
 function playClick(){playTone(820,0.06,'square',0.12);}
+// Vibration API where supported. Settings-gated. Pattern is ms on/off/on…
+function hapticBuzz(pattern){
+  if(!hapticsOn())return;
+  try{navigator.vibrate&&navigator.vibrate(pattern||30);}catch(_){}
+}
 
 // --- Motion permission helper. iOS 13+ requires this inside a user
 // gesture; on Android/desktop the API may not exist at all. Cached for
@@ -5005,6 +5104,12 @@ function closeRollMode(silent){
   if(!silent)_currentRollMode=null;
 }
 function commitRoll(){
+  // Remember this mode for the active skill so it floats to primary
+  // next time the same skill comes up on this character.
+  const sel=diceSel();
+  if(_currentRollMode&&sel&&sel.skill){
+    rememberModeForSkill(_currentRollMode.id,sel.skill);
+  }
   // Themed reveal stays inside the overlay; once closed, the normal result
   // banner is what the player reads. Roll resolution = the existing path.
   closeRollMode();
@@ -5024,6 +5129,7 @@ function placeholderModeRender(ctx){
   const btn=ctx.body.querySelector('#rm-fire');
   btn.addEventListener('click',()=>{
     playClick();
+    hapticBuzz(40);
     ctx.commit();
   });
 }
@@ -5042,20 +5148,111 @@ function renderRollModeStrip(){
   }
   const ctx=rollModeContext();
   const visible=ROLL_MODES.filter(m=>{try{return m.appliesTo(ctx);}catch(_){return false;}});
+  // Trailing controls (settings + hide) are constant regardless of what
+  // applies — pulled into a helper so empty/populated states match.
+  const trailing=`<button class="roll-mode-settings-btn" onclick="openRollSettings()" title="Roll mode settings" aria-label="Settings">⚙</button>
+    <button class="roll-mode-toggle" onclick="setRollModesHidden(true)" title="Hide for quiet play">Hide</button>`;
   if(!visible.length){
-    // Nothing matches the current loadout + skill. Keep the hide affordance
+    // Nothing matches the current loadout + skill. Keep settings + hide
     // present so the section stays discoverable for future rolls.
-    return `<div class="roll-mode-strip"><span class="roll-mode-strip-label">Modes</span><span class="muted" style="font-size:11px;font-style:italic">No themed modes for this roll yet — buy gear or pick a different skill.</span><button class="roll-mode-toggle" onclick="setRollModesHidden(true)" title="Hide for quiet play">Hide</button></div>`;
+    return `<div class="roll-mode-strip"><span class="roll-mode-strip-label">Modes</span><span class="muted" style="font-size:11px;font-style:italic">No themed modes for this roll yet — buy gear or pick a different skill.</span>${trailing}</div>`;
   }
+  // Float primary to the front so it sits first in the row and gets the
+  // accent treatment. Rest of the modes follow in registry order.
+  const primary=primaryModeForSel(ctx,visible);
+  const ordered=primary?[primary,...visible.filter(m=>m.id!==primary.id)]:visible;
   let h=`<div class="roll-mode-strip"><span class="roll-mode-strip-label">Modes</span>`;
-  visible.forEach(m=>{
-    h+=`<button class="roll-mode-chip" onclick="openRollMode('${m.id}')" title="${m.desc}">
+  ordered.forEach(m=>{
+    const isPrimary=primary&&m.id===primary.id;
+    h+=`<button class="roll-mode-chip${isPrimary?' primary':''}" data-mode="${m.id}" onclick="openRollMode('${m.id}')" title="${m.desc}${isPrimary?' · suggested for '+ctx.sel.skill:''}">
       <span class="rmc-icon">${m.icon}</span><span class="rmc-name">${m.name}</span>
     </button>`;
   });
-  h+=`<button class="roll-mode-toggle" onclick="setRollModesHidden(true)" title="Hide for quiet play">Hide</button>`;
+  h+=trailing;
   h+=`</div>`;
   return h;
+}
+
+// M1 — Pulse the primary chip briefly after the player jumps in from a
+// skill tap. Visual cue that "this is the suggested mode" without
+// auto-opening the overlay (which would feel surprising).
+function pulsePrimaryChip(){
+  // Defer one frame so the strip has rendered before we touch it.
+  requestAnimationFrame(()=>{
+    const chip=document.querySelector('.roll-mode-chip.primary');
+    if(!chip)return;
+    chip.classList.remove('suggested-pulse');
+    void chip.offsetWidth; // force reflow so the animation restarts
+    chip.classList.add('suggested-pulse');
+    setTimeout(()=>chip&&chip.classList.remove('suggested-pulse'),2400);
+  });
+}
+
+// M1 — Settings overlay (reuses the .roll-mode-overlay shell). Toggles
+// for the master themed-rolls switch, audio, and haptics; motion access
+// shows its cached state and exposes a Re-request action.
+function openRollSettings(){
+  closeRollMode(true);
+  const wrap=document.createElement('div');
+  wrap.className='roll-mode-overlay';
+  wrap.id='roll-mode-overlay';
+  const themedOn=!rollModesHidden();
+  const audio=audioOn();
+  const haptics=hapticsOn();
+  const motion=_motionState||'unknown';
+  const motionTxt=motion==='granted'?'Granted':motion==='denied'?'Denied':motion==='unsupported'?'Unsupported':'Not yet requested';
+  const motionCls=motion==='granted'?'granted':motion==='denied'?'denied':'';
+  wrap.innerHTML=`
+    <div class="roll-mode-header">
+      <h2><span class="rmh-icon">⚙</span>Roll Settings</h2>
+      <button class="rmh-close" onclick="closeRollMode()" aria-label="Close">×</button>
+    </div>
+    <div class="roll-mode-body">
+      <div class="rm-settings">
+        <div class="rm-settings-row">
+          <div class="rms-label">
+            <div class="rms-title">Themed roll modes</div>
+            <div class="rms-sub">Show the chip strip under the ROLL button.</div>
+          </div>
+          <label class="rm-toggle"><input type="checkbox" ${themedOn?'checked':''} onchange="setRollModesHidden(!this.checked);_rollSettingsRefresh()"><span class="rmt-track"></span><span class="rmt-knob"></span></label>
+        </div>
+        <div class="rm-settings-row">
+          <div class="rms-label">
+            <div class="rms-title">Sound effects</div>
+            <div class="rms-sub">Clicks, bangs, keystrokes during themed rolls.</div>
+          </div>
+          <label class="rm-toggle"><input type="checkbox" ${audio?'checked':''} onchange="setRollSetting('audio',this.checked);if(this.checked){try{audioCtx()&&audioCtx().resume&&audioCtx().resume();playClick();}catch(_){}}"><span class="rmt-track"></span><span class="rmt-knob"></span></label>
+        </div>
+        <div class="rm-settings-row">
+          <div class="rms-label">
+            <div class="rms-title">Haptics</div>
+            <div class="rms-sub">Vibration on impacts (where supported).</div>
+          </div>
+          <label class="rm-toggle"><input type="checkbox" ${haptics?'checked':''} onchange="setRollSetting('haptics',this.checked);if(this.checked)hapticBuzz(40)"><span class="rmt-track"></span><span class="rmt-knob"></span></label>
+        </div>
+        <div class="rm-settings-row">
+          <div class="rms-label">
+            <div class="rms-title">Motion access</div>
+            <div class="rms-sub">Required for shake / tilt / punch modes on iOS 13+.</div>
+          </div>
+          <span class="rms-status ${motionCls}">${motionTxt}</span>
+        </div>
+        ${motion!=='granted'&&motion!=='unsupported'?`
+        <button class="btn btn-secondary btn-sm" style="align-self:center;margin-top:4px" onclick="(async()=>{ _motionState=null; const s=await requestMotionAccess(); openRollSettings(); })()">Request motion access</button>
+        `:''}
+      </div>
+    </div>
+    <div class="roll-mode-footer">
+      <button class="roll-mode-cancel" onclick="closeRollMode()">Close</button>
+    </div>`;
+  document.body.appendChild(wrap);
+  document.body.style.overflow='hidden';
+}
+// Re-render the settings panel after a toggle so dependent state (like
+// the strip's hide/show) reflects immediately without closing.
+function _rollSettingsRefresh(){
+  if(document.getElementById('roll-mode-overlay'))openRollSettings();
+  renderDicePicker();
 }
 
 function doRoll(){
