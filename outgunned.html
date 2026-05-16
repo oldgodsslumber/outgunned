@@ -5100,23 +5100,21 @@ function renderDicePicker(){
     });
     html+=`</div>`;
   }
-  el.innerHTML=html;
-  // Splice the live result + action-buttons nodes into the anchors above
-  // the ROLL button. They live as siblings of the card in the static HTML,
-  // so we move (not clone) the real DOM elements — renderDiceResult still
-  // targets them by id and updates flow through unchanged.
-  const resAnchor=el.querySelector('#dice-result-anchor');
-  const actAnchor=el.querySelector('#dice-actions-anchor');
+  // Detach the persistent result + action-buttons nodes BEFORE wiping the
+  // card body so they survive the innerHTML replacement. After re-rendering
+  // the card markup we drop the same nodes back into anchor slots above the
+  // ROLL button. renderDiceResult still targets them by id either way.
   const liveResult=document.getElementById('dice-result-area');
   const liveActions=document.getElementById('dice-action-btns');
-  if(resAnchor&&liveResult&&liveResult.parentNode!==resAnchor.parentNode){
-    resAnchor.replaceWith(liveResult);
-  }else if(resAnchor&&liveResult){
-    resAnchor.replaceWith(liveResult);
-  }
-  if(actAnchor&&liveActions){
-    actAnchor.replaceWith(liveActions);
-  }
+  if(liveResult&&liveResult.parentNode) liveResult.parentNode.removeChild(liveResult);
+  if(liveActions&&liveActions.parentNode) liveActions.parentNode.removeChild(liveActions);
+
+  el.innerHTML=html;
+
+  const resAnchor=el.querySelector('#dice-result-anchor');
+  const actAnchor=el.querySelector('#dice-actions-anchor');
+  if(resAnchor&&liveResult) resAnchor.replaceWith(liveResult);
+  if(actAnchor&&liveActions) actAnchor.replaceWith(liveActions);
   // Keep the result area's hidden buttons / history rendering in sync if needed
   const hidden=document.getElementById('dice-count');
   if(hidden)hidden.textContent=pool;

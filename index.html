@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Outgunned — Multiplayer</title>
-<meta name="build" content="9c0fead-1778956043881">
+<meta name="build" content="0e81460-1778956167088">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -1894,7 +1894,7 @@ function applyState(d){
     cp.style.display='none';
   }
 }
-<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build 9c0fead</div>
+<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build 0e81460</div>
 </body></html>`;}
 
 function loadSlot(n){
@@ -5126,23 +5126,21 @@ function renderDicePicker(){
     });
     html+=`</div>`;
   }
-  el.innerHTML=html;
-  // Splice the live result + action-buttons nodes into the anchors above
-  // the ROLL button. They live as siblings of the card in the static HTML,
-  // so we move (not clone) the real DOM elements — renderDiceResult still
-  // targets them by id and updates flow through unchanged.
-  const resAnchor=el.querySelector('#dice-result-anchor');
-  const actAnchor=el.querySelector('#dice-actions-anchor');
+  // Detach the persistent result + action-buttons nodes BEFORE wiping the
+  // card body so they survive the innerHTML replacement. After re-rendering
+  // the card markup we drop the same nodes back into anchor slots above the
+  // ROLL button. renderDiceResult still targets them by id either way.
   const liveResult=document.getElementById('dice-result-area');
   const liveActions=document.getElementById('dice-action-btns');
-  if(resAnchor&&liveResult&&liveResult.parentNode!==resAnchor.parentNode){
-    resAnchor.replaceWith(liveResult);
-  }else if(resAnchor&&liveResult){
-    resAnchor.replaceWith(liveResult);
-  }
-  if(actAnchor&&liveActions){
-    actAnchor.replaceWith(liveActions);
-  }
+  if(liveResult&&liveResult.parentNode) liveResult.parentNode.removeChild(liveResult);
+  if(liveActions&&liveActions.parentNode) liveActions.parentNode.removeChild(liveActions);
+
+  el.innerHTML=html;
+
+  const resAnchor=el.querySelector('#dice-result-anchor');
+  const actAnchor=el.querySelector('#dice-actions-anchor');
+  if(resAnchor&&liveResult) resAnchor.replaceWith(liveResult);
+  if(actAnchor&&liveActions) actAnchor.replaceWith(liveActions);
   // Keep the result area's hidden buttons / history rendering in sync if needed
   const hidden=document.getElementById('dice-count');
   if(hidden)hidden.textContent=pool;
