@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Outgunned — Multiplayer</title>
-<meta name="build" content="cab6bb1-1778934530410">
+<meta name="build" content="903d79c-1778935402748">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -1768,7 +1768,7 @@ function applyState(d){
     cp.style.display='none';
   }
 }
-<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build cab6bb1</div>
+<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build 903d79c</div>
 </body></html>`;}
 
 function loadSlot(n){
@@ -5448,41 +5448,51 @@ function hackingModeRender(ctx){
 // sustained oscillation; a single peak with aggressive debounce fires
 // before the OS detection completes.
 function handgunModeRender(ctx){
+  // Wrap render in try/catch so a silent JS error becomes a visible message
+  // instead of an empty overlay. Reported by a user who got a blank screen.
+  try{
   const gun=ctx.items.find(it=>it.category==='gun'&&!it.twoHand&&!(it.feats||[]).includes('single_shot')&&!(it.feats||[]).includes('energy_weapon'));
   const gunName=gun?gun.name:'Handgun';
   let firing=false;
 
+  // SVG carries both explicit width/height AND viewBox so size never depends
+  // on the CSS pipeline being correct. Path has solid fallback fill in case
+  // the linearGradient fails to resolve in any browser.
   ctx.body.innerHTML=`
     <div class="rm-handgun">
       <div class="rm-handgun-screen">
         <div class="rm-gun-name">${gunName}</div>
         <div class="rm-gun-art">
-          <svg class="rm-gun-svg" id="rm-gun-svg" viewBox="0 0 240 100" aria-hidden="true">
+          <svg class="rm-gun-svg" id="rm-gun-svg" width="240" height="100" viewBox="0 0 240 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <defs>
               <linearGradient id="rm-gun-grad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#b8b8b8"/>
-                <stop offset="35%" stop-color="#7a7a7a"/>
+                <stop offset="0%" stop-color="#c8c8c8"/>
+                <stop offset="35%" stop-color="#7e7e7e"/>
                 <stop offset="100%" stop-color="#2e2e2e"/>
               </linearGradient>
             </defs>
-            <!-- Frame + slide + grip silhouette. Gun points right (muzzle at x=210). -->
+            <!-- Frame + slide + grip silhouette. Gun points right (muzzle at x=210).
+                 Solid fallback fill (#6e6e6e) renders if the gradient ref fails. -->
             <path d="M30 50 L30 35 L155 35 L165 40 L210 40 L210 56 L175 56 L175 61 L160 61 L152 56 L82 56 L82 70 L72 82 L52 82 L46 70 L46 56 L30 56 Z"
-                  fill="url(#rm-gun-grad)" stroke="#c5c5c5" stroke-width="1.6" stroke-linejoin="round"/>
+                  fill="#6e6e6e" stroke="#e0e0e0" stroke-width="2" stroke-linejoin="round"/>
+            <!-- Same path again, gradient-filled on top of the solid base. -->
+            <path d="M30 50 L30 35 L155 35 L165 40 L210 40 L210 56 L175 56 L175 61 L160 61 L152 56 L82 56 L82 70 L72 82 L52 82 L46 70 L46 56 L30 56 Z"
+                  fill="url(#rm-gun-grad)" stroke="none"/>
             <!-- Trigger guard interior. -->
             <ellipse cx="63" cy="56" rx="9" ry="11" fill="#0a0a0a"/>
             <!-- Trigger curl inside the guard. -->
-            <path d="M61 50 Q58 56 61 62" stroke="#3a3a3a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <path d="M61 50 Q58 56 61 62" stroke="#5a5a5a" stroke-width="1.8" fill="none" stroke-linecap="round"/>
             <!-- Slide separation line. -->
             <line x1="40" y1="42" x2="200" y2="42" stroke="#3a3a3a" stroke-width="1"/>
             <!-- Front sight. -->
-            <rect x="178" y="32" width="6" height="4" fill="#a8a8a8"/>
+            <rect x="178" y="32" width="6" height="4" fill="#b8b8b8"/>
             <!-- Grip checkering hints. -->
             <line x1="58" y1="64" x2="80" y2="64" stroke="#1a1a1a" stroke-width="0.6"/>
             <line x1="56" y1="71" x2="78" y2="71" stroke="#1a1a1a" stroke-width="0.6"/>
             <line x1="54" y1="78" x2="76" y2="78" stroke="#1a1a1a" stroke-width="0.6"/>
-            <!-- Invisible tap target over the trigger area. Slightly larger than
-                 the trigger guard to make thumb-tapping forgiving. -->
-            <ellipse class="rm-trigger-hit" id="rm-trigger-hit" cx="63" cy="58" rx="16" ry="18" stroke-linecap="round"/>
+            <!-- Invisible tap target over the trigger area, bumped to rx/ry 20/22
+                 for forgiving thumb taps. Pulsing red outline hints "tap here". -->
+            <ellipse class="rm-trigger-hit" id="rm-trigger-hit" cx="63" cy="58" rx="20" ry="22"/>
           </svg>
           <div class="rm-muzzle-flash" id="rm-muzzle"></div>
           <div class="rm-mag-silhouette" id="rm-mag-sil"></div>
@@ -5602,6 +5612,18 @@ function handgunModeRender(ctx){
       }
     });
     obs.observe(document.body,{childList:true});
+  }
+  } catch(err){
+    // Render crashed — surface a visible message instead of a blank panel
+    // so a future iteration of this bug is debuggable from the screen.
+    console.error('handgunModeRender failed:',err);
+    if(ctx&&ctx.body){
+      ctx.body.innerHTML=`<div style="color:var(--red);font-size:13px;padding:24px;text-align:center;max-width:320px">
+        <strong>Handgun render error</strong><br><br>
+        <span style="font-family:ui-monospace,monospace;font-size:11px;color:var(--muted)">${String(err.message||err).replace(/</g,'&lt;')}</span><br><br>
+        <span style="color:var(--muted);font-size:11px">Use the Cancel link below to fall back to the classic ROLL.</span>
+      </div>`;
+    }
   }
 }
 
