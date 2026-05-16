@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Outgunned — Multiplayer</title>
-<meta name="build" content="0301b12-1778888065116">
+<meta name="build" content="e696cf3-1778893540789">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -1105,7 +1105,63 @@ ul.sheet-loadout li.granted,.ls-list li.granted{border-left:3px solid var(--acce
 .sl-ride{font-size:11px;margin-top:2px}
 .mag-pip{width:14px;height:14px;border-radius:3px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:inline-block}
 .mag-pip.on{background:var(--accent);border-color:var(--accent)}
-.sheet-gear-notes{width:100%;min-height:50px;background:var(--surface);border:1px solid var(--border);color:var(--fg);border-radius:6px;padding:6px;font-family:inherit;font-size:12px;resize:vertical;box-sizing:border-box;margin-top:2px}
+.sheet-gear-notes{width:100%;min-height:40px;background:var(--surface);border:1px solid var(--border);color:var(--fg);border-radius:6px;padding:6px;font-family:inherit;font-size:12px;resize:vertical;box-sizing:border-box;margin-top:2px}
+
+/* ===== Shared item vocabulary (sheet + catalog + summary) =====
+   One cost chip, one stat tile, one range grid, one row skeleton — so guns,
+   rides, gear, and ammo all read the same regardless of which surface they
+   show up on. Tabular nums everywhere so columns of costs/mags/speed line up. */
+.cost-chip{display:inline-flex;align-items:center;justify-content:center;background:var(--accent);color:#fff;font-weight:800;font-size:12px;padding:3px 7px;border-radius:5px;min-width:34px;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:.02em;flex-shrink:0;line-height:1.2}
+.cost-chip.free{background:rgba(46,204,113,.25);color:var(--green);border:1px solid rgba(46,204,113,.45)}
+.cost-chip.gold{background:rgba(241,196,15,.22);color:var(--gold);border:1px solid rgba(241,196,15,.4)}
+
+.stat-tile{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:3px 7px 4px;border:1px solid var(--border);border-radius:6px;background:var(--surface);min-width:40px;font-variant-numeric:tabular-nums;line-height:1}
+.stat-tile .st-lbl{font-size:8px;font-weight:800;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+.stat-tile .st-val{font-size:13px;font-weight:800;color:var(--text);margin-top:2px}
+.stat-tile.accent .st-val{color:var(--accent)}
+.stat-flag{display:inline-flex;align-items:center;padding:5px 8px;border-radius:5px;border:1px solid var(--border);background:var(--surface);font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);line-height:1}
+.stat-tiles-row{display:flex;flex-wrap:wrap;gap:4px;align-items:stretch;margin-top:4px}
+
+.range-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:6px 0;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;font-variant-numeric:tabular-nums}
+.range-tile{text-align:center;padding:5px 4px;border-right:1px solid var(--border)}
+.range-tile:last-child{border-right:none}
+.range-tile .rt-lbl{font-size:8px;font-weight:800;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;line-height:1}
+.range-tile .rt-val{font-size:14px;font-weight:800;color:var(--text);margin-top:3px;line-height:1}
+.range-tile.miss{background:rgba(0,0,0,.18)}
+.range-tile.miss .rt-val{color:var(--muted);opacity:.55}
+.range-tile.bonus .rt-val{color:var(--green)}
+.range-tile.penalty .rt-val{color:var(--red)}
+
+/* Shared item row — used by the sheet Gear card and the Loadout Summary. */
+.item-row{display:grid;grid-template-columns:auto 1fr auto;column-gap:10px;row-gap:4px;align-items:center;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:5px}
+.item-row.granted{border-color:rgba(46,204,113,.4);background:rgba(46,204,113,.06)}
+.item-row .ir-name{font-weight:700;font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item-row .ir-name .ir-qty{font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums;margin-left:4px}
+.item-row .ir-drop{font-size:14px;color:var(--muted);background:transparent;border:1px solid transparent;cursor:pointer;padding:2px 8px;border-radius:5px;line-height:1;transition:background .12s,color .12s,border-color .12s}
+.item-row .ir-drop:hover{color:var(--red);background:rgba(231,76,60,.1);border-color:rgba(231,76,60,.25)}
+.item-row .ir-tag{display:inline-block;font-size:8px;text-transform:uppercase;letter-spacing:.08em;padding:1px 5px;border-radius:99px;background:rgba(230,57,70,.18);color:var(--accent);font-weight:800;margin-left:5px;vertical-align:middle}
+.item-row .ir-stats{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.item-row .ir-feats{grid-column:1/-1;font-size:10px;color:var(--muted);line-height:1.35;font-style:italic}
+.item-row .ir-mag{grid-column:1/-1;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.item-row .ir-mag-counter{font-size:10px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums;letter-spacing:.04em}
+
+/* Bigger mag pips (was 14px → 16px, easier to thumb). */
+.mag-pips{display:inline-flex;gap:3px;align-items:center;flex-wrap:wrap}
+.mag-pips .mag-pip{width:16px;height:16px;border-radius:3px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;transition:background .12s,border-color .12s,transform .08s;-webkit-tap-highlight-color:transparent}
+.mag-pips .mag-pip.on{background:var(--accent);border-color:var(--accent)}
+.mag-pips .mag-pip:active{transform:scale(.9)}
+@media(hover:hover){.mag-pips .mag-pip:hover{border-color:var(--accent)}}
+
+/* Sheet Gear card: category sections + cash header chip. */
+.sgear-cash{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px;background:rgba(46,204,113,.14);color:var(--green);font-variant-numeric:tabular-nums;border:1px solid rgba(46,204,113,.3);letter-spacing:.02em}
+.sgear-cash.low{background:rgba(231,76,60,.14);color:var(--red);border-color:rgba(231,76,60,.3)}
+.sgear-cash .sgc-sep{opacity:.55;font-weight:700;margin:0 2px}
+.sgear-section{margin-top:10px}
+.sgear-section:first-of-type{margin-top:6px}
+.sgear-section-h{display:flex;align-items:baseline;justify-content:space-between;gap:6px;padding:0 0 4px;margin-bottom:5px;border-bottom:1px dashed var(--border);font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.sgear-section-h .sgh-count{font-size:9px;font-weight:700;color:var(--fg2);opacity:.65;letter-spacing:.04em}
+.sgear-role-notes{font-size:11px;line-height:1.4;color:var(--muted);padding:6px 8px;background:rgba(230,57,70,.05);border-left:2px solid var(--accent);border-radius:0 4px 4px 0;margin-bottom:8px}
+.sgear-role-notes strong{color:var(--text);font-weight:700}
 
 /* --- Catalog modal --- */
 .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
@@ -1515,7 +1571,7 @@ function applyState(d){
     cp.style.display='none';
   }
 }
-<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build 0301b12</div>
+<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build e696cf3</div>
 </body></html>`;}
 
 function loadSlot(n){
@@ -2133,27 +2189,40 @@ function _renderItemCard(item,opts){
     const f=itemFeat(fid);
     return `<span class="if-chip" title="${(f?.desc||'').replace(/"/g,'&quot;')}">${f?f.name:fid}</span>`;
   }).join('');
+  // Range: render as a 4-cell tile grid, not an HTML table. Each cell has
+  // an UPPERCASE label and a big tabular-nums value; unhittable bands ('—'/'X')
+  // visually recede; positive mods read green, negative red.
   let rangeHtml='';
   if(item.range){
-    rangeHtml=`<table class="ic-range"><thead><tr><th>Melee</th><th>Close</th><th>Med</th><th>Long</th></tr></thead><tbody><tr><td>${fmtRange(item.range.melee)}</td><td>${fmtRange(item.range.close)}</td><td>${fmtRange(item.range.medium)}</td><td>${fmtRange(item.range.long)}</td></tr></tbody></table>`;
+    const cells=[['Melee',item.range.melee],['Close',item.range.close],['Med',item.range.medium],['Long',item.range.long]];
+    rangeHtml='<div class="range-tiles">'+cells.map(([lbl,raw])=>{
+      const v=fmtRange(raw);
+      let cls='range-tile';
+      if(raw==null||v==='—'||v==='X')cls+=' miss';
+      else if(typeof raw==='number'&&raw>0)cls+=' bonus';
+      else if(typeof raw==='number'&&raw<0)cls+=' penalty';
+      return `<div class="${cls}"><div class="rt-lbl">${lbl}</div><div class="rt-val">${v}</div></div>`;
+    }).join('')+'</div>';
   }
-  const specs=[];
-  if(item.mag!=null)specs.push(`Mag×${item.mag}`);
-  if(item.speed!=null)specs.push(`Speed ${item.speed}`);
-  if(item.armor!=null)specs.push(`Armor ${item.armor}`);
-  if(item.rideType)specs.push(item.rideType.map(t=>t.charAt(0).toUpperCase()+t.slice(1)).join('/'));
-  if(item.twoHand)specs.push('2-hand');
-  if(item.ammoType)specs.push('ammo: '+item.ammoType);
-  if(item.ammoFor)specs.push('for: '+item.ammoFor);
+  // Numeric specs split out into stat-tiles so they read at a glance; flag
+  // attributes (2-hand, ride types) become outlined chips with no number.
+  const tiles=[];
+  if(item.mag!=null)tiles.push(`<div class="stat-tile"><div class="st-lbl">Mag</div><div class="st-val">${item.mag}</div></div>`);
+  if(item.speed!=null)tiles.push(`<div class="stat-tile accent"><div class="st-lbl">Spd</div><div class="st-val">${item.speed}</div></div>`);
+  if(item.armor!=null)tiles.push(`<div class="stat-tile"><div class="st-lbl">Armor</div><div class="st-val">${item.armor}</div></div>`);
+  if(item.twoHand)tiles.push(`<span class="stat-flag">2-Hand</span>`);
+  if(item.rideType)item.rideType.forEach(t=>tiles.push(`<span class="stat-flag">${t}</span>`));
+  if(item.ammoType)tiles.push(`<span class="stat-flag">Ammo · ${item.ammoType}</span>`);
+  if(item.ammoFor)tiles.push(`<span class="stat-flag">For · ${item.ammoFor}</span>`);
   return `<div class="item-card${owned?' owned':''}${isPickMode&&!slotMatches?' dimmed':''}${isPickMode&&slotMatches?' pickable':''}">
     <div class="ic-head">
-      <span class="ic-cost" title="${termSubst('Cost: '+item.cost+'$')}">${termSubst(item.cost+'$')}</span>
+      <span class="cost-chip" title="${termSubst('Cost: '+item.cost+'$')}">${termSubst(item.cost+'$')}</span>
       <span class="ic-name">${item.name}</span>
       ${entryBadgesHtml(item)}
     </div>
     ${rangeHtml}
+    ${tiles.length?`<div class="stat-tiles-row">${tiles.join('')}</div>`:''}
     ${featChips?`<div class="ic-feats">${featChips}</div>`:''}
-    ${specs.length?`<div class="ic-specs">${specs.join(' · ')}</div>`:''}
     ${item.desc?`<div class="ic-desc">${termSubst(item.desc)}</div>`:''}
     <div class="ic-actions">
       <button class="btn btn-secondary btn-xs" onclick="loadoutSell('${item.id}')" ${owned?'':'disabled'} title="Drop one">−</button>
@@ -2210,26 +2279,39 @@ function _renderLoadoutSummary(opts){
     </div>`;
   if(!lo.items.length){h+=`<div class="muted" style="padding:8px 0">No items yet. Click + on a card to buy one.</div>`;}
   else{
-    h+=`<ul class="ls-list">`;
+    // Same item-row vocabulary as the sheet so the catalog feels cohesive.
     lo.items.forEach(e=>{
       const it=itemById(e.itemId);if(!it)return;
-      const featTxt=(it.feats||[]).map(itemFeatLabel).join(', ');
-      h+=`<li${e.granted?' class="granted"':''}>
-        <div class="ls-row1">
-          <span class="ls-name">${it.name}${(e.qty||1)>1?` ×${e.qty}`:''}${e.granted?' <span class="sl-tag">role</span>':''}</span>
-          <span class="ls-cost muted">${e.granted?'free':termSubst((it.cost*(e.qty||1))+'$')}</span>
-          <button class="btn btn-secondary btn-xs" onclick="loadoutSell('${it.id}')" title="Drop one">✕</button>
-        </div>
-        ${featTxt?`<div class="ls-feats muted">${featTxt}</div>`:''}
-        ${isFirearm(it)?`<div class="ls-mags">
-          <span class="muted">Mags:</span>
-          <button class="btn btn-secondary btn-xs" onclick="loadoutAdjMags('${it.id}',-1)">−</button>
-          <span class="ls-mag-count">${e.mags||0}</span>
-          <button class="btn btn-secondary btn-xs" onclick="loadoutAdjMags('${it.id}',1)">+</button>
-        </div>`:''}
-      </li>`;
+      const featTxt=(it.feats||[]).map(itemFeatLabel).join(' · ');
+      const qty=(e.qty||1);
+      const isGun=isFirearm(it);
+      const tiles=[];
+      if(isGun&&it.mag!=null)tiles.push(`<div class="stat-tile"><div class="st-lbl">Mag</div><div class="st-val">${it.mag}</div></div>`);
+      if(it.speed!=null)tiles.push(`<div class="stat-tile accent"><div class="st-lbl">Spd</div><div class="st-val">${it.speed}</div></div>`);
+      if(it.armor!=null)tiles.push(`<div class="stat-tile"><div class="st-lbl">Armor</div><div class="st-val">${it.armor}</div></div>`);
+      if(it.twoHand)tiles.push(`<span class="stat-flag">2-Hand</span>`);
+      if(it.rideType)it.rideType.forEach(t=>tiles.push(`<span class="stat-flag">${t}</span>`));
+      let magRow='';
+      if(isGun){
+        const mags=e.mags||0;
+        const cap=it.mag||4;
+        let pips='';
+        for(let i=0;i<Math.max(cap,mags);i++){
+          pips+=`<span class="mag-pip${i<mags?' on':''}" onclick="loadoutAdjMags('${it.id}',${i<mags?-1:1})" title="${i<mags?'Spend a mag':'Add a mag'}"></span>`;
+        }
+        magRow=`<div class="ir-mag"><div class="mag-pips">${pips}</div><span class="ir-mag-counter">${mags}/${cap}</span></div>`;
+      }
+      const costClass=e.granted?'cost-chip free':'cost-chip';
+      const costText=e.granted?'free':termSubst((it.cost*qty)+'$');
+      h+=`<div class="item-row${e.granted?' granted':''}">
+        <span class="${costClass}" title="${e.granted?'Free from role':termSubst('Cost: '+(it.cost*qty)+'$')}">${costText}</span>
+        <span class="ir-name">${it.name}${qty>1?`<span class="ir-qty">×${qty}</span>`:''}${e.granted?'<span class="ir-tag">role</span>':''}</span>
+        <button class="ir-drop" onclick="loadoutSell('${it.id}')" title="Drop one">✕</button>
+        ${tiles.length?`<div class="ir-stats">${tiles.join('')}</div>`:''}
+        ${magRow}
+        ${featTxt?`<div class="ir-feats">${featTxt}</div>`:''}
+      </div>`;
     });
-    h+=`</ul>`;
   }
   const notesVal=(lo.notes||'').replace(/</g,'&lt;');
   h+=`<div class="ls-notes-wrap">
@@ -2966,67 +3048,88 @@ function editGearList(){
   save(); renderSheet();
 }
 
-// Structured gear card on the sheet. Lists owned items with mag pips, lets
-// the player add more via the catalog modal, and preserves the freeform
-// notes field. Falls back to the legacy gearList text for old saves.
+// Structured gear card on the sheet. Items render with the shared
+// .item-row + .stat-tile / .mag-pips vocabulary used by the catalog and
+// loadout summary, and group by category (Guns / Melee / Rides / Gear /
+// Ammo / Gadgets) so a heavy loadout stays scannable.
 function renderSheetGearCard(ch,role){
   if(!ch.loadout)ch.loadout={items:[],notes:ch.gearList||''};
   const lo=ch.loadout;
+  const cash=ch.cash||0;
+  const isWoK=bookHas('wok','roles');
+  const cashLow=cash<=0;
   let h=`<div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;flex-wrap:wrap">
-      <h3 style="margin:0">Gear</h3>
-      <div style="display:flex;gap:6px">
-        <button class="btn btn-xs btn-primary" onclick="openCatalog()">+ Catalog</button>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <h3 style="margin:0">Gear</h3>
+        <span class="sgear-cash${cashLow?' low':''}" title="Cash on hand"><span>$</span>${cash}${isWoK?`<span class="sgc-sep">·</span><span style="color:var(--gold)">◆${ch.gold||0}</span>`:''}</span>
       </div>
+      <button class="btn btn-xs btn-primary" onclick="openCatalog()">+ Catalog</button>
     </div>`;
-  // Surface ONLY the narrative notes from the role (radios, badges, dogs,
-  // superpower-granted weapons) — the structured grants/picks are already
-  // listed below as real loadout entries. Reading role.gear verbatim on the
-  // sheet duplicated the picks and asked the player to "choose" things they
-  // had no UI to choose.
+  // Role narrative notes (radios, badges, etc.) — set apart with an accent
+  // bar so they don't get confused with owned items.
   if(role){
     const cfg=roleStartingGear(role.id);
     const notesArr=cfg&&Array.isArray(cfg.notes)?cfg.notes:(cfg?null:(role.gear?[role.gear]:null));
     if(notesArr&&notesArr.length){
-      h+=`<div style="font-size:11px;margin-bottom:6px"><span style="color:var(--muted)">From ${role.name}:</span> ${notesArr.join(' · ')}</div>`;
+      h+=`<div class="sgear-role-notes"><strong>From ${role.name}:</strong> ${notesArr.join(' · ')}</div>`;
     }
   }
   if(!lo.items.length&&!ch.gearList){
     h+=`<div class="muted" style="font-size:11px;font-style:italic">No gear in your loadout. Tap <strong>+ Catalog</strong> to browse and buy.</div>`;
   }
   if(lo.items.length){
-    h+=`<ul class="sheet-loadout">`;
+    // Group by category — preserves insertion order within each bucket.
+    const order=['gun','melee','ride','gear','ammo','gadget'];
+    const labels={gun:'Guns',melee:'Melee',ride:'Rides',gear:'Gear',ammo:'Ammo & Mags',gadget:'Gadgets'};
+    const buckets={};order.forEach(k=>buckets[k]=[]);
     lo.items.forEach(e=>{
       const it=itemById(e.itemId);if(!it)return;
-      const featTxt=(it.feats||[]).map(itemFeatLabel).join(', ');
-      const isGun=isFirearm(it);
-      let extra='';
-      if(isGun){
-        const mags=e.mags||0;
-        const cap=it.mag||4;
-        let pips='';
-        for(let i=0;i<Math.max(cap,mags);i++){
-          pips+=`<span class="mag-pip${i<mags?' on':''}" onclick="loadoutAdjMags('${it.id}',${i<mags?-1:1})" title="${i<mags?'Spend a mag':'Add a mag'}"></span>`;
-        }
-        extra=`<div class="sl-mags"><span class="muted">Mags:</span>${pips} <span class="muted">${mags}/${cap}</span></div>`;
-      } else if(it.category==='ride'){
-        const sp=it.speed!=null?it.speed:'?';
-        const ar=it.armor!=null?it.armor:'?';
-        extra=`<div class="sl-ride muted">Speed ${sp} · Armor ${ar}</div>`;
-      }
-      h+=`<li${e.granted?' class="granted"':''}>
-        <div class="sl-row">
-          <span class="sl-name">${it.name}${(e.qty||1)>1?` ×${e.qty}`:''}${e.granted?' <span class="sl-tag">role</span>':''}</span>
-          <span class="sl-cost muted">${termSubst(it.cost+'$')}</span>
-          <button class="btn btn-xs btn-secondary" onclick="loadoutSell('${it.id}')" title="Drop">✕</button>
-        </div>
-        ${featTxt?`<div class="sl-feats muted">${featTxt}</div>`:''}
-        ${extra}
-      </li>`;
+      (buckets[it.category]||buckets.gear).push(e);
     });
-    h+=`</ul>`;
+    order.forEach(k=>{
+      const entries=buckets[k];if(!entries.length)return;
+      h+=`<div class="sgear-section">
+        <div class="sgear-section-h"><span>${labels[k]}</span><span class="sgh-count">${entries.length}</span></div>`;
+      entries.forEach(e=>{
+        const it=itemById(e.itemId);if(!it)return;
+        const isGun=isFirearm(it);
+        // Stat tiles — same vocabulary as the catalog card.
+        const tiles=[];
+        if(isGun&&it.mag!=null)tiles.push(`<div class="stat-tile"><div class="st-lbl">Mag</div><div class="st-val">${it.mag}</div></div>`);
+        if(it.speed!=null)tiles.push(`<div class="stat-tile accent"><div class="st-lbl">Spd</div><div class="st-val">${it.speed}</div></div>`);
+        if(it.armor!=null)tiles.push(`<div class="stat-tile"><div class="st-lbl">Armor</div><div class="st-val">${it.armor}</div></div>`);
+        if(it.twoHand)tiles.push(`<span class="stat-flag">2-Hand</span>`);
+        if(it.rideType)it.rideType.forEach(t=>tiles.push(`<span class="stat-flag">${t}</span>`));
+        if(it.ammoFor)tiles.push(`<span class="stat-flag">For · ${it.ammoFor}</span>`);
+        // Mag pips inline below stat tiles, for firearms only.
+        let magRow='';
+        if(isGun){
+          const mags=e.mags||0;
+          const cap=it.mag||4;
+          let pips='';
+          for(let i=0;i<Math.max(cap,mags);i++){
+            pips+=`<span class="mag-pip${i<mags?' on':''}" onclick="loadoutAdjMags('${it.id}',${i<mags?-1:1})" title="${i<mags?'Spend a mag':'Add a mag'}"></span>`;
+          }
+          magRow=`<div class="ir-mag"><div class="mag-pips">${pips}</div><span class="ir-mag-counter">${mags}/${cap}</span></div>`;
+        }
+        const featTxt=(it.feats||[]).map(itemFeatLabel).join(' · ');
+        const qty=(e.qty||1);
+        const costClass=e.granted?'cost-chip free':'cost-chip';
+        const costText=e.granted?'free':termSubst(it.cost+'$');
+        h+=`<div class="item-row${e.granted?' granted':''}">
+          <span class="${costClass}" title="${e.granted?'Free from role':termSubst('Cost: '+it.cost+'$')}">${costText}</span>
+          <span class="ir-name">${it.name}${qty>1?`<span class="ir-qty">×${qty}</span>`:''}${e.granted?'<span class="ir-tag">role</span>':''}</span>
+          <button class="ir-drop" onclick="loadoutSell('${it.id}')" title="Drop">✕</button>
+          ${tiles.length?`<div class="ir-stats">${tiles.join('')}</div>`:''}
+          ${magRow}
+          ${featTxt?`<div class="ir-feats">${featTxt}</div>`:''}
+        </div>`;
+      });
+      h+=`</div>`;
+    });
   }
-  // Free-form notes / ad-hoc items.
+  // Free-form notes / ad-hoc items — kept tight; expand as the player types.
   const notesVal=(lo.notes||ch.gearList||'').replace(/</g,'&lt;');
   h+=`<div style="margin-top:8px">
     <label class="muted" style="font-size:11px">Notes</label>
