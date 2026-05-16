@@ -954,7 +954,7 @@ const ITEMS_CORE=[
   {id:'bulletproof_vest',name:'Bulletproof Vest',book:'core',category:'gear',cost:3,desc:'Grants Help to avoid bullets.'},
   {id:'camera',name:'Camera',book:'core',category:'gear',cost:1,desc:'Grants Help to shoot photos.'},
   {id:'elegant_clothes',name:'Elegant Clothes',book:'core',category:'gear',cost:3,desc:'Grants Help to make a good impression.'},
-  {id:'first_aid_kit',name:'First-aid Kit',book:'core',category:'gear',cost:2,desc:'Grants Help to treat wounds.'},
+  {id:'first_aid_kit',name:'First-aid Kit',book:'core',category:'gear',cost:2,rollMode:'heal',desc:'Grants Help to treat wounds.'},
   {id:'grappling_hook',name:'Grappling Hook',book:'core',category:'gear',cost:1,desc:'Grants Help to climb and swing.'},
   {id:'handcuffs',name:'Handcuffs',book:'core',category:'gear',cost:1,desc:'Grants Help to restrain people.'},
   {id:'heavy_mace',name:'Heavy Mace',book:'core',category:'melee',cost:1,desc:'Grants Help to break through doors and smash things.'},
@@ -975,7 +975,7 @@ const ITEMS_CORE=[
 const ITEMS_OSH=[
   {id:'osh_boat',name:'Boat',book:'osh',category:'ride',cost:3,rideType:['nautical'],speed:0,armor:3},
   {id:'osh_bow',name:'Bow',book:'osh',category:'gun',cost:2,ammoType:'arrows',feats:['single_shot','silent'],twoHand:true,desc:'Allows you to shoot arrows.'},
-  {id:'osh_first_aid',name:'First-aid Kit',book:'osh',category:'gear',cost:2,desc:'Grants Help to treat wounds.'},
+  {id:'osh_first_aid',name:'First-aid Kit',book:'osh',category:'gear',cost:2,rollMode:'heal',desc:'Grants Help to treat wounds.'},
   {id:'osh_flashlight',name:'Flashlight',book:'osh',category:'gear',cost:1,desc:'Grants Help to see in the dark.'},
   {id:'osh_grappling',name:'Grappling Hook',book:'osh',category:'gear',cost:1,desc:'Grants Help to climb and swing.'},
   {id:'osh_grenade',name:'Grenade (1)',book:'osh',category:'gun',cost:2,feats:['throwing_weapon','explosive']},
