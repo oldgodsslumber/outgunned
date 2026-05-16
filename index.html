@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Outgunned — Multiplayer</title>
-<meta name="build" content="8b2a0c5-1778940475708">
+<meta name="build" content="f7b49ea-1778941254845">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -637,6 +637,13 @@ textarea{resize:vertical;min-height:70px}
 .rm-handgun.rm-drive-wrap{max-width:840px}
 .rm-gun-art.rm-drive-art{width:min(820px, 96vw);max-width:820px;height:auto;aspect-ratio:240/100;clip-path:none;overflow:visible;border-radius:8px}
 .rm-gun-art.rm-drive-art .rm-gun-svg{width:100%;height:auto}
+/* Landscape — stretch the dashboard to fill the viewport so the pedal lands
+   under the right thumb on wide phones held horizontally. The portrait sizing
+   above already places the pedal correctly; only widescreen needed the bump. */
+@media (orientation:landscape){
+  .rm-handgun.rm-drive-wrap{max-width:none;width:100%}
+  .rm-gun-art.rm-drive-art{width:96vw;max-width:none}
+}
 /* Gas pedal — translates down-right when pressed to mimic a pivot. */
 .rm-gas-pedal{cursor:pointer;touch-action:none;-webkit-user-select:none;user-select:none;transition:transform .1s ease-out}
 .rm-gas-pedal.pressed{transform:translate(3px, 4px)}
@@ -1812,7 +1819,7 @@ function applyState(d){
     cp.style.display='none';
   }
 }
-<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build 8b2a0c5</div>
+<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build f7b49ea</div>
 </body></html>`;}
 
 function loadSlot(n){
@@ -6105,8 +6112,9 @@ function driveModeRender(ctx){
     try{doRoll();}catch(e){console.error('doRoll failed during drive commit:',e);}
     commitBtn.classList.add('used');
     commitBtn.innerHTML='<span class="ej-icon">🎬</span><span>Close</span>';
-    promptEl.textContent='Throttle committed · Brake to redo the gag';
-    stopEngine(false);                // engine drops out before the screech bites
+    promptEl.textContent='Throttle committed · keep holding for the limiter · Brake to redo';
+    // Engine keeps running so the player can hold the pedal at redline and hear
+    // it stutter against the limiter, like really flooring it on a car.
     playScreech();
     hapticBuzz([35,30,40,25]);
   };
@@ -6115,15 +6123,20 @@ function driveModeRender(ctx){
     const elapsed=time-pressStartTime;
     revLevel=Math.min(1, elapsed/REV_DURATION_MS);
     updateTach();
-    setEngineFreq(revLevel);          // engine pitch follows the needle
+    if(revLevel>=1){
+      // Redline stutter — engine bounces against the rev limiter instead of
+      // climbing further. Fast time-constant so the wobble actually rasps.
+      const t=time/1000;
+      const wobble=Math.sin(t*22*Math.PI)*55;       // ~11Hz stutter
+      setEngineFreqHz(440+wobble,0.006);
+      if(!hasFired) commitDrive();                  // fires exactly once
+    }else{
+      setEngineFreq(revLevel);                      // engine pitch follows needle
+    }
     HAPTIC_THRESHOLDS.forEach(t=>{
       if(lastHapticPct<t&&revLevel>=t)hapticBuzz(12);
     });
     lastHapticPct=revLevel;
-    if(revLevel>=1){
-      commitDrive();
-      return;
-    }
     if(pressing){
       revAnimationId=requestAnimationFrame(tickRev);
     }
@@ -6180,6 +6193,13 @@ function driveModeRender(ctx){
     if(!engineOsc)return;
     const _ctx=audioCtx();if(!_ctx)return;
     try{engineOsc.frequency.setTargetAtTime(95+level*355,_ctx.currentTime,0.04);}catch(_){}
+  };
+  // Direct-frequency setter for the redline stutter. Faster time-constant
+  // so the wobble oscillation is audible instead of getting smoothed out.
+  const setEngineFreqHz=(hz,timeConst)=>{
+    if(!engineOsc)return;
+    const _ctx=audioCtx();if(!_ctx)return;
+    try{engineOsc.frequency.setTargetAtTime(hz,_ctx.currentTime,timeConst||0.04);}catch(_){}
   };
   const stopEngine=(immediate)=>{
     if(!engineOsc)return;
