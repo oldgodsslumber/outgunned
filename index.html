@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Outgunned — Multiplayer</title>
-<meta name="build" content="8bf3b85-1778898229205">
+<meta name="build" content="359131f-1778898343724">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -1611,7 +1611,7 @@ function applyState(d){
     cp.style.display='none';
   }
 }
-<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build 8bf3b85</div>
+<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build 359131f</div>
 </body></html>`;}
 
 function loadSlot(n){
@@ -4874,9 +4874,15 @@ const ROLL_MODES=[
   {id:'hacking', name:'Hacking', icon:'⌨️', desc:'Type to roll', needsMotion:false, render:placeholderModeRender,
     appliesTo:ctx=>ctx.sel.skill==='Crime'},
   // Melee — any blade/club from any book. Hits core Knife/Sword,
-  // OSH Sword/Axe + Mace/Hammer, WoK Katana, etc. Also fires on Fight.
+  // OSH Sword/Axe + Mace/Hammer, WoK Katana, etc. Requires an actual
+  // melee item; an unarmed Fight roll uses Fists below.
   {id:'knife', name:'Blade', icon:'🔪', desc:'Slash to strike', needsMotion:true, render:placeholderModeRender,
-    appliesTo:ctx=>ctx.items.some(it=>it.category==='melee')||ctx.sel.skill==='Fight'},
+    appliesTo:ctx=>ctx.items.some(it=>it.category==='melee')},
+  // Unarmed — Fight skill, no weapon needed. Real screen detects the
+  // sudden deceleration of a thrown punch (impact-on-stop rather than
+  // peak acceleration) and fires the impact SFX on stop.
+  {id:'fists', name:'Fists', icon:'👊', desc:'Punch — sound fires on impact', needsMotion:true, render:placeholderModeRender,
+    appliesTo:ctx=>ctx.sel.skill==='Fight'},
   // WoK expansion — named perfect katanas (and any 'traditional' melee).
   // Sits alongside Blade rather than replacing it so the player can pick
   // whichever feels right for the moment.

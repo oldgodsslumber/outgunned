@@ -4848,9 +4848,15 @@ const ROLL_MODES=[
   {id:'hacking', name:'Hacking', icon:'⌨️', desc:'Type to roll', needsMotion:false, render:placeholderModeRender,
     appliesTo:ctx=>ctx.sel.skill==='Crime'},
   // Melee — any blade/club from any book. Hits core Knife/Sword,
-  // OSH Sword/Axe + Mace/Hammer, WoK Katana, etc. Also fires on Fight.
+  // OSH Sword/Axe + Mace/Hammer, WoK Katana, etc. Requires an actual
+  // melee item; an unarmed Fight roll uses Fists below.
   {id:'knife', name:'Blade', icon:'🔪', desc:'Slash to strike', needsMotion:true, render:placeholderModeRender,
-    appliesTo:ctx=>ctx.items.some(it=>it.category==='melee')||ctx.sel.skill==='Fight'},
+    appliesTo:ctx=>ctx.items.some(it=>it.category==='melee')},
+  // Unarmed — Fight skill, no weapon needed. Real screen detects the
+  // sudden deceleration of a thrown punch (impact-on-stop rather than
+  // peak acceleration) and fires the impact SFX on stop.
+  {id:'fists', name:'Fists', icon:'👊', desc:'Punch — sound fires on impact', needsMotion:true, render:placeholderModeRender,
+    appliesTo:ctx=>ctx.sel.skill==='Fight'},
   // WoK expansion — named perfect katanas (and any 'traditional' melee).
   // Sits alongside Blade rather than replacing it so the player can pick
   // whichever feels right for the moment.
