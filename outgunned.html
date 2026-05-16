@@ -5540,10 +5540,11 @@ function handgunModeRender(ctx){
   };
   slamBtn.addEventListener('click',slamMag);
 
-  // Fire — pure theatre. Unlimited ammo, no commit, no close. Each tap or
-  // jab plays the gunshot animation. The player explicitly commits the roll
-  // via the "Roll Result" button below. Short 280ms lockout lets the recoil
-  // animation finish before the next shot, but allows rapid burst-firing.
+  // Fire — first shot silently commits the dice roll in the background
+  // (doRoll() lands the result in S.dice + renderDiceResult() paints the
+  // banner under the overlay). Subsequent shots are pure theatre. Player
+  // keeps firing for RP, hits "Close · See Result" when they're done.
+  let hasFired=false;
   const fireGun=()=>{
     if(firing)return;
     firing=true;
@@ -5554,9 +5555,19 @@ function handgunModeRender(ctx){
     triggerHitEl.classList.remove('firing');
     void triggerHitEl.getBoundingClientRect();   // reflow so the animation restarts
     triggerHitEl.classList.add('firing');
-    // Promote the commit button after the first shot so the player notices
-    // they have an explicit "I'm done" action.
-    commitBtn.classList.add('used');
+    if(!hasFired){
+      hasFired=true;
+      // Remember this mode for the active skill (same as commitRoll does)
+      // before resolving the dice, so per-character preference tracks.
+      const _sel=diceSel();
+      if(_currentRollMode&&_sel&&_sel.skill){
+        try{rememberModeForSkill(_currentRollMode.id,_sel.skill);}catch(_){}
+      }
+      try{doRoll();}catch(e){console.error('doRoll failed during handgun fire:',e);}
+      commitBtn.classList.add('used');
+      commitBtn.textContent='🎬 Close · See Result';
+      promptEl.textContent='Roll locked in — fire freely';
+    }
     setTimeout(()=>{
       gunSvgEl.classList.remove('fire');
       muzzleEl.classList.remove('flash');
@@ -5568,12 +5579,17 @@ function handgunModeRender(ctx){
   // no separate FIRE button. Physical-mapping: phone-as-gun, thumb on trigger.
   triggerHitEl.addEventListener('click',fireGun);
 
-  // Roll Result — explicit commit. Closes overlay and runs the real doRoll().
-  // Independent of firing — the player can commit without firing a single
-  // shot, or fire 20 times and then commit; the roll itself is the same.
+  // Close · See Result — behavior depends on whether they've fired:
+  //   - Not fired yet: this is the "I'm done, just roll it" button. Calls
+  //     ctx.commit() which closes + runs doRoll().
+  //   - Already fired: roll already happened on first shot. Just close.
   commitBtn.addEventListener('click',()=>{
     hapticBuzz(20);
-    ctx.commit();
+    if(hasFired){
+      closeRollMode();
+    } else {
+      ctx.commit();
+    }
   });
 
   // ─── Motion: single sharp jab fires. NOT a sustained shake.
