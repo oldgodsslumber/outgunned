@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Outgunned — Multiplayer</title>
-<meta name="build" content="d210298-1778937592216">
+<meta name="build" content="ac9914b-1778938080829">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -559,37 +559,40 @@ textarea{resize:vertical;min-height:70px}
 .rm-handgun{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;max-width:380px}
 .rm-handgun-screen{background:linear-gradient(180deg,#1a1410 0%,#080604 100%);border:1px solid #2a1f15;border-radius:12px;padding:18px 16px;width:100%;display:flex;flex-direction:column;align-items:center;gap:14px;box-shadow:inset 0 0 40px rgba(0,0,0,.55),0 4px 20px rgba(0,0,0,.4)}
 .rm-gun-name{font-size:14px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);text-shadow:0 0 8px rgba(230,57,70,.35)}
-.rm-gun-art{width:300px;height:150px;display:flex;align-items:center;justify-content:center;position:relative;overflow:visible}
-.rm-gun-svg{width:300px;height:auto;transition:transform .06s;filter:drop-shadow(0 5px 10px rgba(0,0,0,.65));-webkit-tap-highlight-color:transparent}
+/* Container sized to the cropped SVG aspect (240:69 ≈ 3.48:1). The gun is
+   intentionally cut off below the trigger guard — only the top of the
+   grip shows. The phone IS the rest of the grip, in the player's hand.
+   clip-path clips ONLY at the bottom edge so the muzzle flash can still
+   bloom past the right edge and the front sight isn't clipped at top. */
+.rm-gun-art{width:320px;height:96px;display:flex;align-items:center;justify-content:center;position:relative;overflow:visible;clip-path:inset(-50px -50px 0 -50px);border-radius:0 0 4px 4px}
+.rm-gun-svg{width:320px;height:auto;transition:transform .06s;filter:drop-shadow(0 4px 8px rgba(0,0,0,.6));-webkit-tap-highlight-color:transparent}
 .rm-gun-svg.fire{animation:rmFireKick .28s ease-out}
 @keyframes rmFireKick{
   0%{transform:translateX(0) rotate(0deg)}
   16%{transform:translateX(-12px) rotate(-8deg)}
   100%{transform:translateX(0) rotate(0deg)}
 }
-/* Muzzle flash sits at the right-hand tip of the gun. Barrel center is
-   at y=32 in the 240×100 viewBox. Container is 300×150; SVG scales to
-   300 wide × ~125 tall, centered vertically with ~12px padding top,
-   so barrel sits at ~52px from container top → ~34%. */
-.rm-muzzle-flash{position:absolute;right:-4px;top:34%;width:110px;height:110px;background:radial-gradient(circle,#fff 0%,#ffe680 22%,#ff8a3c 50%,rgba(255,90,40,.25) 80%,transparent 100%);border-radius:50%;opacity:0;pointer-events:none;transform:translate(20%,-50%)}
+/* Muzzle flash. Barrel center sits at SVG y=32, inside the cropped
+   viewBox y=16..85, so relative y = (32-16)/69 ≈ 23% from container top. */
+.rm-muzzle-flash{position:absolute;right:-4px;top:23%;width:96px;height:96px;background:radial-gradient(circle,#fff 0%,#ffe680 22%,#ff8a3c 50%,rgba(255,90,40,.25) 80%,transparent 100%);border-radius:50%;opacity:0;pointer-events:none;transform:translate(20%,-50%)}
 .rm-muzzle-flash.flash{animation:rmMuzzleFlash .24s ease-out}
 @keyframes rmMuzzleFlash{
   0%{opacity:0;transform:translate(20%,-50%) scale(.3)}
   20%{opacity:1;transform:translate(20%,-50%) scale(1)}
   100%{opacity:0;transform:translate(20%,-50%) scale(1.5)}
 }
-/* Vanity mag silhouette — drops out from the grip well around y=85 in the
-   SVG. Scaled to the larger container, that's roughly 78% from the top
-   and 14% from the left edge of .rm-gun-art. */
-.rm-mag-silhouette{position:absolute;left:14%;top:78%;width:26px;height:38px;background:linear-gradient(180deg,#5e5e5e 0%,#1f1f1f 100%);border:1px solid #0a0a0a;border-radius:2px 2px 1px 1px;opacity:0;pointer-events:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 2px 4px rgba(0,0,0,.5);transform:translateY(0)}
+/* Vanity mag silhouette — appears at the bottom edge of the cropped grip
+   and drops out below (clipped by the container's clip-path). Reads as
+   the mag dropping out of the player's hand. */
+.rm-mag-silhouette{position:absolute;left:20%;top:74%;width:22px;height:28px;background:linear-gradient(180deg,#5e5e5e 0%,#1f1f1f 100%);border:1px solid #0a0a0a;border-radius:2px 2px 1px 1px;opacity:0;pointer-events:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 2px 4px rgba(0,0,0,.5);transform:translateY(0)}
 .rm-mag-silhouette.ejecting{animation:rmMagEject .5s ease-in forwards}
 .rm-mag-silhouette.inserting{animation:rmMagInsert .42s ease-out forwards}
 @keyframes rmMagEject{
   0%{opacity:1;transform:translateY(0) rotate(0deg)}
-  100%{opacity:0;transform:translateY(72px) rotate(22deg)}
+  100%{opacity:0;transform:translateY(34px) rotate(20deg)}
 }
 @keyframes rmMagInsert{
-  0%{opacity:1;transform:translateY(72px) rotate(0deg)}
+  0%{opacity:1;transform:translateY(34px) rotate(0deg)}
   100%{opacity:0;transform:translateY(0) rotate(0deg)}
 }
 .rm-handgun-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
@@ -1785,7 +1788,7 @@ function applyState(d){
     cp.style.display='none';
   }
 }
-<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build d210298</div>
+<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build ac9914b</div>
 </body></html>`;}
 
 function loadSlot(n){
@@ -5491,7 +5494,7 @@ function handgunModeRender(ctx){
       <div class="rm-handgun-screen">
         <div class="rm-gun-name">${gunName}</div>
         <div class="rm-gun-art">
-          <svg class="rm-gun-svg" id="rm-gun-svg" width="240" height="100" viewBox="0 0 240 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <svg class="rm-gun-svg" id="rm-gun-svg" width="240" height="69" viewBox="0 16 240 69" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <defs>
               <linearGradient id="rm-gun-grad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stop-color="#cccccc"/>
