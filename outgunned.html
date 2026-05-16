@@ -632,23 +632,42 @@ textarea{resize:vertical;min-height:70px}
 .rm-plunger-group.dragging{cursor:grabbing}
 .rm-plunger-group.dragging .rm-trigger-hit{animation:none;stroke-opacity:0}
 
-/* Drive Prop — full-height uncropped dashboard view. Tach + gas pedal
-   share the panel. Wider wrapper than handgun so the gas pedal can land
-   in the right-thumb reach zone on landscape phones. */
+/* Drive Prop — dashboard with steering wheel + tach side by side. The gas
+   pedal is now an HTML element below the dashboard so it can be styled as
+   a real chunky pedal-button and right-aligned for thumb reach. */
 .rm-handgun.rm-drive-wrap{max-width:840px}
 .rm-gun-art.rm-drive-art{width:min(820px, 96vw);max-width:820px;height:auto;aspect-ratio:240/100;clip-path:none;overflow:visible;border-radius:8px}
 .rm-gun-art.rm-drive-art .rm-gun-svg{width:100%;height:auto}
-/* Landscape — stretch the dashboard to fill the viewport so the pedal lands
-   under the right thumb on wide phones held horizontally. The portrait sizing
-   above already places the pedal correctly; only widescreen needed the bump. */
 @media (orientation:landscape){
   .rm-handgun.rm-drive-wrap{max-width:none;width:100%}
   .rm-gun-art.rm-drive-art{width:96vw;max-width:none}
 }
-/* Gas pedal — translates down-right when pressed to mimic a pivot. */
-.rm-gas-pedal{cursor:pointer;touch-action:none;-webkit-user-select:none;user-select:none;transition:transform .1s ease-out}
-.rm-gas-pedal.pressed{transform:translate(3px, 4px)}
-.rm-gas-pedal.pressed .rm-trigger-hit{animation:none;stroke-opacity:0}
+/* Steering wheel — decorative. Shakes subtly while the gas pedal is held
+   (class applied to the wrapper). Clickable to honk for vanity. */
+.rm-wheel{cursor:pointer;transform-box:fill-box;transform-origin:center;transition:transform .15s ease-out}
+.rm-drive-revving .rm-wheel{animation:rmWheelShake .18s linear infinite}
+@keyframes rmWheelShake{
+  0%,100%{transform:rotate(0)}
+  25%{transform:rotate(-2.2deg)}
+  75%{transform:rotate(2.2deg)}
+}
+/* Gas pedal — big right-aligned pad above the action buttons. The 3D shadow
+   collapses on press so the pedal physically feels like it's depressing. */
+.rm-gas-pad-row{display:flex;justify-content:flex-end;width:100%;margin-top:6px}
+.rm-gas-pad{width:min(60%, 320px);min-width:200px;height:78px;border-radius:14px;
+  border:1px solid #0a0a0a;
+  background:linear-gradient(180deg,#6a6a6a 0%,#3a3a3a 55%,#1a1a1a 100%);
+  color:#fff;font-size:22px;font-weight:800;letter-spacing:.22em;
+  font-family:inherit;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.18), inset 0 -6px 8px rgba(0,0,0,.4), 0 5px 0 #050505, 0 7px 10px rgba(0,0,0,.55);
+  text-shadow:0 1px 2px rgba(0,0,0,.6);
+  user-select:none;-webkit-user-select:none;touch-action:none;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .08s, box-shadow .08s, filter .08s}
+.rm-gas-pad:hover{filter:brightness(1.08)}
+.rm-gas-pad.pressed{transform:translateY(4px);box-shadow:inset 0 2px 0 rgba(255,255,255,.12), inset 0 -3px 6px rgba(0,0,0,.4), 0 1px 0 #050505, 0 2px 4px rgba(0,0,0,.5);filter:brightness(.92)}
+.rm-gas-pad-icon{display:inline-block;width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-top:13px solid #e63946;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
 /* Roll button — same shape and size as the eject/slam action buttons, but
    with an accent gradient so it reads as "the action that ends this
    Prop" without being a giant easy-to-fat-finger tap target. Inherits
@@ -6070,7 +6089,7 @@ function driveModeRender(ctx){
     <div class="rm-handgun rm-drive-wrap">
       <div class="rm-handgun-screen">
         <div class="rm-gun-name">${rideName}</div>
-        <div class="rm-gun-art rm-drive-art">
+        <div class="rm-gun-art rm-drive-art" id="rm-drive-art">
           <svg class="rm-gun-svg" id="rm-drive-svg" width="240" height="100" viewBox="0 0 240 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <defs>
               <radialGradient id="rm-tach-face" cx="50%" cy="60%" r="60%">
@@ -6082,51 +6101,62 @@ function driveModeRender(ctx){
                 <stop offset="50%" stop-color="#3a3a3a"/>
                 <stop offset="100%" stop-color="#1a1a1a"/>
               </linearGradient>
-              <linearGradient id="rm-pedal-edge" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#999"/>
-                <stop offset="100%" stop-color="#3a3a3a"/>
-              </linearGradient>
+              <radialGradient id="rm-wheel-rim" cx="50%" cy="40%" r="60%">
+                <stop offset="0%" stop-color="#5a5a5a"/>
+                <stop offset="100%" stop-color="#1a1a1a"/>
+              </radialGradient>
             </defs>
-            <!-- Tach face background. -->
-            <circle cx="80" cy="70" r="48" fill="url(#rm-tach-face)" stroke="#2a2a2a" stroke-width="2"/>
-            <circle cx="80" cy="70" r="44" fill="none" stroke="#1a1a1a" stroke-width="1"/>
-            <!-- Tach arc (background ring) west → east through north. -->
-            <path d="M 40 70 A 40 40 0 0 1 120 70" stroke="#5a5a5a" stroke-width="6" fill="none" stroke-linecap="round"/>
-            <!-- Redline zone (last ~30% of the arc). -->
-            <path d="M 104 38 A 40 40 0 0 1 120 70" stroke="#d63040" stroke-width="6" fill="none" stroke-linecap="round"/>
-            <!-- Tach number labels. -->
-            <text x="40" y="86" font-size="6" fill="#888" text-anchor="middle" font-family="ui-monospace,monospace">0</text>
-            <text x="80" y="28" font-size="6" fill="#888" text-anchor="middle" font-family="ui-monospace,monospace">4</text>
-            <text x="120" y="86" font-size="6" fill="#d63040" text-anchor="middle" font-family="ui-monospace,monospace">8</text>
-            <!-- Tach needle (rotates via JS attribute). -->
-            <line id="rm-tach-needle" x1="80" y1="70" x2="44" y2="70" stroke="#ff5070" stroke-width="3" stroke-linecap="round" transform="rotate(0 80 70)"/>
-            <!-- Center cap. -->
-            <circle cx="80" cy="70" r="4" fill="#3a3a3a" stroke="#bbb" stroke-width="0.6"/>
-            <!-- "RPM" label. -->
-            <text x="80" y="93" font-size="6" fill="#9a9a9a" text-anchor="middle" font-family="Helvetica,sans-serif" letter-spacing="1">RPM x1000</text>
-            <!-- Gear indicator — bumps each time the pedal is pressed. -->
-            <text id="rm-gear-label" x="80" y="60" font-size="14" font-weight="bold" fill="#ff5070" text-anchor="middle" font-family="ui-monospace,monospace">N</text>
-            <!-- Gas pedal group. Anchored to the right edge of the viewBox so
-                 it lands in the right thumb's natural reach zone in landscape.
-                 Translates down-right when pressed via CSS class. -->
-            <g class="rm-gas-pedal" id="rm-gas-pedal">
-              <!-- Drop shadow under the pedal -->
-              <polygon points="188,32 242,27 242,82 188,77" fill="#0a0a0a" opacity="0.55"/>
-              <!-- Pedal face -->
-              <polygon points="190,30 240,25 240,80 190,75" fill="url(#rm-pedal-grad)" stroke="#1a1a1a" stroke-width="1.5"/>
-              <!-- Foot grip hatching -->
-              <g stroke="#1a1a1a" stroke-width="1" opacity="0.55">
-                <line x1="196" y1="38" x2="235" y2="33"/>
-                <line x1="197" y1="48" x2="235" y2="43"/>
-                <line x1="198" y1="58" x2="235" y2="53"/>
-                <line x1="199" y1="68" x2="235" y2="63"/>
+            <!-- ─── Steering wheel (left side, decorative). 3-spoke wheel
+                 with a red horn pad. Wobbles via CSS when the player is on
+                 the gas. Clickable to honk for vanity. ─── -->
+            <g class="rm-wheel" id="rm-wheel">
+              <!-- shadow puddle under the wheel -->
+              <ellipse cx="55" cy="92" rx="36" ry="3" fill="#000" opacity=".35"/>
+              <!-- outer rim (dark stroke base) -->
+              <circle cx="55" cy="50" r="40" fill="none" stroke="#0a0a0a" stroke-width="10"/>
+              <!-- rim highlight -->
+              <circle cx="55" cy="50" r="40" fill="none" stroke="url(#rm-wheel-rim)" stroke-width="6" opacity=".95"/>
+              <!-- rim inner shadow -->
+              <circle cx="55" cy="50" r="35" fill="none" stroke="#000" stroke-width="1.2" opacity=".5"/>
+              <!-- spokes: top, lower-left (210°), lower-right (330°) -->
+              <g stroke="#2a2a2a" stroke-width="8" stroke-linecap="round">
+                <line x1="55" y1="50" x2="55" y2="16"/>
+                <line x1="55" y1="50" x2="25.6" y2="67"/>
+                <line x1="55" y1="50" x2="84.4" y2="67"/>
               </g>
-              <!-- "GAS" label -->
-              <text x="215" y="58" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Helvetica,sans-serif" letter-spacing="1.5">GAS</text>
-              <!-- Tap target — generous, extends a touch past the right edge -->
-              <rect class="rm-trigger-hit" id="rm-gas-hit" x="160" y="18" width="84" height="72" rx="4"/>
+              <g stroke="#4a4a4a" stroke-width="3.5" stroke-linecap="round" opacity=".85">
+                <line x1="55" y1="50" x2="55" y2="16"/>
+                <line x1="55" y1="50" x2="25.6" y2="67"/>
+                <line x1="55" y1="50" x2="84.4" y2="67"/>
+              </g>
+              <!-- horn / center pad -->
+              <circle cx="55" cy="50" r="14" fill="url(#rm-pedal-grad)" stroke="#666" stroke-width="0.8"/>
+              <circle cx="55" cy="50" r="10" fill="#d63040" stroke="#7a1e25" stroke-width="0.8"/>
+              <text x="55" y="53" font-size="6" fill="#fff" text-anchor="middle" font-family="Helvetica,sans-serif" letter-spacing="1.5" font-weight="bold">GT</text>
             </g>
+            <!-- ─── Tachometer (right side). Same layout as before, just
+                 shifted right so the wheel can sit beside it. ─── -->
+            <circle cx="170" cy="70" r="40" fill="url(#rm-tach-face)" stroke="#2a2a2a" stroke-width="2"/>
+            <circle cx="170" cy="70" r="36" fill="none" stroke="#1a1a1a" stroke-width="1"/>
+            <!-- Tach arc -->
+            <path d="M 136 70 A 34 34 0 0 1 204 70" stroke="#5a5a5a" stroke-width="5" fill="none" stroke-linecap="round"/>
+            <!-- Redline zone -->
+            <path d="M 190 41 A 34 34 0 0 1 204 70" stroke="#d63040" stroke-width="5" fill="none" stroke-linecap="round"/>
+            <!-- Number labels -->
+            <text x="136" y="84" font-size="6" fill="#888" text-anchor="middle" font-family="ui-monospace,monospace">0</text>
+            <text x="170" y="34" font-size="6" fill="#888" text-anchor="middle" font-family="ui-monospace,monospace">4</text>
+            <text x="204" y="84" font-size="6" fill="#d63040" text-anchor="middle" font-family="ui-monospace,monospace">8</text>
+            <!-- Needle (rotates via JS) -->
+            <line id="rm-tach-needle" x1="170" y1="70" x2="139" y2="70" stroke="#ff5070" stroke-width="2.6" stroke-linecap="round" transform="rotate(0 170 70)"/>
+            <circle cx="170" cy="70" r="3.4" fill="#3a3a3a" stroke="#bbb" stroke-width="0.5"/>
+            <text x="170" y="91" font-size="5.5" fill="#9a9a9a" text-anchor="middle" font-family="Helvetica,sans-serif" letter-spacing="1">RPM x1000</text>
+            <text id="rm-gear-label" x="170" y="62" font-size="12" font-weight="bold" fill="#ff5070" text-anchor="middle" font-family="ui-monospace,monospace">N</text>
           </svg>
+        </div>
+        <div class="rm-gas-pad-row">
+          <button class="rm-gas-pad" id="rm-gas-hit" type="button" aria-label="Gas pedal — press and hold">
+            <span class="rm-gas-pad-icon" aria-hidden="true"></span><span>GAS</span>
+          </button>
         </div>
         <div class="rm-handgun-actions">
           <button class="rm-eject-btn" id="rm-drive-brake" type="button">
@@ -6142,15 +6172,22 @@ function driveModeRender(ctx){
     </div>`;
 
   const tachNeedle=ctx.body.querySelector('#rm-tach-needle');
-  const pedalGroup=ctx.body.querySelector('#rm-gas-pedal');
+  // The gas pedal is now a single HTML button — pedalGroup and pedalHit
+  // point at the same element so the existing .pressed-class logic still
+  // works without a separate visual wrapper.
   const pedalHit=ctx.body.querySelector('#rm-gas-hit');
+  const pedalGroup=pedalHit;
+  const driveArt=ctx.body.querySelector('#rm-drive-art');
+  const wheelEl=ctx.body.querySelector('#rm-wheel');
   const brakeBtn=ctx.body.querySelector('#rm-drive-brake');
   const commitBtn=ctx.body.querySelector('#rm-drive-commit');
   const promptEl=ctx.body.querySelector('#rm-prompt');
   const gearLabel=ctx.body.querySelector('#rm-gear-label');
 
   const updateTach=()=>{
-    tachNeedle.setAttribute('transform',`rotate(${revLevel*180} 80 70)`);
+    // Needle pivots around the new tach center (170,70 after the layout
+    // moved the dial right of the steering wheel).
+    tachNeedle.setAttribute('transform',`rotate(${revLevel*180} 170 70)`);
   };
   const updateGearLabel=()=>{
     gearLabel.textContent = gear===0 ? 'N' : String(gear);
@@ -6282,6 +6319,7 @@ function driveModeRender(ctx){
   pedalHit.addEventListener('pointerdown',(e)=>{
     pressing=true;
     pedalGroup.classList.add('pressed');
+    driveArt.classList.add('rm-drive-revving');     // shake the wheel while on the gas
     try{pedalHit.setPointerCapture(e.pointerId);}catch(_){}
     // Shift up — each fresh press is the next gear, capped so audio stays sane.
     if(gear<MAX_GEAR) gear++;
@@ -6302,11 +6340,20 @@ function driveModeRender(ctx){
     if(!pressing)return;
     pressing=false;
     pedalGroup.classList.remove('pressed');
+    driveArt.classList.remove('rm-drive-revving');
     try{pedalHit.releasePointerCapture(e.pointerId);}catch(_){}
     stopRev();
   };
   pedalHit.addEventListener('pointerup',endPress);
   pedalHit.addEventListener('pointercancel',endPress);
+
+  // Steering wheel — purely decorative, but clickable for a vanity horn
+  // honk. Visually it already shakes while the gas pedal is down.
+  wheelEl.addEventListener('click',()=>{
+    playTone(360,0.18,'square',0.18);
+    setTimeout(()=>playTone(360,0.18,'square',0.18),60);
+    hapticBuzz(18);
+  });
 
   // Brake — vanity reset. Animates needle back to 0 with a ka-chunk.
   brakeBtn.addEventListener('click',()=>{
