@@ -605,6 +605,16 @@ textarea{resize:vertical;min-height:70px}
   100%{fill:rgba(230,57,70,0);stroke-width:0;stroke-opacity:0}
 }
 .rm-handgun-fallback-note{font-size:10px;color:var(--muted);text-align:center;font-style:italic;max-width:320px;line-height:1.45;letter-spacing:.02em}
+/* Roll Result — explicit commit affordance. Fire is theatre-only; this is
+   the button that actually ends the Setpiece and resolves the dice roll. */
+.rm-handgun-commit-btn{padding:14px 32px;border-radius:10px;background:linear-gradient(135deg,#ff5060,var(--accent) 45%,#7a1e25);color:#fff;border:none;font-size:15px;font-weight:900;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:filter .12s,transform .06s,box-shadow .15s;font-family:inherit;display:inline-flex;align-items:center;gap:10px;box-shadow:0 5px 20px rgba(230,57,70,.4),inset 0 -3px 8px rgba(0,0,0,.3)}
+.rm-handgun-commit-btn:hover{filter:brightness(1.12)}
+.rm-handgun-commit-btn:active{transform:scale(.96);box-shadow:0 3px 12px rgba(230,57,70,.3),inset 0 -2px 6px rgba(0,0,0,.4)}
+.rm-handgun-commit-btn.used{animation:rmCommitPulse 1.6s ease-in-out infinite}
+@keyframes rmCommitPulse{
+  0%,100%{box-shadow:0 5px 20px rgba(230,57,70,.4),inset 0 -3px 8px rgba(0,0,0,.3)}
+  50%{box-shadow:0 5px 28px rgba(230,57,70,.7),0 0 0 4px rgba(230,57,70,.18),inset 0 -3px 8px rgba(0,0,0,.3)}
+}
 
 /* Landscape: phone-as-gun layout. Anchor gun to lower-left so the trigger
    sits naturally where the user's left thumb rests. Eject/Slam float to
@@ -5490,6 +5500,9 @@ function handgunModeRender(ctx){
         </div>
       </div>
       <div class="rm-handgun-prompt" id="rm-prompt">Tap the trigger · or jab phone forward</div>
+      <button class="rm-handgun-commit-btn" id="rm-handgun-commit" type="button">
+        🎲 Roll Result
+      </button>
       <div class="rm-handgun-fallback-note" id="rm-fallback-note"></div>
     </div>`;
 
@@ -5500,6 +5513,7 @@ function handgunModeRender(ctx){
   const slamBtn=ctx.body.querySelector('#rm-slam');
   const triggerHitEl=ctx.body.querySelector('#rm-trigger-hit');
   const promptEl=ctx.body.querySelector('#rm-prompt');
+  const commitBtn=ctx.body.querySelector('#rm-handgun-commit');
   const fallbackNote=ctx.body.querySelector('#rm-fallback-note');
 
   // Eject — vanity-only. Mag silhouette drops out and fades.
@@ -5526,7 +5540,10 @@ function handgunModeRender(ctx){
   };
   slamBtn.addEventListener('click',slamMag);
 
-  // Fire — unlimited ammo, always works. Commits the roll.
+  // Fire — pure theatre. Unlimited ammo, no commit, no close. Each tap or
+  // jab plays the gunshot animation. The player explicitly commits the roll
+  // via the "Roll Result" button below. Short 280ms lockout lets the recoil
+  // animation finish before the next shot, but allows rapid burst-firing.
   const fireGun=()=>{
     if(firing)return;
     firing=true;
@@ -5537,16 +5554,27 @@ function handgunModeRender(ctx){
     triggerHitEl.classList.remove('firing');
     void triggerHitEl.getBoundingClientRect();   // reflow so the animation restarts
     triggerHitEl.classList.add('firing');
+    // Promote the commit button after the first shot so the player notices
+    // they have an explicit "I'm done" action.
+    commitBtn.classList.add('used');
     setTimeout(()=>{
       gunSvgEl.classList.remove('fire');
       muzzleEl.classList.remove('flash');
       triggerHitEl.classList.remove('firing');
-    },300);
-    setTimeout(()=>ctx.commit(),540);
+      firing=false;
+    },280);
   };
   // The trigger guard area inside the SVG is the only fire affordance —
   // no separate FIRE button. Physical-mapping: phone-as-gun, thumb on trigger.
   triggerHitEl.addEventListener('click',fireGun);
+
+  // Roll Result — explicit commit. Closes overlay and runs the real doRoll().
+  // Independent of firing — the player can commit without firing a single
+  // shot, or fire 20 times and then commit; the roll itself is the same.
+  commitBtn.addEventListener('click',()=>{
+    hapticBuzz(20);
+    ctx.commit();
+  });
 
   // ─── Motion: single sharp jab fires. NOT a sustained shake.
   // iOS Shake-to-Undo requires multiple oscillations within ~0.5s. A single
