@@ -5982,12 +5982,17 @@ function healModeRender(ctx){
 function driveModeRender(ctx){
   try{
   let pressing=false, hasFired=false;
-  let revLevel=0;                  // 0 (idle) → 1 (redline)
+  let revLevel=0;                  // 0 (idle) → 1 (redline) in current gear
   let revAnimationId=null;
   let pressStartTime=0;
   const REV_DURATION_MS=1400;
   const HAPTIC_THRESHOLDS=[0.25,0.5,0.75];
   let lastHapticPct=0;
+  // Gear stack — each press shifts up. Engine pitch and stutter pitch climb
+  // per gear so successive presses sound like winding through the box. Caps
+  // at MAX_GEAR so the audio doesn't drift into ultrasonic territory.
+  let gear=0;
+  const MAX_GEAR=6;
 
   const ride=ctx.items.find(it=>it.category==='ride');
   const rideName=ride?ride.name:'Drive';
@@ -6030,6 +6035,8 @@ function driveModeRender(ctx){
             <circle cx="80" cy="70" r="4" fill="#3a3a3a" stroke="#bbb" stroke-width="0.6"/>
             <!-- "RPM" label. -->
             <text x="80" y="93" font-size="6" fill="#9a9a9a" text-anchor="middle" font-family="Helvetica,sans-serif" letter-spacing="1">RPM x1000</text>
+            <!-- Gear indicator — bumps each time the pedal is pressed. -->
+            <text id="rm-gear-label" x="80" y="60" font-size="14" font-weight="bold" fill="#ff5070" text-anchor="middle" font-family="ui-monospace,monospace">N</text>
             <!-- Gas pedal group. Anchored to the right edge of the viewBox so
                  it lands in the right thumb's natural reach zone in landscape.
                  Translates down-right when pressed via CSS class. -->
@@ -6071,10 +6078,20 @@ function driveModeRender(ctx){
   const brakeBtn=ctx.body.querySelector('#rm-drive-brake');
   const commitBtn=ctx.body.querySelector('#rm-drive-commit');
   const promptEl=ctx.body.querySelector('#rm-prompt');
+  const gearLabel=ctx.body.querySelector('#rm-gear-label');
 
   const updateTach=()=>{
     tachNeedle.setAttribute('transform',`rotate(${revLevel*180} 80 70)`);
   };
+  const updateGearLabel=()=>{
+    gearLabel.textContent = gear===0 ? 'N' : String(gear);
+  };
+  // Frequency floor/ceiling climb with gear so each shift sounds higher than
+  // the last. Gear 1 mirrors the original 95→450Hz sweep; each subsequent
+  // gear adds ~120Hz to both ends.
+  const gearBase=()=>95+Math.max(0,gear-1)*120;
+  const gearTop =()=>gearBase()+355;
+  const gearStutterHz=()=>440+Math.max(0,gear-1)*120;
 
   const commitDrive=()=>{
     if(hasFired)return;
@@ -6086,7 +6103,7 @@ function driveModeRender(ctx){
     try{doRoll();}catch(e){console.error('doRoll failed during drive commit:',e);}
     commitBtn.classList.add('used');
     commitBtn.innerHTML='<span class="ej-icon">🎬</span><span>Close</span>';
-    promptEl.textContent='Throttle committed · keep holding for the limiter · Brake to redo';
+    promptEl.textContent='Roll fired · keep shifting for the chase · Brake to reset';
     // Engine keeps running so the player can hold the pedal at redline and hear
     // it stutter against the limiter, like really flooring it on a car.
     playScreech();
@@ -6100,12 +6117,15 @@ function driveModeRender(ctx){
     if(revLevel>=1){
       // Redline stutter — engine bounces against the rev limiter instead of
       // climbing further. Fast time-constant so the wobble actually rasps.
+      // Stutter pitch climbs with gear so a redline in 4th sounds higher
+      // than a redline in 1st.
       const t=time/1000;
       const wobble=Math.sin(t*22*Math.PI)*55;       // ~11Hz stutter
-      setEngineFreqHz(440+wobble,0.006);
+      setEngineFreqHz(gearStutterHz()+wobble,0.006);
       if(!hasFired) commitDrive();                  // fires exactly once
     }else{
-      setEngineFreq(revLevel);                      // engine pitch follows needle
+      // Engine pitch sweeps gear floor → ceiling as the needle climbs.
+      setEngineFreqHz(gearBase()+revLevel*(gearTop()-gearBase()),0.04);
     }
     HAPTIC_THRESHOLDS.forEach(t=>{
       if(lastHapticPct<t&&revLevel>=t)hapticBuzz(12);
@@ -6191,13 +6211,21 @@ function driveModeRender(ctx){
   };
 
   pedalHit.addEventListener('pointerdown',(e)=>{
-    if(hasFired)return;
     pressing=true;
     pedalGroup.classList.add('pressed');
     try{pedalHit.setPointerCapture(e.pointerId);}catch(_){}
+    // Shift up — each fresh press is the next gear, capped so audio stays sane.
+    if(gear<MAX_GEAR) gear++;
+    updateGearLabel();
+    // Needle resets to 0 on the shift so this gear's rev sweep starts fresh,
+    // which makes successive presses feel like winding the box rather than
+    // pinning a single climb.
+    revLevel=0;
+    lastHapticPct=0;
+    updateTach();
     playRevStart();           // one-shot ignition kick
-    startEngine();            // sustained engine tone (modulated by setEngineFreq)
-    pressStartTime=performance.now()-revLevel*REV_DURATION_MS;  // resume from current rev if mid-settle
+    startEngine();            // sustained engine tone (modulated below)
+    pressStartTime=performance.now();
     revAnimationId=requestAnimationFrame(tickRev);
     e.preventDefault();
   });
@@ -6216,6 +6244,8 @@ function driveModeRender(ctx){
     if(pressing)return;
     playMagSlam();
     hapticBuzz(20);
+    gear=0;                            // drop back to Neutral
+    updateGearLabel();
     const startLevel=revLevel;
     const startTime=performance.now();
     const duration=260;
