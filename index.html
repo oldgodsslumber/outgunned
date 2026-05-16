@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Outgunned — Multiplayer</title>
-<meta name="build" content="0e81460-1778956167088">
+<meta name="build" content="7f2909c-1778956495249">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -877,9 +877,10 @@ textarea{resize:vertical;min-height:70px}
       <div class="card" id="dice-picker-card"><!-- renderDicePicker() fills this --></div>
       <div id="dice-result-area"></div>
       <div id="dice-action-btns" style="display:none">
-        <div style="display:flex;gap:8px;margin-bottom:6px">
-          <button class="btn btn-success" style="flex:1" id="btn-reroll" onclick="doReroll()">Re-roll</button>
-          <button class="btn btn-gold" style="flex:1;display:none" id="btn-allin" onclick="doAllIn()">All-In!</button>
+        <div style="display:flex;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+          <button class="btn btn-success" style="flex:1;min-width:120px" id="btn-reroll" onclick="doReroll()">Re-roll</button>
+          <button class="btn btn-secondary" style="flex:1;min-width:140px;display:none" id="btn-free-reroll" onclick="doFreeReroll()" title="Use only when a Feat or Item grants a Free Re-roll. Never risks a success.">Free Re-roll · Feat</button>
+          <button class="btn btn-gold" style="flex:1;min-width:120px;display:none" id="btn-allin" onclick="doAllIn()">All-In!</button>
         </div>
         <div id="dice-hint" class="muted" style="text-align:center;font-size:11px;margin-bottom:10px"></div>
       </div>
@@ -1894,7 +1895,7 @@ function applyState(d){
     cp.style.display='none';
   }
 }
-<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build 0e81460</div>
+<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build 7f2909c</div>
 </body></html>`;}
 
 function loadSlot(n){
@@ -5029,13 +5030,6 @@ function adjDiceMod(d){
   sel.mod=Math.max(-3,Math.min(3,(sel.mod||0)+d));
   save();renderDicePicker();
 }
-function toggleDiceFeat(name){
-  const sel=diceSel();
-  if(!sel.activeFeats)sel.activeFeats=[];
-  const i=sel.activeFeats.indexOf(name);
-  if(i>=0)sel.activeFeats.splice(i,1);else sel.activeFeats.push(name);
-  save();renderDicePicker();
-}
 function updateDiceCount(){renderDicePicker();}
 
 function renderDicePicker(){
@@ -5108,24 +5102,10 @@ function renderDicePicker(){
   </div>`;
   // Themed roll modes: chips derived from owned items + selected skill.
   html+=renderRollModeStrip();
-  // Feats — click to mark as applied to this roll (visual reminder for Free Re-rolls etc.)
-  if(ch&&(ch.feats||[]).length){
-    html+=`<div class="label" style="margin-top:14px;margin-bottom:6px">Feats <span style="font-weight:400;font-size:10px;color:var(--muted)">— tap any that apply to this roll</span></div>`;
-    html+=`<div class="dice-feats-list">`;
-    (ch.feats||[]).forEach(fname=>{
-      const feat=FEATS.find(f=>f.name===fname);
-      const on=(sel.activeFeats||[]).includes(fname);
-      html+=`<div class="dice-feat-tile${on?' on':''}" onclick="toggleDiceFeat('${escq(fname)}')">
-        <div class="dft-head">
-          <span class="dft-name">${fname}</span>
-          ${feat?.trigger&&feat.trigger!=='Passive'?`<span class="dft-trig">[${feat.trigger}]</span>`:''}
-          ${hasAdrCost(feat)?adrCostChip():''}
-        </div>
-        <div class="dft-desc">${termSubst(feat?.desc||'')}</div>
-      </div>`;
-    });
-    html+=`</div>`;
-  }
+  // (Per-roll feats UI removed — the Free Re-roll · Feat button under the
+  // result block now stands in for any feat-granted Free Re-roll. Player
+  // self-governs when it's earned: feat list lives on the character sheet.)
+
   // Detach the persistent result + action-buttons nodes BEFORE wiping the
   // card body so they survive the innerHTML replacement. After re-rendering
   // the card markup we drop the same nodes back into anchor slots above the
@@ -6798,6 +6778,38 @@ function doReroll(){
   save();renderDiceResult();
 }
 
+// Free Re-roll (granted by Feats / certain Items): never risks losing a
+// success and works even with zero initial successes. If the result is
+// better, we keep it and unlock All-In; if not, the original result stands
+// (we record the attempt in history for transparency but the *current* dice
+// stay as-is). The player governs when this is legal — we don't try to
+// auto-detect "do you have a Free Re-roll feat that applies here", per the
+// user's instruction.
+function doFreeReroll(){
+  const d=S.dice;if(!d)return;
+  if(d.phase==='allin')return;
+  const kept=d.dice.filter(v=>v===d.matchFace);
+  const newDice=[...kept,...rollN(d.dice.length-kept.length)];
+  const{face:nf,count:nc}=bestMatch(newDice);
+  const better=nc>d.matchCount||(nc===d.matchCount&&nf>d.matchFace);
+  d.history.unshift({dice:[...d.dice],level:d.level,matchCount:d.matchCount,matchFace:d.matchFace,note:'before Free Re-roll'});
+  if(better){
+    const lvl=successLevel(nc);
+    d.dice=newDice;d.matchFace=nf;d.matchCount=nc;d.level=lvl.level;d.lvlNum=lvl.lvlNum;
+    d.phase='reroll';d.rerollBetter=true;
+    d.rerollFailNote=null;
+  } else {
+    // No-loss rule: dice stay as the originals; record the bust in history.
+    d.phase='reroll';d.rerollBetter=false;
+    d.rerollFailNote='Free Re-roll · no improvement (no successes lost)';
+  }
+  // Mark so the result panel knows this was a Free Re-roll path (controls
+  // whether the button reappears for a second attempt — by default a Free
+  // Re-roll is one-and-done unless the player has a second-feat scenario).
+  d.usedFreeReroll=true;
+  save();renderDiceResult();
+}
+
 function doAllIn(){
   const d=S.dice;if(!d||!d.rerollBetter)return;
   const kept=d.dice.filter(v=>v===d.matchFace);
@@ -7090,19 +7102,30 @@ function renderDiceResult(){
     </div>
   </div>`;
 
-  // Action buttons
+  // Action buttons. Three controls now: standard Re-roll, Free Re-roll (Feat),
+  // and All-In. Free Re-roll is always offered after the initial roll (works
+  // with zero successes per the rulebook); player self-governs whether a Feat
+  // / Item legally grants it for this roll. After any successful re-roll,
+  // All-In becomes available.
   const actEl=document.getElementById('dice-action-btns');
   const hintEl=document.getElementById('dice-hint');
   const rerollBtn=document.getElementById('btn-reroll');
+  const freeBtn=document.getElementById('btn-free-reroll');
   const allinBtn=document.getElementById('btn-allin');
-  if(d.phase==='initial'&&d.lvlNum>=1){
+  const hide=el=>{if(el)el.style.display='none';};
+  const show=el=>{if(el)el.style.display='flex';};
+  if(d.phase==='initial'){
     actEl.style.display='block';
-    rerollBtn.style.display='flex';allinBtn.style.display='none';
-    hintEl.textContent='Keep matched dice, re-roll the rest. Better result → keep it. Worse → lose one success.';
+    if(d.lvlNum>=1) show(rerollBtn); else hide(rerollBtn);
+    show(freeBtn);
+    hide(allinBtn);
+    hintEl.textContent=d.lvlNum>=1
+      ? 'Re-roll = risk a success. Free Re-roll = use only when a Feat/Item grants it (never risks a success).'
+      : 'No success yet — only a Free Re-roll (granted by a Feat/Item) applies.';
   } else if(d.phase==='reroll'&&d.rerollBetter){
     actEl.style.display='block';
-    rerollBtn.style.display='none';allinBtn.style.display='flex';
-    hintEl.textContent='Re-roll all remaining dice again. Better → keep. Not better → LOSE ALL successes!';
+    hide(rerollBtn);hide(freeBtn);show(allinBtn);
+    hintEl.textContent='All-In re-rolls remaining dice. Better → keep. Not better → LOSE ALL successes!';
   } else {
     actEl.style.display='none';
   }
