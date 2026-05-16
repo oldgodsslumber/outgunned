@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Outgunned — Multiplayer</title>
-<meta name="build" content="512f382-1778898563396">
+<meta name="build" content="037f2ac-1778898857954">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -505,6 +505,55 @@ textarea{resize:vertical;min-height:70px}
 .rm-toggle .rmt-knob{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--muted);transition:left .18s cubic-bezier(.4,1.4,.5,1),background .15s}
 .rm-toggle input:checked ~ .rmt-track{background:rgba(230,57,70,.18);border-color:var(--accent)}
 .rm-toggle input:checked ~ .rmt-knob{left:22px;background:var(--accent)}
+
+/* M2 — Hacking mode (themed keyboard takeover).
+   Layout splits the body into two zones: a CRT-style terminal screen
+   that shows what's been typed, and a tap-keyboard below. */
+.rm-hacking{width:100%;max-width:520px;display:flex;flex-direction:column;gap:10px;flex:1;min-height:0}
+.rm-hack-screen{background:#020806;border:1px solid #0c3a1f;border-radius:8px;padding:12px 14px;font-family:ui-monospace,'SF Mono','Cascadia Mono',Menlo,Consolas,monospace;font-size:13px;line-height:1.45;color:#5dff8e;text-shadow:0 0 6px rgba(93,255,142,.35);box-shadow:inset 0 0 24px rgba(0,200,80,.06),0 0 12px rgba(0,200,80,.08);overflow:hidden;flex-shrink:0;min-height:120px}
+.rm-hack-screen .rmh-line{margin:0;white-space:pre-wrap;word-break:break-all}
+.rm-hack-screen .rmh-line.dim{color:#2a7a45;text-shadow:none}
+.rm-hack-screen .rmh-input{color:#a7ffc1;text-shadow:0 0 8px rgba(93,255,142,.5);min-height:1.45em}
+.rm-hack-cursor{display:inline-block;width:8px;height:14px;background:#5dff8e;margin-left:1px;vertical-align:-2px;animation:rmBlink 1s steps(2,start) infinite;box-shadow:0 0 6px rgba(93,255,142,.6)}
+@keyframes rmBlink{to{visibility:hidden}}
+@keyframes rmGlitch{
+  0%,100%{transform:translate(0,0);filter:none}
+  20%{transform:translate(-1px,1px);filter:hue-rotate(20deg)}
+  40%{transform:translate(2px,-1px);filter:hue-rotate(-15deg) brightness(1.3)}
+  60%{transform:translate(-2px,0);filter:hue-rotate(40deg)}
+  80%{transform:translate(1px,2px);filter:brightness(1.4)}
+}
+.rm-hack-screen.executing{animation:rmGlitch .2s steps(2,end) infinite}
+
+.rm-keyboard{display:flex;flex-direction:column;gap:5px;width:100%;align-items:stretch;user-select:none;-webkit-user-select:none}
+.rm-kbd-row{display:flex;gap:4px;justify-content:center}
+.rm-kbd-row.r2{padding:0 18px}
+.rm-key{flex:1;min-width:0;height:42px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:background .06s,transform .06s,border-color .12s;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;letter-spacing:.02em}
+.rm-key:hover{border-color:var(--accent)}
+.rm-key:active,.rm-key.pressed{background:var(--accent);color:#fff;transform:translateY(1px)}
+.rm-key.wide{flex:2}
+.rm-key.space{flex:5}
+.rm-key.commit{flex:2;background:linear-gradient(135deg,var(--accent) 0%,#7a1e25 100%);color:#fff;border-color:rgba(255,255,255,.18);text-shadow:0 1px 1px rgba(0,0,0,.4)}
+.rm-key.commit:hover{filter:brightness(1.12)}
+.rm-key.back{color:var(--muted)}
+
+.rm-hack-hint{font-size:10px;color:var(--muted);text-align:center;letter-spacing:.06em;text-transform:uppercase;font-style:italic;margin-top:2px}
+
+/* Landscape adaptation — terminal and keyboard sit side-by-side at low
+   viewport heights so the keyboard isn't clipped. The rotate hint is no
+   longer used (kept selector available in case we revisit). */
+.rm-rotate-hint{display:none}
+@media (orientation:landscape) and (max-height:560px){
+  .roll-mode-overlay .rm-hacking{flex-direction:row;align-items:stretch;gap:12px;max-width:920px}
+  .roll-mode-overlay .rm-hack-screen{flex:1;min-width:0;min-height:0;font-size:12px}
+  .roll-mode-overlay .rm-keyboard{flex:1.4;min-width:0;justify-content:center}
+  .roll-mode-overlay .rm-key{height:36px;font-size:14px}
+  .roll-mode-overlay .rm-hack-hint{display:none}
+  .roll-mode-overlay .roll-mode-body{padding:8px 12px}
+  .roll-mode-overlay .roll-mode-header{padding:8px 14px 4px}
+  .roll-mode-overlay .roll-mode-meta{padding:0 14px 4px;font-size:11px}
+  .roll-mode-overlay .roll-mode-footer{padding:4px 14px 10px}
+}
 </style>
 </head>
 <body>
@@ -1645,7 +1694,7 @@ function applyState(d){
     cp.style.display='none';
   }
 }
-<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build 512f382</div>
+<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build 037f2ac</div>
 </body></html>`;}
 
 function loadSlot(n){
@@ -4907,7 +4956,7 @@ const ROLL_MODES=[
   // Hacking — purely skill-driven for now (Outgunned uses Crime for
   // electronic infiltration). Expansions could add a 'tech' skill that
   // also lights this chip.
-  {id:'hacking', name:'Hacking', icon:'⌨️', desc:'Type to roll', needsMotion:false, render:placeholderModeRender,
+  {id:'hacking', name:'Hacking', icon:'⌨️', desc:'Type to roll', needsMotion:false, render:hackingModeRender,
     appliesTo:ctx=>ctx.sel.skill==='Crime'},
   // Melee — any blade/club from any book. Hits core Knife/Sword,
   // OSH Sword/Axe + Mace/Hammer, WoK Katana, etc. Requires an actual
@@ -5029,6 +5078,14 @@ function playNoise(dur,gain){
   src.connect(g).connect(ctx.destination);src.start();
 }
 function playClick(){playTone(820,0.06,'square',0.12);}
+// Mechanical-feeling keystroke: short noise burst + a quick tonal blip
+// with slight pitch jitter so successive keys don't sound identical.
+function playKeystroke(){
+  if(!audioOn())return;
+  playNoise(0.022,0.13);
+  const freq=210+Math.random()*70;
+  playTone(freq,0.025,'square',0.08);
+}
 // Vibration API where supported. Settings-gated. Pattern is ms on/off/on…
 function hapticBuzz(pattern){
   if(!hapticsOn())return;
@@ -5084,7 +5141,7 @@ function openRollMode(modeId){
   document.body.appendChild(wrap);
   document.body.style.overflow='hidden';
   const ctx={
-    mode, sel, pool,
+    mode, sel, pool, char: S.char,
     body: wrap.querySelector('#roll-mode-body'),
     commit: commitRoll,
     close: closeRollMode,
@@ -5095,6 +5152,10 @@ function openRollMode(modeId){
   }
   // Boot audio on the same gesture so iOS unlocks it.
   try{audioCtx()&&audioCtx().resume&&audioCtx().resume();}catch(_){}
+  // Best-effort portrait lock — works on Android Chrome / installed PWA,
+  // silently rejects on iOS Safari. Either way the CSS handles landscape
+  // gracefully so this is just a courtesy.
+  try{screen&&screen.orientation&&screen.orientation.lock&&screen.orientation.lock('portrait').catch(()=>{});}catch(_){}
   mode.render(ctx);
 }
 function closeRollMode(silent){
@@ -5114,6 +5175,143 @@ function commitRoll(){
   // banner is what the player reads. Roll resolution = the existing path.
   closeRollMode();
   doRoll();
+}
+
+// --- M2 — Hacking mode: terminal display + on-screen QWERTY keyboard.
+// Pure presentation; the typed text never feeds the roll. ENTER commits
+// through ctx.commit() (closing the overlay → doRoll() runs as normal).
+// Layout adapts to landscape via CSS (.rm-hacking switches to side-by-side
+// at low viewport height).
+function hackingModeRender(ctx){
+  // Fake terminal banner — uses character name + skill so each session
+  // feels like that character's machine.
+  const host=(ctx.char&&ctx.char.name?ctx.char.name:'hero').toLowerCase().replace(/[^a-z0-9]+/g,'')||'hero';
+  const target=({Crime:'maincore',Drive:'autopilot',Stuff:'mainframe'})[ctx.sel.skill]||'maincore';
+  ctx.body.innerHTML=`
+    <div class="rm-hacking">
+      <div class="rm-hack-screen" id="rmh-screen">
+        <div class="rmh-line dim">$ ssh root@${target}.net</div>
+        <div class="rmh-line dim">connection established · bypassing auth · ${ctx.pool}d6 attempt</div>
+        <div class="rmh-line dim">[${host}@${target} ~]# _</div>
+        <div class="rmh-line rmh-input" id="rmh-input"><span class="rm-hack-cursor"></span></div>
+      </div>
+      <div class="rm-hack-hint">Tap keys · ↵ to execute · ⌫ to delete</div>
+      <div class="rm-keyboard" id="rmh-kbd"></div>
+    </div>
+    <div class="rm-rotate-hint">
+      <div class="rrh-icon">📱</div>
+      <strong>Rotate for the keyboard</strong>
+      <span>Portrait fits the hacking layout best — but landscape works too.</span>
+    </div>`;
+  // Keyboard rows. Backspace + Enter live on the last row alongside space
+  // so the typing hand never has to leave the bottom.
+  const rows=[
+    ['Q','W','E','R','T','Y','U','I','O','P'],
+    ['A','S','D','F','G','H','J','K','L'],
+    ['Z','X','C','V','B','N','M'],
+  ];
+  const kbd=ctx.body.querySelector('#rmh-kbd');
+  rows.forEach((row,i)=>{
+    const rowEl=document.createElement('div');
+    rowEl.className='rm-kbd-row'+(i===1?' r2':'');
+    row.forEach(ch=>{
+      const b=document.createElement('button');
+      b.className='rm-key';b.dataset.key=ch;b.textContent=ch;
+      rowEl.appendChild(b);
+    });
+    // ⌫ Backspace sits at the end of the bottom letter row.
+    if(i===2){
+      const back=document.createElement('button');
+      back.className='rm-key back';back.dataset.key='BACK';back.textContent='⌫';
+      rowEl.appendChild(back);
+    }
+    kbd.appendChild(rowEl);
+  });
+  // Last row — space (wide) + Enter (commit accent).
+  const spaceRow=document.createElement('div');
+  spaceRow.className='rm-kbd-row';
+  const sp=document.createElement('button');sp.className='rm-key space';sp.dataset.key=' ';sp.textContent='space';
+  const en=document.createElement('button');en.className='rm-key commit';en.dataset.key='ENTER';en.textContent='↵ Enter';
+  spaceRow.appendChild(sp);spaceRow.appendChild(en);
+  kbd.appendChild(spaceRow);
+  // Typing state lives on the body element so re-renders don't reset it.
+  let buf='';
+  const inputEl=ctx.body.querySelector('#rmh-input');
+  const screenEl=ctx.body.querySelector('#rmh-screen');
+  const renderBuf=()=>{
+    inputEl.innerHTML=buf.replace(/</g,'&lt;')+'<span class="rm-hack-cursor"></span>';
+  };
+  // Cap typed length so a player jamming the keyboard doesn't overflow
+  // the terminal; resets only on commit / cancel.
+  const MAX=60;
+  let executing=false;
+  const press=(key)=>{
+    if(executing)return;
+    if(key==='ENTER'){
+      execute();return;
+    }
+    if(key==='BACK'){
+      if(buf.length){buf=buf.slice(0,-1);renderBuf();playKeystroke();hapticBuzz(15);}
+      return;
+    }
+    if(buf.length>=MAX)return;
+    buf+=key;
+    renderBuf();
+    playKeystroke();
+    hapticBuzz(12);
+  };
+  const execute=()=>{
+    executing=true;
+    screenEl.classList.add('executing');
+    // Brief reveal so the player feels the commit before the overlay tears
+    // down. The actual roll fires after.
+    const line=document.createElement('div');
+    line.className='rmh-line';
+    line.style.color='#a7ffc1';line.style.textShadow='0 0 10px rgba(167,255,193,.6)';
+    line.textContent='> EXECUTING'+'.'.repeat(1+Math.floor(Math.random()*3));
+    screenEl.appendChild(line);
+    playTone(660,0.18,'sawtooth',0.13);
+    setTimeout(()=>playTone(990,0.18,'sawtooth',0.13),130);
+    hapticBuzz([20,40,30]);
+    setTimeout(()=>{ctx.commit();},560);
+  };
+  // Event delegation on the keyboard root so we don't bind 30 listeners.
+  kbd.addEventListener('click',e=>{
+    const btn=e.target.closest('.rm-key');
+    if(!btn)return;
+    press(btn.dataset.key);
+  });
+  // Physical keyboard support — desktop users (or anyone with a Bluetooth
+  // keyboard paired) can just type. Maps Enter/Backspace too.
+  const onKey=(e)=>{
+    if(executing)return;
+    if(e.key==='Enter'){e.preventDefault();press('ENTER');return;}
+    if(e.key==='Backspace'){e.preventDefault();press('BACK');return;}
+    if(e.key===' '){e.preventDefault();press(' ');return;}
+    if(e.key.length===1&&/[A-Za-z0-9 .,\/\-_$@!?]/.test(e.key)){
+      e.preventDefault();
+      const k=e.key.toUpperCase();
+      press(k);
+      // Visual key-down flash on the matching button if present.
+      const dom=kbd.querySelector(`.rm-key[data-key="${CSS.escape(k)}"]`);
+      if(dom){dom.classList.add('pressed');setTimeout(()=>dom.classList.remove('pressed'),100);}
+    }
+  };
+  document.addEventListener('keydown',onKey);
+  // Clean up listener when the overlay tears down. We hook into the close
+  // path via a MutationObserver on the overlay root — when it leaves the
+  // DOM, we detach.
+  const overlay=document.getElementById('roll-mode-overlay');
+  if(overlay){
+    const obs=new MutationObserver(()=>{
+      if(!document.body.contains(overlay)){
+        document.removeEventListener('keydown',onKey);
+        obs.disconnect();
+      }
+    });
+    obs.observe(document.body,{childList:true});
+  }
+  renderBuf();
 }
 
 // --- M0 placeholder render. Every themed mode uses this for now — proves
