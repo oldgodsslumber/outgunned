@@ -5240,8 +5240,17 @@ function openRollMode(modeId){
     </div>`;
   document.body.appendChild(wrap);
   document.body.style.overflow='hidden';
+  // Resolve loadout items the same way rollModeContext() does so every mode
+  // render sees the same view of what the character is carrying. Previously
+  // ctx.items was undefined here — only the strip filter built that list —
+  // and handgunModeRender's items.find() exploded.
+  const ch=S.char;
+  const items=[];
+  if(ch&&ch.loadout&&ch.loadout.items){
+    ch.loadout.items.forEach(e=>{const it=itemById(e.itemId);if(it)items.push(it);});
+  }
   const ctx={
-    mode, sel, pool, char: S.char,
+    mode, sel, pool, char: ch, items,
     body: wrap.querySelector('#roll-mode-body'),
     commit: commitRoll,
     close: closeRollMode,
