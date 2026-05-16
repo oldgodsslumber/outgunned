@@ -614,20 +614,18 @@ textarea{resize:vertical;min-height:70px}
 }
 .rm-handgun-fallback-note{font-size:10px;color:var(--muted);text-align:center;font-style:italic;max-width:320px;line-height:1.45;letter-spacing:.02em}
 
-/* Heal Setpiece — plunger press animation. The whole plunger group
-   (thumb-rest + shaft + stopper) translates rightward to "depress" the
-   syringe, then snaps back so the player can mash for theatre. */
-.rm-plunger-group{cursor:pointer;transform:translateX(0)}
-.rm-plunger-group.pressing{animation:rmPlungerPress .52s cubic-bezier(.2,.7,.3,1)}
-@keyframes rmPlungerPress{
-  0%{transform:translateX(0)}
-  32%{transform:translateX(20px)}
-  52%{transform:translateX(20px)}
-  100%{transform:translateX(0)}
-}
-/* Liquid level animates smoothly via attribute transitions. Modern Safari
-   and Chrome support transitioning SVG geometric properties (width, x). */
-.rm-heal-liquid{transition:width .25s ease-out, x .25s ease-out}
+/* Heal Setpiece — bigger syringe + drag-slider plunger.
+   Wrapper override so the heal mode can use more horizontal space
+   (player asked for more real estate in landscape Chrome). The handgun
+   stays at its 380px cap because its content is sized for that. */
+.rm-handgun.rm-heal-wrap{max-width:760px}
+.rm-gun-art.rm-heal-art{width:min(700px, 92vw);max-width:700px;height:auto;aspect-ratio:240/69}
+.rm-gun-art.rm-heal-art .rm-gun-svg{width:100%;height:auto}
+/* The plunger group is a drag handle. touch-action:none prevents the
+   browser from intercepting the drag as page-scroll on mobile. */
+.rm-plunger-group{cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none}
+.rm-plunger-group.dragging{cursor:grabbing}
+.rm-plunger-group.dragging .rm-trigger-hit{animation:none;stroke-opacity:0}
 /* Roll button — same shape and size as the eject/slam action buttons, but
    with an accent gradient so it reads as "the action that ends this
    Setpiece" without being a giant easy-to-fat-finger tap target. Inherits
@@ -5731,21 +5729,29 @@ function handgunModeRender(ctx){
   }
 }
 
-// --- Heal Setpiece. Horizontal syringe with the plunger thumb-rest on
-// the left (where the player's thumb naturally lands in landscape).
-// First press commits the dice roll silently; subsequent presses are
-// pure flair — plunger depresses, liquid sliver drains, then both reset
-// so the player can mash it. The "New Vial" button reloads the visual
-// state for repeat injections without any state consequence.
+// --- Heal Setpiece. Horizontal syringe with a drag-to-inject slider on
+// the plunger thumb-rest. Pointer events (with setPointerCapture) drive
+// the plunger 1:1 with the finger, liquid level shrinks correspondingly.
+// Commit fires when the plunger bottoms out (fully inserted). After that,
+// subsequent slides are pure flair — the roll is locked. The "New Vial"
+// button animates the plunger back to the start + refills the liquid for
+// repeat-injection RP without any mechanical consequence.
 function healModeRender(ctx){
   try{
-  let firing=false, hasFired=false;
-  // Item name pickup — First-aid Kit if owned, generic fallback otherwise.
+  let dragging=false, hasFired=false;
+  let plungerX=0;                  // current plunger SVG-unit offset
+  let dragStartScreenX=0;
+  let dragStartPlungerX=0;
+  const SLIDER_MAX_X=96;           // fully-inserted plunger position
+  const LIQUID_FULL_W=93, LIQUID_FULL_X=108;
+  const HAPTIC_THRESHOLDS=[0.25,0.5,0.75];
+  let lastHapticPct=0;
+
   const kit=ctx.items.find(it=>it.rollMode==='heal');
   const kitName=kit?kit.name:'First-aid Kit';
 
   ctx.body.innerHTML=`
-    <div class="rm-handgun">
+    <div class="rm-handgun rm-heal-wrap">
       <div class="rm-handgun-screen">
         <div class="rm-gun-name">${kitName}</div>
         <div class="rm-gun-art rm-heal-art">
@@ -5767,40 +5773,35 @@ function healModeRender(ctx){
                 <stop offset="100%" stop-color="#7a1820"/>
               </linearGradient>
             </defs>
-            <!-- Plunger group: thumb-rest + shaft + rubber stopper. Animated together. -->
-            <g class="rm-plunger-group" id="rm-plunger-group">
-              <!-- Thumb-rest (large round button on left) -->
-              <circle cx="28" cy="50" r="13" fill="url(#rm-syringe-metal)" stroke="#2a2a2a" stroke-width="2"/>
-              <circle cx="28" cy="50" r="6.5" fill="#5a5a5a"/>
-              <!-- Shaft from thumb-rest to inside the barrel -->
-              <rect x="40" y="46" width="58" height="8" fill="url(#rm-syringe-barrel)" stroke="#3a3a3a" stroke-width="0.6"/>
-              <!-- Inner stopper (rubber end inside barrel) -->
-              <rect x="96" y="36" width="9" height="28" fill="#1a1a1a" rx="1.5"/>
-            </g>
-            <!-- Barrel body. Drawn as a fill under the liquid + an outline on top. -->
+            <!-- Barrel body fill (behind liquid). -->
             <rect x="105" y="34" width="100" height="32" fill="#dadada" opacity="0.55" rx="3"/>
-            <!-- Liquid inside barrel — width animates with each press. -->
+            <!-- Liquid inside barrel — width/x driven by JS as plunger advances. -->
             <rect class="rm-heal-liquid" id="rm-heal-liquid" x="108" y="38" width="93" height="24" fill="url(#rm-syringe-liquid)" rx="2"/>
-            <!-- Volume markings on barrel -->
+            <!-- Volume markings on barrel. -->
             <g stroke="#3a3a3a" stroke-width="0.6" opacity="0.7">
               <line x1="125" y1="34" x2="125" y2="38"/>
               <line x1="145" y1="34" x2="145" y2="38"/>
               <line x1="165" y1="34" x2="165" y2="38"/>
               <line x1="185" y1="34" x2="185" y2="38"/>
             </g>
-            <!-- Barrel outline drawn on top of liquid for crisp edge -->
+            <!-- Barrel outline drawn on top of liquid for a crisp edge. -->
             <rect x="105" y="34" width="100" height="32" fill="none" stroke="#3a3a3a" stroke-width="1.5" rx="3"/>
-            <!-- Luer-lock cone to the needle -->
+            <!-- Luer-lock cone to the needle. -->
             <polygon points="205,40 215,44 215,56 205,60" fill="url(#rm-syringe-metal)" stroke="#2a2a2a" stroke-width="0.8"/>
-            <!-- Needle shaft -->
+            <!-- Needle shaft + beveled tip. -->
             <rect x="215" y="48.5" width="22" height="3" fill="#a8a8a8" stroke="#2a2a2a" stroke-width="0.5"/>
-            <!-- Needle bevel tip -->
             <polygon points="236,48 240,50 236,52" fill="#6a6a6a"/>
-            <!-- Invisible tap target over the plunger thumb-rest. Pulsing
-                 red outline (inherited from .rm-trigger-hit) hints "tap here". -->
-            <circle class="rm-trigger-hit" id="rm-plunger-hit" cx="28" cy="50" r="22"/>
+            <!-- Plunger group (drawn LAST so it sits on top). Includes the
+                 invisible tap target as the last child so the hit area moves
+                 with the visible plunger. -->
+            <g class="rm-plunger-group" id="rm-plunger-group">
+              <circle cx="28" cy="50" r="13" fill="url(#rm-syringe-metal)" stroke="#2a2a2a" stroke-width="2"/>
+              <circle cx="28" cy="50" r="6.5" fill="#5a5a5a"/>
+              <rect x="40" y="46" width="58" height="8" fill="url(#rm-syringe-barrel)" stroke="#3a3a3a" stroke-width="0.6"/>
+              <rect x="96" y="36" width="9" height="28" fill="#1a1a1a" rx="1.5"/>
+              <circle class="rm-trigger-hit" id="rm-plunger-hit" cx="28" cy="50" r="24"/>
+            </g>
           </svg>
-          <div class="rm-mag-silhouette" id="rm-heal-drop"></div>
         </div>
         <div class="rm-handgun-actions">
           <button class="rm-eject-btn" id="rm-heal-newvial" type="button">
@@ -5811,10 +5812,11 @@ function healModeRender(ctx){
           </button>
         </div>
       </div>
-      <div class="rm-handgun-prompt" id="rm-prompt">Tap the plunger to inject</div>
+      <div class="rm-handgun-prompt" id="rm-prompt">Drag the plunger all the way to inject</div>
       <div class="rm-handgun-fallback-note" id="rm-fallback-note"></div>
     </div>`;
 
+  const svgEl=ctx.body.querySelector('#rm-heal-svg');
   const plungerGroup=ctx.body.querySelector('#rm-plunger-group');
   const plungerHit=ctx.body.querySelector('#rm-plunger-hit');
   const liquidEl=ctx.body.querySelector('#rm-heal-liquid');
@@ -5822,29 +5824,15 @@ function healModeRender(ctx){
   const commitBtn=ctx.body.querySelector('#rm-heal-commit');
   const promptEl=ctx.body.querySelector('#rm-prompt');
 
-  const LIQUID_FULL_W=93, LIQUID_FULL_X=108, LIQUID_DRAIN=22;
+  const updateVisuals=()=>{
+    plungerGroup.setAttribute('transform',`translate(${plungerX} 0)`);
+    const lw=Math.max(0, LIQUID_FULL_W - plungerX);
+    const lx=LIQUID_FULL_X + Math.min(plungerX, LIQUID_FULL_W);
+    liquidEl.setAttribute('width', lw);
+    liquidEl.setAttribute('x', lx);
+  };
 
-  const pressPlunger=()=>{
-    if(firing)return;
-    firing=true;
-    playInject();
-    hapticBuzz([22,18,28]);
-    plungerHit.classList.remove('firing');
-    void plungerHit.getBoundingClientRect();
-    plungerHit.classList.add('firing');
-    plungerGroup.classList.remove('pressing');
-    void plungerGroup.getBoundingClientRect();
-    plungerGroup.classList.add('pressing');
-    // Drain a sliver of liquid during the press, then refill so the
-    // player can mash for theatre without it running out visually.
-    try{
-      liquidEl.setAttribute('width', LIQUID_FULL_W - LIQUID_DRAIN);
-      liquidEl.setAttribute('x', LIQUID_FULL_X + LIQUID_DRAIN);
-      setTimeout(()=>{
-        liquidEl.setAttribute('width', LIQUID_FULL_W);
-        liquidEl.setAttribute('x', LIQUID_FULL_X);
-      },380);
-    }catch(_){}
+  const commitInjection=()=>{
     if(!hasFired){
       hasFired=true;
       const _sel=diceSel();
@@ -5854,25 +5842,70 @@ function healModeRender(ctx){
       try{doRoll();}catch(e){console.error('doRoll failed during heal inject:',e);}
       commitBtn.classList.add('used');
       commitBtn.innerHTML='<span class="ej-icon">🎬</span><span>Close</span>';
-      promptEl.textContent='Dose delivered — press again for flair';
+      promptEl.textContent='Dose delivered · New Vial to redo the gag';
     }
-    setTimeout(()=>{
-      plungerGroup.classList.remove('pressing');
-      plungerHit.classList.remove('firing');
-      firing=false;
-    },520);
+    playInject();
+    hapticBuzz([30,22,32]);
   };
-  plungerHit.addEventListener('click',pressPlunger);
 
-  // New Vial — vanity. Quick ka-chunk SFX + reset the liquid level.
+  // Drag-based slider. Pointer events unify touch + mouse + pen.
+  // setPointerCapture so the drag survives when the pointer leaves the
+  // tap-target's visual bounds.
+  plungerHit.addEventListener('pointerdown',(e)=>{
+    if(plungerX>=SLIDER_MAX_X)return;   // already bottomed out — use New Vial
+    dragging=true;
+    dragStartScreenX=e.clientX;
+    dragStartPlungerX=plungerX;
+    lastHapticPct=plungerX/SLIDER_MAX_X;
+    plungerGroup.classList.add('dragging');
+    try{plungerHit.setPointerCapture(e.pointerId);}catch(_){}
+    e.preventDefault();
+  });
+  plungerHit.addEventListener('pointermove',(e)=>{
+    if(!dragging)return;
+    const rect=svgEl.getBoundingClientRect();
+    if(!rect.width)return;
+    // Convert screen-px movement to SVG-unit movement using the SVG's
+    // rendered width vs its 240-unit viewBox width.
+    const movementScreen=e.clientX-dragStartScreenX;
+    const movementSVG=movementScreen*(240/rect.width);
+    plungerX=Math.max(0,Math.min(SLIDER_MAX_X,dragStartPlungerX+movementSVG));
+    updateVisuals();
+    // Subtle haptic ticks at quarter / half / three-quarter marks.
+    const pct=plungerX/SLIDER_MAX_X;
+    HAPTIC_THRESHOLDS.forEach(t=>{
+      if(lastHapticPct<t&&pct>=t)hapticBuzz(12);
+    });
+    lastHapticPct=pct;
+    if(plungerX>=SLIDER_MAX_X){
+      commitInjection();
+    }
+  });
+  const endDrag=(e)=>{
+    if(!dragging)return;
+    dragging=false;
+    plungerGroup.classList.remove('dragging');
+    try{plungerHit.releasePointerCapture(e.pointerId);}catch(_){}
+  };
+  plungerHit.addEventListener('pointerup',endDrag);
+  plungerHit.addEventListener('pointercancel',endDrag);
+
+  // New Vial — vanity. Animates plunger back to 0 + refills liquid.
   newVialBtn.addEventListener('click',()=>{
-    if(firing)return;
+    if(dragging)return;
     playMagSlam();
     hapticBuzz(20);
-    try{
-      liquidEl.setAttribute('width', LIQUID_FULL_W);
-      liquidEl.setAttribute('x', LIQUID_FULL_X);
-    }catch(_){}
+    const startTime=performance.now();
+    const startX=plungerX;
+    const duration=300;
+    const tick=(time)=>{
+      const t=Math.min(1,(time-startTime)/duration);
+      const eased=1-Math.pow(1-t,3);
+      plungerX=startX*(1-eased);
+      updateVisuals();
+      if(t<1&&!dragging)requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
   });
 
   // Close / Roll — same behavior as the handgun commit button.
@@ -5884,6 +5917,8 @@ function healModeRender(ctx){
       ctx.commit();
     }
   });
+
+  updateVisuals();   // paint the initial state
   }catch(err){
     console.error('healModeRender failed:',err);
     if(ctx&&ctx.body){
