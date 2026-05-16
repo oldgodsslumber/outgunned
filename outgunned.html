@@ -550,6 +550,53 @@ textarea{resize:vertical;min-height:70px}
   .roll-mode-overlay .roll-mode-meta{padding:0 14px 4px;font-size:11px}
   .roll-mode-overlay .roll-mode-footer{padding:4px 14px 10px}
 }
+
+/* M3 — Handgun mode (motion-driven: shake to fire, eject + slam to reload). */
+.rm-handgun{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;max-width:380px}
+.rm-handgun-screen{background:linear-gradient(180deg,#1a1410 0%,#080604 100%);border:1px solid #2a1f15;border-radius:12px;padding:18px 16px;width:100%;display:flex;flex-direction:column;align-items:center;gap:12px;box-shadow:inset 0 0 40px rgba(0,0,0,.55),0 4px 20px rgba(0,0,0,.4)}
+.rm-gun-name{font-size:14px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);text-shadow:0 0 8px rgba(230,57,70,.35)}
+.rm-gun-art{width:220px;height:110px;display:flex;align-items:center;justify-content:center;position:relative}
+.rm-gun-svg{width:100%;height:100%;transition:transform .06s;filter:drop-shadow(0 4px 6px rgba(0,0,0,.55));-webkit-tap-highlight-color:transparent}
+.rm-gun-svg.fire{animation:rmFireKick .26s ease-out}
+@keyframes rmFireKick{
+  0%{transform:translateX(0) rotate(0deg)}
+  18%{transform:translateX(-10px) rotate(-7deg)}
+  100%{transform:translateX(0) rotate(0deg)}
+}
+.rm-muzzle-flash{position:absolute;left:6px;top:38%;width:70px;height:70px;background:radial-gradient(circle,#fff 0%,#ffe680 25%,#ff8a3c 55%,rgba(255,90,40,.2) 80%,transparent 100%);border-radius:50%;opacity:0;pointer-events:none;transform:translateY(-50%)}
+.rm-muzzle-flash.flash{animation:rmMuzzleFlash .22s ease-out}
+@keyframes rmMuzzleFlash{
+  0%{opacity:0;transform:translateY(-50%) scale(.3)}
+  25%{opacity:1;transform:translateY(-50%) scale(1)}
+  100%{opacity:0;transform:translateY(-50%) scale(1.4)}
+}
+.rm-mag-display{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%}
+.rm-mag-label{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-variant-numeric:tabular-nums}
+.rm-mag-pip-row{display:flex;gap:4px;align-items:flex-end;min-height:34px}
+.rm-mag-bullet{width:13px;height:30px;border-radius:2px 2px 1px 1px;background:linear-gradient(180deg,#d4be72 0%,#a08847 50%,#705a2a 100%);border:1px solid #4a3d1a;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 1px 2px rgba(0,0,0,.4);transition:opacity .25s,transform .35s ease-in}
+.rm-mag-bullet.spent{background:linear-gradient(180deg,#3a3a3a,#1a1a1a);border-color:#222;opacity:.4;box-shadow:none}
+.rm-mag-bullet.ejecting{transform:translateY(48px) rotate(18deg);opacity:0}
+.rm-mag-status{font-size:11px;color:var(--muted);font-style:italic;text-align:center;min-height:16px;letter-spacing:.04em}
+.rm-mag-status.loaded{color:var(--green);font-style:normal;font-weight:600;letter-spacing:.05em}
+.rm-mag-status.empty{color:var(--yellow);font-style:normal;font-weight:600;letter-spacing:.05em}
+.rm-mag-status.depleted{color:var(--red);font-style:normal;font-weight:600;letter-spacing:.05em}
+.rm-eject-btn{padding:9px 18px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:background .1s,border-color .12s,transform .06s;-webkit-tap-highlight-color:transparent;display:inline-flex;align-items:center;gap:6px;font-family:inherit}
+.rm-eject-btn:hover:not([disabled]){border-color:var(--accent)}
+.rm-eject-btn:active:not([disabled]){background:var(--accent);color:#fff;transform:translateY(1px)}
+.rm-eject-btn[disabled]{opacity:.4;cursor:not-allowed}
+.rm-eject-btn .ej-icon{font-size:14px;line-height:1}
+.rm-handgun-prompt{font-size:13px;color:var(--text);font-weight:700;letter-spacing:.08em;text-transform:uppercase;text-align:center;padding:10px 16px;border:1px dashed var(--border);border-radius:8px;background:var(--surface2);min-width:240px;transition:color .15s,border-color .15s}
+.rm-handgun-prompt.armed{border-color:var(--accent);color:var(--accent);border-style:solid;animation:rmPromptPulse 1.4s ease-in-out infinite}
+.rm-handgun-prompt.reload{border-color:var(--yellow);color:var(--yellow);border-style:solid}
+.rm-handgun-prompt.empty{border-color:var(--red);color:var(--red);border-style:solid}
+@keyframes rmPromptPulse{0%,100%{opacity:.85}50%{opacity:1}}
+.rm-handgun-fallback-btn{padding:14px 28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#7a1e25);color:#fff;border:none;font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;display:none;-webkit-tap-highlight-color:transparent;transition:filter .12s,transform .06s;font-family:inherit}
+.rm-handgun-fallback-btn:hover{filter:brightness(1.1)}
+.rm-handgun-fallback-btn:active{transform:scale(.96)}
+.rm-handgun-fallback-btn.show{display:inline-block}
+.rm-handgun-fallback-btn.slam{background:linear-gradient(135deg,#3a8fc5,#1a4870)}
+.rm-handgun-fallback-note{font-size:10px;color:var(--muted);text-align:center;font-style:italic;max-width:300px;line-height:1.4;letter-spacing:.02em}
+.rm-handgun-fallback-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -4914,10 +4961,11 @@ function renderDicePicker(){
 // inside a user gesture; we lazy-init both on first need.
 // ============================================================
 const ROLL_MODES=[
-  // Core firearms — anything one-handed or with no two-hand flag, plus a
-  // skill fallback on Shoot so the chip surfaces even pre-purchase.
-  {id:'handgun', name:'Handgun', icon:'🔫', desc:'Shake to fire', needsMotion:true,  render:placeholderModeRender,
-    appliesTo:ctx=>ctx.items.some(it=>it.category==='gun'&&!it.twoHand&&!(it.feats||[]).includes('single_shot')&&!(it.feats||[]).includes('energy_weapon'))||ctx.sel.skill==='Shoot'},
+  // Core firearms — one-handed mag-based guns (Pistol, Revolver, SMG, Viper,
+  // OSH Pistol/Machine Gun, etc.). Item-only; no Shoot-skill fallback. If
+  // the character doesn't own a matching gun, the chip doesn't appear.
+  {id:'handgun', name:'Handgun', icon:'🔫', desc:'Shake to fire · Eject + slam to reload', needsMotion:true,  render:handgunModeRender,
+    appliesTo:ctx=>ctx.items.some(it=>it.category==='gun'&&!it.twoHand&&!(it.feats||[]).includes('single_shot')&&!(it.feats||[]).includes('energy_weapon'))},
   // Two-handed guns: shotguns, rifles, machine guns. One umbrella for M0;
   // a future milestone can split rifle vs shotgun if the feel demands it.
   {id:'shotgun', name:'Long Gun', icon:'💥', desc:'Pump and blast', needsMotion:true, render:placeholderModeRender,
@@ -5063,6 +5111,29 @@ function playKeystroke(){
   const freq=210+Math.random()*70;
   playTone(freq,0.025,'square',0.08);
 }
+// Gunshot — bass thump under a noise burst, with a fading echo so it
+// reads as a real shot rather than a "tick". Synthesized; no asset.
+function playGunshot(){
+  if(!audioOn())return;
+  playNoise(0.16,0.32);
+  playTone(70,0.14,'sawtooth',0.28);
+  setTimeout(()=>playTone(45,0.20,'sawtooth',0.16),60);
+  setTimeout(()=>playNoise(0.08,0.10),140);
+}
+// Mag eject — a metallic clack as the magazine drops from the well.
+function playMagEject(){
+  if(!audioOn())return;
+  playTone(220,0.05,'square',0.14);
+  setTimeout(()=>playNoise(0.10,0.12),30);
+  setTimeout(()=>playTone(110,0.06,'square',0.10),90);
+}
+// Mag slam — sharp "ka-chunk" as a fresh magazine seats home.
+function playMagSlam(){
+  if(!audioOn())return;
+  playNoise(0.035,0.22);
+  setTimeout(()=>playTone(140,0.06,'square',0.20),20);
+  setTimeout(()=>playTone(260,0.04,'square',0.12),70);
+}
 // Vibration API where supported. Settings-gated. Pattern is ms on/off/on…
 function hapticBuzz(pattern){
   if(!hapticsOn())return;
@@ -5072,19 +5143,29 @@ function hapticBuzz(pattern){
 // --- Motion permission helper. iOS 13+ requires this inside a user
 // gesture; on Android/desktop the API may not exist at all. Cached for
 // the session — caller should always treat as async. ---
-let _motionState=null;  // 'granted'|'denied'|'unsupported'|null
+let _motionState=null;     // 'granted'|'denied'|'unsupported'|null
+let _motionPromise=null;   // in-flight permission request; shared by concurrent callers
 async function requestMotionAccess(){
   if(_motionState)return _motionState;
+  if(_motionPromise)return _motionPromise;
   if(typeof DeviceMotionEvent==='undefined'){_motionState='unsupported';return _motionState;}
   if(typeof DeviceMotionEvent.requestPermission==='function'){
-    try{
-      const res=await DeviceMotionEvent.requestPermission();
+    // iOS 13+: cache the in-flight Promise so a second caller during the same
+    // user gesture doesn't fire a second prompt (which would be denied because
+    // the gesture chain breaks across the awaits).
+    _motionPromise=DeviceMotionEvent.requestPermission().then(res=>{
       _motionState=(res==='granted')?'granted':'denied';
-    }catch(_){ _motionState='denied'; }
-  } else {
-    // Non-iOS: permission isn't gated, but check that events actually fire.
-    _motionState='granted';
+      _motionPromise=null;
+      return _motionState;
+    }).catch(()=>{
+      _motionState='denied';
+      _motionPromise=null;
+      return _motionState;
+    });
+    return _motionPromise;
   }
+  // Non-iOS: permission isn't gated; assume granted.
+  _motionState='granted';
   return _motionState;
 }
 
@@ -5289,6 +5370,235 @@ function hackingModeRender(ctx){
     obs.observe(document.body,{childList:true});
   }
   renderBuf();
+}
+
+// --- M3 — Handgun mode: shake to fire, eject button drops the mag,
+// downward "slam" gesture seats a fresh mag from the spare supply.
+// Each eject+slam cycle decrements the persistent mag count by 1
+// (the in-chamber mag is "lost" on eject; slam pulls one from spare).
+// Firing itself does NOT decrement — the rulebook only consumes mags on
+// failure / Full Auto / Cover, which is handled by the roll resolver.
+function handgunModeRender(ctx){
+  // Find the equipped one-handed mag-based gun. Predicate mirrors the chip's
+  // appliesTo so the gun shown matches the gun that lit the chip.
+  const gun=ctx.items.find(it=>it.category==='gun'&&!it.twoHand&&!(it.feats||[]).includes('single_shot')&&!(it.feats||[]).includes('energy_weapon'));
+  const gunName=gun?gun.name:'Handgun';
+  const ch=ctx.char;
+  const entry=(ch&&ch.loadout&&gun)?ch.loadout.items.find(e=>e.itemId===gun.id):null;
+  const cap=gun?(gun.mag||4):4;
+  let mags=entry?(entry.mags||0):cap;
+  // Local overlay state — persists only for the duration of the overlay.
+  // Chamber starts loaded as long as the player has any mags; if they
+  // arrived with mags=0 the gun is already dry on open.
+  let loaded=mags>0;
+  let firing=false;
+  let motionState=null;
+
+  ctx.body.innerHTML=`
+    <div class="rm-handgun">
+      <div class="rm-handgun-screen">
+        <div class="rm-gun-name">${gunName}</div>
+        <div class="rm-gun-art">
+          <div class="rm-muzzle-flash" id="rm-muzzle"></div>
+          <svg class="rm-gun-svg" id="rm-gun-svg" viewBox="0 0 240 100" aria-hidden="true">
+            <!-- Stylized one-handed semi-auto silhouette: slide, frame, grip, trigger guard. -->
+            <path d="M30 50 L30 35 L155 35 L165 40 L210 40 L210 56 L175 56 L175 61 L160 61 L152 56 L82 56 L82 70 L72 82 L52 82 L46 70 L46 56 L30 56 Z" fill="#2b2b2b" stroke="#0e0e0e" stroke-width="1.5"/>
+            <rect x="56" y="44" width="14" height="20" fill="#0a0a0a" opacity=".75"/>
+            <circle cx="168" cy="47" r="2.5" fill="#5a5a5a"/>
+            <rect x="38" y="38" width="110" height="2.5" fill="#1a1a1a"/>
+            <rect x="80" y="58" width="2" height="14" fill="#0e0e0e"/>
+          </svg>
+        </div>
+        <div class="rm-mag-display">
+          <div class="rm-mag-label" id="rm-mag-label">Mags · ${mags}/${cap}</div>
+          <div class="rm-mag-pip-row" id="rm-mag-pips"></div>
+          <div class="rm-mag-status loaded" id="rm-mag-status">${loaded?'Chamber loaded':'Empty — out of mags'}</div>
+        </div>
+        <button class="rm-eject-btn" id="rm-eject" type="button">
+          <span class="ej-icon">⏏</span><span>Eject Mag</span>
+        </button>
+      </div>
+      <div class="rm-handgun-prompt armed" id="rm-prompt">Shake to fire</div>
+      <div class="rm-handgun-fallback-row">
+        <button class="rm-handgun-fallback-btn" id="rm-fallback-fire" type="button">Fire</button>
+        <button class="rm-handgun-fallback-btn slam" id="rm-fallback-slam" type="button">Slam Reload</button>
+      </div>
+      <div class="rm-handgun-fallback-note" id="rm-fallback-note"></div>
+    </div>`;
+
+  const pipsEl=ctx.body.querySelector('#rm-mag-pips');
+  const labelEl=ctx.body.querySelector('#rm-mag-label');
+  const statusEl=ctx.body.querySelector('#rm-mag-status');
+  const ejectBtn=ctx.body.querySelector('#rm-eject');
+  const promptEl=ctx.body.querySelector('#rm-prompt');
+  const gunSvgEl=ctx.body.querySelector('#rm-gun-svg');
+  const muzzleEl=ctx.body.querySelector('#rm-muzzle');
+  const fireFallback=ctx.body.querySelector('#rm-fallback-fire');
+  const slamFallback=ctx.body.querySelector('#rm-fallback-slam');
+  const fallbackNote=ctx.body.querySelector('#rm-fallback-note');
+
+  const renderPips=()=>{
+    pipsEl.innerHTML='';
+    for(let i=0;i<cap;i++){
+      const b=document.createElement('div');
+      b.className='rm-mag-bullet'+(i<mags?'':' spent');
+      pipsEl.appendChild(b);
+    }
+    labelEl.textContent=`Mags · ${mags}/${cap}`;
+  };
+  const updateStatus=()=>{
+    if(loaded){
+      statusEl.className='rm-mag-status loaded';
+      statusEl.textContent='Chamber loaded';
+      promptEl.className='rm-handgun-prompt armed';
+      promptEl.textContent='Shake to fire';
+      ejectBtn.disabled=false;
+    } else if(mags>0){
+      statusEl.className='rm-mag-status empty';
+      statusEl.textContent='Slam to seat a fresh mag';
+      promptEl.className='rm-handgun-prompt reload';
+      promptEl.textContent='Reload first';
+      ejectBtn.disabled=true;
+    } else {
+      statusEl.className='rm-mag-status depleted';
+      statusEl.textContent='No mags · find more before next firefight';
+      promptEl.className='rm-handgun-prompt empty';
+      promptEl.textContent='Out of ammo';
+      ejectBtn.disabled=true;
+    }
+  };
+  renderPips();
+  updateStatus();
+
+  // Persist mag count back to the loadout entry. Called only on slam reload,
+  // which is the action that consumes a mag.
+  const persistMags=()=>{
+    if(entry){entry.mags=mags;save();}
+  };
+
+  // ─── Eject (manual button or via motion later if we want) ─────────────────
+  const ejectMag=()=>{
+    if(!loaded||firing)return;
+    loaded=false;
+    // Briefly animate the rightmost lit bullet dropping out, then re-render.
+    const lit=pipsEl.querySelectorAll('.rm-mag-bullet:not(.spent)');
+    const last=lit[lit.length-1];
+    if(last){last.classList.add('ejecting');}
+    playMagEject();
+    hapticBuzz(28);
+    setTimeout(()=>{renderPips();updateStatus();},340);
+    updateStatus();
+  };
+  ejectBtn.addEventListener('click',ejectMag);
+
+  // ─── Fire (commits the roll) ──────────────────────────────────────────────
+  const fireGun=()=>{
+    if(firing)return;
+    if(!loaded){
+      // Dry-fire — feedback only, no commit.
+      playTone(1400,0.018,'square',0.05);
+      hapticBuzz(10);
+      return;
+    }
+    firing=true;
+    playGunshot();
+    hapticBuzz([35,40,30]);
+    gunSvgEl.classList.add('fire');
+    muzzleEl.classList.add('flash');
+    setTimeout(()=>{
+      gunSvgEl.classList.remove('fire');
+      muzzleEl.classList.remove('flash');
+    },300);
+    setTimeout(()=>ctx.commit(),540);
+  };
+
+  // ─── Slam reload ──────────────────────────────────────────────────────────
+  const slamReload=()=>{
+    if(loaded||firing)return;
+    if(mags<=0){
+      // Dry slam — empty click feedback, no state change.
+      playTone(900,0.025,'square',0.06);
+      hapticBuzz(8);
+      return;
+    }
+    mags-=1;        // the slammed mag was a spare; it's now in the chamber
+    loaded=true;
+    persistMags();
+    renderPips();
+    playMagSlam();
+    hapticBuzz([22,30,42]);
+    updateStatus();
+  };
+
+  fireFallback.addEventListener('click',fireGun);
+  slamFallback.addEventListener('click',slamReload);
+
+  // ─── Motion handling ──────────────────────────────────────────────────────
+  // Shake = sustained accel magnitude crosses threshold (any direction).
+  // Slam = single-axis peak spike; only triggers when chamber is empty.
+  // Both have separate debounce windows so a wild gesture doesn't fire +
+  // reload in the same tick.
+  let lastShake=0, lastSlam=0;
+  const SHAKE_THRESHOLD=18;  // m/s² magnitude (without gravity baseline)
+  const SLAM_THRESHOLD=24;   // single-axis peak (downward jerk)
+  const SHAKE_DEBOUNCE=650;
+  const SLAM_DEBOUNCE=720;
+  let motionListener=null;
+
+  const showFallback=(reason)=>{
+    fireFallback.classList.add('show');
+    slamFallback.classList.add('show');
+    promptEl.style.display='none';
+    fallbackNote.textContent=reason;
+  };
+
+  const enableMotion=async()=>{
+    motionState=await requestMotionAccess();
+    if(motionState==='unsupported'){
+      showFallback('Motion sensors not available — use the buttons.');
+      return;
+    }
+    if(motionState==='denied'){
+      showFallback('Motion access denied — use the buttons. (Re-enable in Settings → Roll Settings.)');
+      return;
+    }
+    motionListener=(e)=>{
+      // Prefer pure acceleration (no gravity) if the device exposes it.
+      const aRaw=e.acceleration;
+      const a=(aRaw&&(aRaw.x!=null||aRaw.y!=null||aRaw.z!=null))?aRaw:(e.accelerationIncludingGravity||{});
+      const ax=a.x||0, ay=a.y||0, az=a.z||0;
+      const mag=Math.sqrt(ax*ax+ay*ay+az*az);
+      const now=Date.now();
+      // Shake-to-fire (any-direction magnitude).
+      if(mag>SHAKE_THRESHOLD&&now-lastShake>SHAKE_DEBOUNCE&&loaded){
+        lastShake=now;
+        fireGun();
+        return;
+      }
+      // Slam reload (single-axis peak; only when empty AND mags available).
+      if(!loaded&&mags>0&&now-lastSlam>SLAM_DEBOUNCE){
+        const peak=Math.max(Math.abs(ax),Math.abs(ay),Math.abs(az));
+        if(peak>SLAM_THRESHOLD){
+          lastSlam=now;
+          slamReload();
+        }
+      }
+    };
+    window.addEventListener('devicemotion',motionListener);
+  };
+  enableMotion();
+
+  // ─── Cleanup on overlay teardown ──────────────────────────────────────────
+  const overlay=document.getElementById('roll-mode-overlay');
+  if(overlay){
+    const obs=new MutationObserver(()=>{
+      if(!document.body.contains(overlay)){
+        if(motionListener)window.removeEventListener('devicemotion',motionListener);
+        obs.disconnect();
+      }
+    });
+    obs.observe(document.body,{childList:true});
+  }
 }
 
 // --- M0 placeholder render. Every themed mode uses this for now — proves
