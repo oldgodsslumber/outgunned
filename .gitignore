@@ -16,3 +16,7 @@ Outgunned_Superheroes_ENG_1_0.md
 
 # Local rules reference (derived from rulebook content; not redistributed)
 CLAUDE.md
+
+# Local dev / debug
+node_modules/
+_*.cjs
