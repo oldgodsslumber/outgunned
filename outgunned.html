@@ -2577,7 +2577,7 @@ function _renderLoadoutSummary(opts){
   let h=`<div class="loadout-summary">
     <div class="ls-head">
       <strong>Selected Loadout</strong>
-      ${budget!=null?`<span class="ls-budget">${termSubst(spent+'$')} / ${termSubst(budget+'$')} <span class="muted">spent</span></span>`:`<span class="ls-budget">${termSubst(spent+'$')} <span class="muted">value</span></span>`}
+      ${budget!=null?`<span class="ls-budget"><span class="muted" style="font-weight:600">spent</span> ${termSubst(spent+'$')} / ${termSubst(budget+'$')}</span>`:`<span class="ls-budget">${termSubst(spent+'$')} <span class="muted">value</span></span>`}
     </div>`;
   if(!lo.items.length){h+=`<div class="muted" style="padding:8px 0">No items yet. Click + on a card to buy one.</div>`;}
   else{
@@ -2634,6 +2634,7 @@ function _renderBudgetBanner(budget){
   return `<div class="budget-banner${lowCash?' empty':''}">
     <span class="bb-label">Cash</span>
     <span class="bb-spent">${termSubst(spent+'$')}</span>
+    <span class="bb-sep">spent</span>
     ${budget!=null?`<span class="bb-sep">of</span><span class="bb-budget">${termSubst(budget+'$')}</span>`:''}
     ${remaining!=null?`<span class="bb-rem ${lowCash?'rem-empty':'rem-ok'}">${termSubst(remaining+'$')} left</span>`:''}
   </div>`;
