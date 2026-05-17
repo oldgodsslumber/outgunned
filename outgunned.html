@@ -2633,10 +2633,9 @@ function _renderBudgetBanner(budget){
   const lowCash=remaining!=null&&remaining<=0;
   return `<div class="budget-banner${lowCash?' empty':''}">
     <span class="bb-label">Cash</span>
-    <span class="bb-spent">${termSubst(spent+'$')}</span>
-    <span class="bb-sep">spent</span>
-    ${budget!=null?`<span class="bb-sep">of</span><span class="bb-budget">${termSubst(budget+'$')}</span>`:''}
-    ${remaining!=null?`<span class="bb-rem ${lowCash?'rem-empty':'rem-ok'}">${termSubst(remaining+'$')} left</span>`:''}
+    ${remaining!=null
+      ? `<span class="bb-spent">${termSubst(remaining+'$')}</span><span class="bb-sep">left${budget!=null?` of ${termSubst(budget+'$')}`:''}</span>`
+      : `<span class="bb-spent">${termSubst(spent+'$')}</span>`}
   </div>`;
 }
 
