@@ -6048,7 +6048,7 @@ function handgunModeRender(ctx){
   // sharp peak with a 1.2s debounce fires before any oscillation pattern
   // develops, so the system Undo dialog won't intercept.
   let lastFire=0;
-  const FIRE_THRESHOLD=15;     // m/s² peak in any direction (no-gravity reading)
+  const FIRE_THRESHOLD=22;     // m/s² peak — bumped from 15 so casual phone movement doesn't false-fire
   const FIRE_DEBOUNCE=220;     // fast enough for rapid jabs, still well under iOS Shake-to-Undo's sustained-oscillation window
   let motionListener=null;
 
@@ -6871,7 +6871,7 @@ function fistsModeRender(ctx){
   // the handgun (single peak, short debounce) so iOS Shake-to-Undo doesn't
   // intercept it.
   let lastFireT=0;
-  const FIRE_THRESHOLD=14;
+  const FIRE_THRESHOLD=22;     // m/s² peak — bumped from 14 so casual phone movement doesn't false-punch
   const FIRE_DEBOUNCE=220;
   let motionListener=null;
   const setupMotion=async()=>{
