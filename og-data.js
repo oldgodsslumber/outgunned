@@ -1083,6 +1083,22 @@ const ROLE_STARTING_GEAR={
     feats:typeof FEATS!=='undefined'?FEATS:[],
     items:typeof ITEMS!=='undefined'?ITEMS:[]
   };
+  // Core enemy templates (goons/badguys/bosses arrays without a book tag) are
+  // implicit to the core book; per-book buckets live alongside or carry a book tag.
+  const enemyTpls=(typeof ENEMY_TEMPLATES!=='undefined')?ENEMY_TEMPLATES:{};
+  const enemyFeats=(typeof ENEMY_FEATS!=='undefined')?ENEMY_FEATS:[];
+  const enemyHas=function(b,game){
+    if(game==='core'){
+      // Core has goons/badguys/bosses by definition.
+      return true;
+    }
+    // Per-book template buckets (e.g. ENEMY_TEMPLATES.wok, .osh) or any tagged
+    // entry inside a core bucket counts as content for that book.
+    if(Array.isArray(enemyTpls[game])&&enemyTpls[game].length)return true;
+    const bucketHasTag=Object.values(enemyTpls).some(arr=>Array.isArray(arr)&&arr.some(t=>t.book===b||t.book===game));
+    if(bucketHasTag)return true;
+    return enemyFeats.some(f=>f.book===b||f.book===game);
+  };
   Object.keys(BOOK_META).forEach(b=>{
     const meta=BOOK_META[b];
     const game=meta.game||b;
@@ -1094,6 +1110,7 @@ const ROLE_STARTING_GEAR={
       });
     });
     has.scenes=Array.isArray(meta.sceneTypes)&&meta.sceneTypes.length>0;
+    has.enemies=enemyHas(b,game);
     meta.hasContent=has;
   });
 })();

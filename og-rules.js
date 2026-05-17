@@ -134,20 +134,23 @@ function buildDefaultConditions(){
 // Build the per-creation 'include' map from every selectable, non-core book.
 function defaultInclude(){
   const r={};
-  selectableBooks().forEach(b=>{if(b!=='core')r[b]={roles:false,tropes:false,feats:false,items:false,scenes:false};});
+  selectableBooks().forEach(b=>{if(b!=='core')r[b]={roles:false,tropes:false,feats:false,items:false,scenes:false,enemies:false};});
   return r;
 }
 // Normalize an include map loaded from storage / MP sync that may pre-date
-// newer content-type flags (items, tropes). Mutates in place and returns it.
+// newer content-type flags (items, tropes, enemies). Mutates in place and returns it.
 function ensureIncludeShape(inc){
   if(!inc)return defaultInclude();
   selectableBooks().forEach(b=>{
     if(b==='core')return;
-    if(!inc[b]){inc[b]={roles:false,tropes:false,feats:false,items:false,scenes:false};return;}
+    if(!inc[b]){inc[b]={roles:false,tropes:false,feats:false,items:false,scenes:false,enemies:false};return;}
     if(!('items' in inc[b]))inc[b].items=false;
     // Tropes used to ride the roles flag. Inherit on first migration so a
     // user who previously enabled "Roles & Tropes" doesn't lose their tropes.
     if(!('tropes' in inc[b]))inc[b].tropes=!!inc[b].roles;
+    // Enemies used to ride the feats flag (renderDeployModal gated enemy
+    // feats on hero feats). Inherit so prior parties keep their enemy roster.
+    if(!('enemies' in inc[b]))inc[b].enemies=!!inc[b].feats;
   });
   return inc;
 }

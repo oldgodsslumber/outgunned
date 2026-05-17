@@ -94,7 +94,7 @@
           Object.keys(m.books).forEach(b=>{
             if(b===S.creation.coreBook) return;
             const on = !!m.books[b];
-            S.creation.include[b] = {roles:on, tropes:on, feats:on, items:on, scenes:on};
+            S.creation.include[b] = {roles:on, tropes:on, feats:on, items:on, scenes:on, enemies:on};
           });
         }
         if(typeof ensureIncludeShape==='function'){
@@ -317,7 +317,7 @@
       const books = {}; selectableBooks().forEach(b=>{
         if(b===S.creation.coreBook){ books[b]=true; return; }
         const inc = include[b]||{};
-        books[b] = !!(inc.roles || inc.tropes || inc.feats || inc.items || inc.scenes);
+        books[b] = !!(inc.roles || inc.tropes || inc.feats || inc.items || inc.scenes || inc.enemies);
       });
       try{
         const code = await MP.createParty({

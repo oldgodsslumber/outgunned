@@ -1083,7 +1083,7 @@ function toggleInclude(book,category){
   const c=S.creation;
   if(!c.include)c.include=defaultInclude();
   if(typeof ensureIncludeShape==='function')c.include=ensureIncludeShape(c.include);
-  if(!c.include[book])c.include[book]={roles:false,tropes:false,feats:false,items:false,scenes:false};
+  if(!c.include[book])c.include[book]={roles:false,tropes:false,feats:false,items:false,scenes:false,enemies:false};
   c.include[book][category]=!c.include[book][category];
   _reconcileCreationToInclude();
   renderCreationStep();
@@ -1974,11 +1974,12 @@ function renderStepGames(){
   const tier=c.powerTier||'street';
 
   const cols=[
-    {key:'roles', label:'Roles'},
-    {key:'tropes',label:'Tropes'},
-    {key:'feats', label:'Feats'},
-    {key:'items', label:'Items'},
-    {key:'scenes',label:'Special Scenes'}
+    {key:'roles',  label:'Roles'},
+    {key:'tropes', label:'Tropes'},
+    {key:'feats',  label:'Feats'},
+    {key:'items',  label:'Items'},
+    {key:'enemies',label:'Enemies'},
+    {key:'scenes', label:'Special Scenes'}
   ];
 
   let html=`<div class="card">
@@ -4487,9 +4488,19 @@ function switchEnemyTab(tab,btn){
 
 function renderEnemyTemplates(type){
   renderOSHCampaignPanel();
-  const templates=ENEMY_TEMPLATES[type]||[];
+  // Filter templates by per-book enemies inclusion. Core buckets (goons/badguys/bosses)
+  // contain core entries plus any tagged entries from other books; the per-book
+  // buckets ('wok','osh') are entirely that book. Preserve original indexes so
+  // deployEnemy(type, idx) still hits ENEMY_TEMPLATES[type][idx] correctly.
+  const all=ENEMY_TEMPLATES[type]||[];
+  const templates=all
+    .map((t,i)=>({t,i}))
+    .filter(({t})=>{
+      const b=t.book||(type==='wok'?'wok':type==='osh'?'osh':'core');
+      return bookHas(b,'enemies');
+    });
   let html='';
-  templates.forEach((t,i)=>{
+  templates.forEach(({t,i})=>{
     const tagged=t.book&&t.book!=='core';
     const badge=tagged?`<span class="badge ${bookBadge(t.book)}">${bookLabel(t.book)}</span><span style="font-size:10px;color:var(--muted)">${t.template||''}</span>`:'';
     html+=`<div class="enemy-card">
@@ -4785,9 +4796,9 @@ function renderDeployModal(){
   const st=S.enemyStaging;
   if(!st)return;
   const t=ENEMY_TEMPLATES[st.type][st.idx];
-  const showWok=bookHas('wok','feats')||t.book==='wok';
-  const showOsh=bookHas('osh','feats')||t.book==='osh';
-  const showCore=bookHas('core','feats');
+  const showWok=bookHas('wok','enemies')||t.book==='wok';
+  const showOsh=bookHas('osh','enemies')||t.book==='osh';
+  const showCore=bookHas('core','enemies');
 
   const featPtBudget=t.featPts||0;
   // Points used by currently selected feats (only those in ENEMY_FEATS — template pre-assigned feats don't count against budget)
