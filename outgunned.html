@@ -6821,7 +6821,8 @@ function fistsModeRender(ctx){
       promptEl.textContent='Roll locked in — keep swinging';
       if(resultSlot) resultSlot.innerHTML=propRollResultHTML();
     }
-    setTimeout(()=>{firing=false;},100);
+    // 90ms cooldown matches the handgun's mashable tap rate (~10/sec).
+    setTimeout(()=>{firing=false;},90);
   };
 
   // Tap anywhere in the screen to punch — coordinates feed the SFX spawn
