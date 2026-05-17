@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Outgunned</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1318,11 +1321,9 @@ table.games-table{width:100%;border-collapse:collapse;font-size:12px}
 .gt-radio input{display:none}
 .gt-dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);display:inline-flex;align-items:center;justify-content:center;color:var(--accent);font-size:14px;background:var(--surface)}
 .gt-dot.on{border-color:var(--accent);background:rgba(230,57,70,.15)}
-.gt-check{display:inline-flex;width:24px;height:24px;border-radius:6px;border:2px solid var(--fg2);background:var(--surface);align-items:center;justify-content:center;cursor:pointer;color:var(--fg2);font-weight:700;user-select:none;transition:all .12s;font-size:14px;line-height:1;position:relative}
-.gt-check::before{content:"+";opacity:.55}
-.gt-check.on::before{content:""}
-.gt-check:hover{border-color:var(--accent);color:var(--accent)}
-.gt-check.on{background:rgba(230,57,70,.18);border-color:var(--accent);color:var(--accent)}
+.gt-check{display:inline-flex !important;width:26px;height:26px;border-radius:6px;border:2px solid #888;background:rgba(255,255,255,.04);align-items:center;justify-content:center;cursor:pointer;color:#bbb;font-weight:700;user-select:none;transition:all .12s;font-size:16px;line-height:1}
+.gt-check:hover{border-color:var(--accent);color:var(--accent);background:rgba(230,57,70,.08)}
+.gt-check.on{background:rgba(230,57,70,.22);border-color:var(--accent);color:var(--accent)}
 
 /* --- Sticky budget banner --- */
 .gear-step{position:relative}
@@ -2017,7 +2018,7 @@ function renderStepGames(){
       if(!enabled){html+=`<td class="gt-cell-disabled" title="${meta.label} ships no ${col.label.replace('&amp;','&')}">—</td>`;return;}
       if(isCore){html+=`<td class="gt-cell-auto" title="The core book always contributes everything">✓</td>`;return;}
       const on=!!inc[col.key];
-      html+=`<td><span class="gt-check${on?' on':''}" onclick="toggleInclude('${id}','${col.key}')" role="checkbox" aria-checked="${on}">${on?'✓':''}</span></td>`;
+      html+=`<td><span class="gt-check${on?' on':''}" onclick="toggleInclude('${id}','${col.key}')" role="checkbox" aria-checked="${on}">${on?'✓':'+'}</span></td>`;
     });
     html+=`<td class="gt-modes">${modes}</td></tr>`;
   });
