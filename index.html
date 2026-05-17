@@ -10,7 +10,7 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Outgunned — Multiplayer</title>
-<meta name="build" content="8e3fc31-1779026304620">
+<meta name="build" content="27585a5-1779027805428">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -738,6 +738,51 @@ textarea{resize:vertical;min-height:70px}
 .prop-result-slot-syringe{display:flex;justify-content:center;width:100%;margin-bottom:8px;min-height:0}
 .prop-result-slot-syringe .prop-result{background:rgba(8,28,48,.85);border-color:#2a6a8a}
 .prop-result-slot-syringe .prop-result.success{border-color:#76bd6b;box-shadow:0 0 14px rgba(118,189,107,.25)}
+
+/* ─── Unarmed (Fists) prop. The phone IS the fist — knuckles facing right
+   so a right-hand grip gives the player a virtual punch puppet. Comic
+   POW/BAM/WHAM SFX bursts appear at the impact point on every hit, and a
+   running combo counter pumps adrenaline. The whole field is the punch
+   target so the player can tap anywhere to throw. ─── */
+.rm-fists{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:520px}
+.rm-fists-screen{position:relative;width:100%;min-height:300px;background:radial-gradient(ellipse at 50% 60%, #2a1a1a 0%, #0d0606 70%, #050202 100%);border:1px solid #2a1f15;border-radius:14px;box-shadow:inset 0 0 60px rgba(0,0,0,.6),0 4px 20px rgba(0,0,0,.4);overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;cursor:pointer}
+.rm-fists-bg{position:absolute;inset:0;background:
+  repeating-conic-gradient(from 0deg at 50% 50%, #d63040 0deg 10deg, transparent 10deg 20deg);
+  opacity:.08;pointer-events:none;animation:rmRays 14s linear infinite}
+@keyframes rmRays{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.rm-fist-svg{position:relative;width:60%;max-width:280px;height:auto;display:block;margin:30px auto 10px;transition:transform .12s ease-out;filter:drop-shadow(0 8px 14px rgba(0,0,0,.65))}
+.rm-fist-svg.punch{animation:rmFistPunch .22s ease-out}
+@keyframes rmFistPunch{
+  0%{transform:translateX(0) rotate(0)}
+  35%{transform:translateX(28px) rotate(3deg)}
+  100%{transform:translateX(0) rotate(0)}
+}
+.rm-combo{position:absolute;top:10px;left:12px;display:flex;flex-direction:column;font-family:ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#ffd166;text-shadow:0 0 8px rgba(255,209,102,.6),0 1px 2px rgba(0,0,0,.7);pointer-events:none}
+.rm-combo-lbl{font-size:9px;color:#caa45a;letter-spacing:.18em}
+.rm-combo-val{font-size:28px;font-weight:900;line-height:1;transition:transform .15s ease-out}
+.rm-combo-val.bump{transform:scale(1.25)}
+.rm-fists-prompt{position:absolute;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:#caa45a;letter-spacing:.1em;text-transform:uppercase;font-style:italic;pointer-events:none;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+/* Comic-book impact words burst at the punch point. JS positions each new
+   burst and removes it after the animation runs. */
+.rm-sfx{position:absolute;font-family:'Impact','Arial Black','Helvetica',sans-serif;font-weight:900;font-style:italic;letter-spacing:.04em;text-transform:uppercase;pointer-events:none;
+  -webkit-text-stroke:2px #000;
+  text-shadow:4px 4px 0 #000, -2px -2px 0 #000, 0 0 12px rgba(255,209,102,.55);
+  transform:translate(-50%,-50%) scale(.3) rotate(var(--rot,-8deg));opacity:0;
+  animation:rmSfxPop .55s cubic-bezier(.2,1.2,.4,1) forwards;
+  white-space:nowrap;
+  font-size:42px;color:#ffd166}
+.rm-sfx.alt{color:#ff5070}
+.rm-sfx.big{font-size:62px}
+@keyframes rmSfxPop{
+  0%{transform:translate(-50%,-50%) scale(.3) rotate(var(--rot,-8deg));opacity:0}
+  18%{transform:translate(-50%,-50%) scale(1.25) rotate(var(--rot,-8deg));opacity:1}
+  70%{transform:translate(-50%,-50%) scale(1) rotate(var(--rot,-8deg));opacity:1}
+  100%{transform:translate(-50%,-58%) scale(.9) rotate(var(--rot,-8deg));opacity:0}
+}
+/* Result chip placement above the fist for the unarmed prop. */
+.prop-result-slot-fists{display:flex;justify-content:center;width:100%;margin-bottom:6px}
+.prop-result-slot-fists .prop-result{background:rgba(20,8,8,.85);border-color:#7a2028}
+.prop-result-slot-fists .prop-result.success{border-color:#76bd6b}
 
 /* Landscape: phone-as-gun layout. Anchor gun to lower-left so the trigger
    sits naturally where the user's left thumb rests. Eject/Slam float to
@@ -1898,7 +1943,7 @@ function applyState(d){
     cp.style.display='none';
   }
 }
-<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build 8e3fc31</div>
+<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build 27585a5</div>
 </body></html>`;}
 
 function loadSlot(n){
@@ -5242,7 +5287,7 @@ const ROLL_MODES=[
   // Unarmed — Fight skill, no weapon needed. Real screen detects the
   // sudden deceleration of a thrown punch (impact-on-stop rather than
   // peak acceleration) and fires the impact SFX on stop.
-  {id:'fists', book:'core', name:'Fists', icon:'👊', desc:'Punch — sound fires on impact', needsMotion:true, render:placeholderModeRender,
+  {id:'fists', book:'core', name:'Fists', icon:'👊', desc:'Tap or jab to throw a punch', needsMotion:true, render:fistsModeRender,
     appliesTo:ctx=>ctx.sel.skill==='Fight'},
   // WoK expansion — named "perfect" katanas (and any 'traditional' melee).
   // Only appears for characters with WoK content enabled. Sits alongside
@@ -6666,6 +6711,218 @@ function driveModeRender(ctx){
 // --- M0 placeholder render. Every themed mode uses this for now — proves
 // the chip → overlay → commit → doRoll() pipeline. Each subsequent
 // milestone replaces this with a real themed UI. ---
+// --- Unarmed (Fists) Prop. The phone IS the fist — knuckles facing right
+// for a right-hand grip. Tap or jab to throw a punch; each hit spawns a
+// comic-book SFX burst at the impact point (POW! BAM! WHAM!), bumps a
+// combo counter, and plays an impact thud. The first punch silently
+// commits the dice roll in the background; subsequent punches are pure
+// theater. Result chip floats above the fist so it stays in view.
+function fistsModeRender(ctx){
+  try{
+  const SFX_WORDS=['POW!','BAM!','WHAM!','BIFF!','KAPOW!','SOCK!','SMASH!','CRUNCH!','THWACK!','KABOOM!','OOF!','BLAM!','WHACK!'];
+  let firing=false, hasFired=false;
+  let combo=0;
+  const promptText='Tap or jab to throw a punch';
+
+  ctx.body.innerHTML=`
+    <div class="rm-handgun rm-fists">
+      <!-- Result chip floats just above the fist so it lands in the
+           player's eye-line the instant the first punch commits. -->
+      <div class="prop-result-slot-fists" id="rm-fists-result"></div>
+      <div class="rm-fists-screen" id="rm-fists-screen" aria-label="Punch target">
+        <div class="rm-fists-bg" aria-hidden="true"></div>
+        <div class="rm-combo" id="rm-combo">
+          <span class="rm-combo-lbl">Combo</span>
+          <span class="rm-combo-val" id="rm-combo-val">0</span>
+        </div>
+        <!-- Stylised right-hand fist, knuckles facing right. The whole
+             screen is the tap target so the player doesn't need pixel-
+             perfect aim to land a punch. -->
+        <svg class="rm-fist-svg" id="rm-fist" viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <linearGradient id="rm-fist-skin" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#f4c8a3"/>
+              <stop offset="55%" stop-color="#d99a6c"/>
+              <stop offset="100%" stop-color="#8a5634"/>
+            </linearGradient>
+            <linearGradient id="rm-fist-shadow" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#5a3520" stop-opacity=".4"/>
+              <stop offset="100%" stop-color="#1a0a04" stop-opacity=".6"/>
+            </linearGradient>
+          </defs>
+          <!-- Forearm (left side, fading into glove cuff) -->
+          <path d="M 4 78 L 4 110 Q 4 124 22 124 L 60 124 L 60 64 L 22 64 Q 4 64 4 78 Z" fill="url(#rm-fist-skin)" stroke="#3a1f0e" stroke-width="2"/>
+          <!-- Wrist crease shadow -->
+          <path d="M 56 64 L 56 124" stroke="#5a3520" stroke-width="2" opacity=".5"/>
+          <!-- Fist body (closed hand) -->
+          <path d="M 56 50 Q 56 28 86 28 L 138 28 Q 168 28 172 56 L 172 130 Q 168 158 138 158 L 86 158 Q 56 158 56 134 Z" fill="url(#rm-fist-skin)" stroke="#3a1f0e" stroke-width="2.5"/>
+          <!-- Knuckle ridge (4 bumps along the right edge) -->
+          <g stroke="#3a1f0e" stroke-width="2" fill="url(#rm-fist-skin)">
+            <ellipse cx="170" cy="58" rx="10" ry="10"/>
+            <ellipse cx="174" cy="82" rx="12" ry="11"/>
+            <ellipse cx="174" cy="106" rx="12" ry="11"/>
+            <ellipse cx="170" cy="128" rx="10" ry="10"/>
+          </g>
+          <!-- Finger separation lines on the back of the fist -->
+          <g stroke="#5a3520" stroke-width="1.4" fill="none" opacity=".7">
+            <path d="M 72 48 Q 100 60 158 56"/>
+            <path d="M 72 80 Q 100 88 162 82"/>
+            <path d="M 72 108 Q 100 114 162 108"/>
+            <path d="M 72 138 Q 100 142 158 136"/>
+          </g>
+          <!-- Thumb wrapping across the front of the fist -->
+          <path d="M 60 72 Q 36 78 36 96 Q 36 116 60 118 L 88 110 Q 96 96 88 84 Z" fill="url(#rm-fist-skin)" stroke="#3a1f0e" stroke-width="2"/>
+          <path d="M 60 96 Q 76 96 88 96" stroke="#5a3520" stroke-width="1.4" fill="none" opacity=".7"/>
+          <!-- Subtle inner shadow on the underside for depth -->
+          <path d="M 56 140 Q 100 156 168 142 L 168 158 L 56 158 Z" fill="url(#rm-fist-shadow)"/>
+        </svg>
+        <div class="rm-fists-prompt" id="rm-fists-prompt">${promptText}</div>
+      </div>
+      <div class="rm-handgun-actions">
+        <button class="rm-eject-btn rm-handgun-commit-btn" id="rm-fists-commit" type="button" aria-label="Roll">
+          <span class="ej-icon">🎲</span>
+        </button>
+      </div>
+      <div class="rm-handgun-fallback-note" id="rm-fists-fallback"></div>
+    </div>`;
+
+  const screenEl=ctx.body.querySelector('#rm-fists-screen');
+  const fistEl=ctx.body.querySelector('#rm-fist');
+  const comboEl=ctx.body.querySelector('#rm-combo-val');
+  const promptEl=ctx.body.querySelector('#rm-fists-prompt');
+  const commitBtn=ctx.body.querySelector('#rm-fists-commit');
+  const fallbackNote=ctx.body.querySelector('#rm-fists-fallback');
+  const resultSlot=ctx.body.querySelector('#rm-fists-result');
+
+  // Punch sound: low-mid thud (square wave drop) + a quick noise burst.
+  const playPunch=()=>{
+    try{playTone(160+Math.random()*40,0.09,'square',0.22);}catch(_){}
+    try{setTimeout(()=>playTone(90,0.06,'sawtooth',0.18),20);}catch(_){}
+  };
+
+  // Spawn a comic SFX word at (x,y) inside the screen container. Position
+  // is in screen-local pixels; we keep things absolute so the word stays
+  // anchored to the impact point even if the layout shifts.
+  const spawnSfx=(x,y)=>{
+    const word=SFX_WORDS[Math.floor(Math.random()*SFX_WORDS.length)];
+    const el=document.createElement('div');
+    el.className='rm-sfx'+(Math.random()<0.35?' big':'')+(Math.random()<0.5?' alt':'');
+    el.style.left=x+'px';
+    el.style.top=y+'px';
+    el.style.setProperty('--rot',((Math.random()*30-15).toFixed(1))+'deg');
+    el.textContent=word;
+    screenEl.appendChild(el);
+    setTimeout(()=>{try{el.remove();}catch(_){}}, 620);
+  };
+
+  const punch=(x,y)=>{
+    if(firing)return;
+    firing=true;
+    // Re-trigger the fist kick animation cleanly.
+    fistEl.classList.remove('punch');
+    void fistEl.getBoundingClientRect();
+    fistEl.classList.add('punch');
+    // Impact point — default to the knuckle area on the right side of the
+    // fist if we don't have explicit coords (e.g. motion fire).
+    const rect=screenEl.getBoundingClientRect();
+    const px=x!=null?x:rect.width*0.78;
+    const py=y!=null?y:rect.height*0.45;
+    spawnSfx(px,py);
+    playPunch();
+    hapticBuzz([28,18,32]);
+    combo++;
+    comboEl.textContent=String(combo);
+    comboEl.classList.remove('bump');void comboEl.getBoundingClientRect();
+    comboEl.classList.add('bump');
+    setTimeout(()=>comboEl.classList.remove('bump'),160);
+    if(!hasFired){
+      hasFired=true;
+      const _sel=diceSel();
+      if(_currentRollMode&&_sel&&_sel.skill){
+        try{rememberModeForSkill(_currentRollMode.id,_sel.skill);}catch(_){}
+      }
+      try{doRoll();}catch(e){console.error('doRoll failed during fists punch:',e);}
+      commitBtn.classList.add('used');
+      commitBtn.innerHTML='<span class="ej-icon">🎬</span>';
+      promptEl.textContent='Roll locked in — keep swinging';
+      if(resultSlot) resultSlot.innerHTML=propRollResultHTML();
+    }
+    setTimeout(()=>{firing=false;},100);
+  };
+
+  // Tap anywhere in the screen to punch — coordinates feed the SFX spawn
+  // so each hit pops where the player tapped.
+  screenEl.addEventListener('pointerdown',(e)=>{
+    const rect=screenEl.getBoundingClientRect();
+    punch(e.clientX-rect.left, e.clientY-rect.top);
+    e.preventDefault();
+  });
+
+  // Close button — same dual behavior as handgun/heal/drive: if a punch
+  // already locked the roll, just close; otherwise commit through the
+  // normal classic-roll path.
+  commitBtn.addEventListener('click',()=>{
+    hapticBuzz(20);
+    if(hasFired){closeRollMode();}
+    else{ctx.commit();}
+  });
+
+  // Motion path — a single sharp jab fires a punch. Identical pattern to
+  // the handgun (single peak, short debounce) so iOS Shake-to-Undo doesn't
+  // intercept it.
+  let lastFireT=0;
+  const FIRE_THRESHOLD=14;
+  const FIRE_DEBOUNCE=220;
+  let motionListener=null;
+  const setupMotion=async()=>{
+    const state=await requestMotionAccess();
+    if(state==='unsupported'){
+      fallbackNote.textContent='Motion sensors not available — tap to punch.';
+      return;
+    }
+    if(state==='denied'){
+      fallbackNote.textContent='Motion access denied — tap to punch. (Re-enable in roll-mode Settings.)';
+      return;
+    }
+    fallbackNote.textContent='Tip: a sharp forward jab throws a punch.';
+    motionListener=(e)=>{
+      const aRaw=e.acceleration;
+      const a=(aRaw&&(aRaw.x!=null||aRaw.y!=null||aRaw.z!=null))?aRaw:(e.accelerationIncludingGravity||{});
+      const ax=a.x||0, ay=a.y||0, az=a.z||0;
+      const mag=Math.sqrt(ax*ax+ay*ay+az*az);
+      const now=Date.now();
+      if(mag>FIRE_THRESHOLD&&now-lastFireT>FIRE_DEBOUNCE){
+        lastFireT=now;
+        punch();
+      }
+    };
+    window.addEventListener('devicemotion',motionListener);
+  };
+  setupMotion();
+
+  // Cleanup on overlay teardown.
+  const overlay=document.getElementById('roll-mode-overlay');
+  if(overlay){
+    const obs=new MutationObserver(()=>{
+      if(!document.body.contains(overlay)){
+        if(motionListener)window.removeEventListener('devicemotion',motionListener);
+        obs.disconnect();
+      }
+    });
+    obs.observe(document.body,{childList:true});
+  }
+  }catch(err){
+    console.error('fistsModeRender failed:',err);
+    if(ctx&&ctx.body){
+      ctx.body.innerHTML=`<div style="color:var(--red);font-size:13px;padding:24px;text-align:center;max-width:320px">
+        <strong>Fists render error</strong><br><br>
+        <span style="font-family:ui-monospace,monospace;font-size:11px;color:var(--muted)">${String(err.message||err).replace(/</g,'&lt;')}</span><br><br>
+        <span style="color:var(--muted);font-size:11px">Use the Cancel link below to fall back to the classic ROLL.</span>
+      </div>`;
+    }
+  }
+}
+
 function placeholderModeRender(ctx){
   ctx.body.innerHTML=`
     <button class="rm-fire-btn" id="rm-fire">FIRE</button>
