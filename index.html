@@ -10,7 +10,7 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Outgunned — Multiplayer</title>
-<meta name="build" content="ac48b0f-1779028078466">
+<meta name="build" content="f5a7c77-1779061365325">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -1319,7 +1319,17 @@ function toggleInclude(book,category){
   if(!c.include)c.include=defaultInclude();
   if(typeof ensureIncludeShape==='function')c.include=ensureIncludeShape(c.include);
   if(!c.include[book])c.include[book]={roles:false,tropes:false,feats:false,items:false,scenes:false,enemies:false};
-  c.include[book][category]=!c.include[book][category];
+  if(category==='hero'){
+    // Hero is the merged Roles/Tropes/Feats toggle — they always travel
+    // together (a role brings its feats, a trope needs a role).
+    const anyOn=!!(c.include[book].roles||c.include[book].tropes||c.include[book].feats);
+    const next=!anyOn;
+    c.include[book].roles=next;
+    c.include[book].tropes=next;
+    c.include[book].feats=next;
+  } else {
+    c.include[book][category]=!c.include[book][category];
+  }
   _reconcileCreationToInclude();
   renderCreationStep();
 }
@@ -1943,7 +1953,7 @@ function applyState(d){
     cp.style.display='none';
   }
 }
-<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build ac48b0f</div>
+<\/script><div id="build-stamp" title="Build commit · tap to reload bypassing cache" onclick="location.reload(true)" style="position:fixed;top:calc(6px + env(safe-area-inset-top));right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:99px;font-family:monospace;letter-spacing:.05em;z-index:9999;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,.2);pointer-events:auto">build f5a7c77</div>
 </body></html>`;}
 
 function loadSlot(n){
@@ -2034,9 +2044,11 @@ function renderCreationStep(){
 
 // Game-selection step rendered as a books × content-types table.
 //   Rows: each selectable book in BOOK_META (new expansions auto-appear).
-//   Columns: Core (radio) · Roles & Tropes · Feats · Items · Special Scenes · Modes
-// BOOK_META[b].hasContent (populated in og-data.js) decides which cells are
-// enabled per row so a future expansion shipping only Items still renders.
+//   Columns: Core (radio) · Hero (Roles+Tropes+Feats merged) · Items · Enemies · Special Scenes · Modes
+// 'hero' is a virtual column — toggling it flips roles/tropes/feats together,
+// since they're inseparable in play. BOOK_META[b].hasContent (populated in
+// og-data.js) decides which cells are enabled per row so a future expansion
+// shipping only Items still renders.
 function renderStepGames(){
   const c=S.creation;
   if(!c.coreBook)c.coreBook='core';
@@ -2045,10 +2057,11 @@ function renderStepGames(){
   const core=c.coreBook;
   const tier=c.powerTier||'street';
 
+  // 'hero' is a virtual column that toggles roles/tropes/feats together —
+  // they're inseparable in play (a role brings its feats; a trope needs a
+  // role; tropes have feats too) so splitting them just confused players.
   const cols=[
-    {key:'roles',  label:'Roles'},
-    {key:'tropes', label:'Tropes'},
-    {key:'feats',  label:'Feats'},
+    {key:'hero',   label:'Hero', subLabel:'Roles · Tropes · Feats'},
     {key:'items',  label:'Items'},
     {key:'enemies',label:'Enemies'},
     {key:'scenes', label:'Special Scenes'}
@@ -2062,10 +2075,23 @@ function renderStepGames(){
       <thead><tr>
         <th style="text-align:left">Game</th>
         <th>Core</th>
-        ${cols.map(c=>`<th>${c.label}</th>`).join('')}
+        ${cols.map(c=>`<th>${c.label}${c.subLabel?`<div style="font-size:8px;font-weight:500;letter-spacing:.04em;color:var(--muted);text-transform:none;margin-top:1px">${c.subLabel}</div>`:''}</th>`).join('')}
         <th>Modes</th>
       </tr></thead>
       <tbody>`;
+
+  // Returns {enabled, on} for a (possibly virtual) column on a book row.
+  // 'hero' rolls up roles/tropes/feats — enabled if any of them ships,
+  // and counted "on" if ANY of the three is on (toggle clears all three).
+  const colState=(col,has,inc)=>{
+    if(col.key==='hero'){
+      return {
+        enabled:!!(has.roles||has.tropes||has.feats),
+        on:!!(inc.roles||inc.tropes||inc.feats)
+      };
+    }
+    return {enabled:!!has[col.key], on:!!inc[col.key]};
+  };
 
   selectableBooks().forEach(id=>{
     const meta=BOOK_META[id];
@@ -2085,10 +2111,9 @@ function renderStepGames(){
         </label>
       </td>`;
     cols.forEach(col=>{
-      const enabled=!!has[col.key];
+      const {enabled,on}=colState(col,has,inc);
       if(!enabled){html+=`<td class="gt-cell-disabled" title="${meta.label} ships no ${col.label.replace('&amp;','&')}">—</td>`;return;}
       if(isCore){html+=`<td class="gt-cell-auto" title="The core book always contributes everything">✓</td>`;return;}
-      const on=!!inc[col.key];
       html+=`<td><span class="gt-check${on?' on':''}" onclick="toggleInclude('${id}','${col.key}')" role="checkbox" aria-checked="${on}">${on?'✓':'+'}</span></td>`;
     });
     html+=`<td class="gt-modes">${modes}</td></tr>`;
