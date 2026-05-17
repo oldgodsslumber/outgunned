@@ -34,6 +34,7 @@
     catch(e){ alert('Failed to initialize Firebase: '+e.message); return; }
     _hideOfflineEntry();          // suppress the slot modal until lobby decides
     _installCreationStepWrap();   // must wrap before any picker renders
+    _installSlotModalWrap();      // adds "Switch to online" inside slot modal in offline mode
     _renderLobbyShell();
     MP.onAuth(_onAuth);
   };
@@ -113,6 +114,21 @@
     };
   }
 
+  // Wrap renderSlotModal so the "Switch to online" button is re-injected
+  // every time the slot list re-paints (e.g. after delete/select).
+  let _rsmWrapped = false;
+  function _installSlotModalWrap(){
+    if(_rsmWrapped) return;
+    const orig = window.renderSlotModal;
+    if(typeof orig!=='function') return;
+    _rsmWrapped = true;
+    window.renderSlotModal = function(){
+      const r = orig.apply(this, arguments);
+      _injectSwitchToOnlineButton();
+      return r;
+    };
+  }
+
   // ---- DOM helpers --------------------------------------------------------
   function el(tag, attrs, kids){
     const e = document.createElement(tag);
@@ -181,10 +197,14 @@
     bar.innerHTML='';
     const u = MP.currentUser();
     if(offlineMode){
-      bar.appendChild(el('span',{style:{color:'var(--muted)'}},['Offline']));
-      bar.appendChild(el('button',{class:'btn btn-secondary',style:{padding:'4px 8px',fontSize:'11px'},onclick:_exitOfflineMode},['Switch to online']));
+      // No persistent top-bar in offline mode — it covered the slot-picker.
+      // The "Switch to online" affordance lives inside the slot modal instead
+      // (see _injectSwitchToOnlineButton, wired to renderSlotModal).
+      bar.style.display='none';
+      _injectSwitchToOnlineButton();
       return;
     }
+    bar.style.display='';
     if(!u){
       bar.appendChild(el('button',{class:'btn btn-primary',style:{padding:'4px 10px',fontSize:'11px'},onclick:()=>MP.signInGoogle().catch(e=>alert(e.message))},['Sign in with Google']));
       return;
@@ -199,6 +219,23 @@
       bar.appendChild(el('button',{class:'btn btn-secondary',style:{padding:'4px 8px',fontSize:'11px'},onclick:_showLobbyOverlay},['Open lobby']));
     }
     bar.appendChild(el('button',{class:'btn btn-secondary',style:{padding:'4px 8px',fontSize:'11px'},onclick:()=>MP.signOut()},['Sign out']));
+  }
+
+  // In offline mode, surface the "Switch to online" affordance INSIDE the
+  // slot-modal (where the player is anyway) rather than as a persistent
+  // top-right bar that overlapped the slot cards.
+  function _injectSwitchToOnlineButton(){
+    if(!offlineMode) return;
+    const modal = document.getElementById('slot-modal'); if(!modal) return;
+    if(modal.querySelector('#og-mp-switch-online-btn')) return;
+    const inner = modal.firstElementChild || modal;
+    const wrap = el('div',{id:'og-mp-switch-online-btn',style:{
+      marginTop:'14px', paddingTop:'12px', borderTop:'1px solid var(--border)',
+      display:'flex', alignItems:'center', justifyContent:'space-between', gap:'10px'
+    }});
+    wrap.appendChild(el('span',{style:{fontSize:'11px',color:'var(--muted)'}},['Currently in offline mode']));
+    wrap.appendChild(el('button',{class:'btn btn-secondary',style:{fontSize:'12px',padding:'6px 12px'},onclick:_exitOfflineMode},['Switch to online']));
+    inner.appendChild(wrap);
   }
 
   function _showLobbyOverlay(){

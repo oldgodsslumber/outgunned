@@ -3535,6 +3535,56 @@ function printCharSheet(){
     }
   }
   featsHtml+=`<div class="feat-blanks"><div class="blbl">Additional Feats</div><div class="bline"></div><div class="bline"></div><div class="bline"></div><div class="bline"></div><div class="bline"></div><div class="bline"></div><div class="bline"></div><div class="bline"></div></div>`;
+  // Gear / Items (from ch.loadout) — compact rows grouped by category.
+  let gearHtml='';
+  const lo=ch.loadout||{items:[],notes:''};
+  if(lo.items&&lo.items.length){
+    const catOrder=['gun','melee','gear','ride','ammo','gadget'];
+    const catLabels={gun:'Guns',melee:'Melee',gear:'Gear',ride:'Rides',ammo:'Ammo',gadget:'Gadgets'};
+    const buckets={};catOrder.forEach(k=>buckets[k]=[]);
+    lo.items.forEach(e=>{
+      const it=itemById(e.itemId);if(!it)return;
+      (buckets[it.category]||buckets.gear).push({e,it});
+    });
+    catOrder.forEach(k=>{
+      if(!buckets[k].length)return;
+      gearHtml+=`<div class="gear-sub"><span class="gsub-lbl">${catLabels[k]}</span></div>`;
+      buckets[k].forEach(({e,it})=>{
+        const qty=e.qty||1;
+        const costStr=e.granted?'free':(it.cost*qty)+'$';
+        const bits=[];
+        if(it.range){
+          const r=it.range;
+          const rangeStr=['M','C','Md','L'].map((lbl,i)=>{
+            const raw=[r.melee,r.close,r.medium,r.long][i];
+            const v=fmtRange(raw);
+            return `${lbl}:${v}`;
+          }).join(' ');
+          bits.push(rangeStr);
+        }
+        if(it.mag!=null)bits.push(`Mag ${it.mag}`);
+        if(it.speed!=null)bits.push(`Spd ${it.speed}`);
+        if(it.armor!=null)bits.push(`Arm ${it.armor}`);
+        if(it.twoHand)bits.push('2-Hand');
+        if(it.ammoType)bits.push(`Ammo: ${it.ammoType}`);
+        if(it.ammoFor)bits.push(`For: ${it.ammoFor}`);
+        const featNames=(it.feats||[]).map(itemFeatLabel).join(' · ');
+        const desc=it.desc?termSubst(it.desc):'';
+        gearHtml+=`<div class="gear-item">
+          <div class="gi-hd"><span class="gi-cost">${costStr}</span><span class="gi-name">${esc(it.name)}${qty>1?` ×${qty}`:''}${e.granted?' <span class="gi-tag">role</span>':''}</span></div>
+          ${bits.length?`<div class="gi-stats">${bits.join(' &nbsp;·&nbsp; ')}</div>`:''}
+          ${featNames?`<div class="gi-feats">${esc(featNames)}</div>`:''}
+          ${desc?`<div class="gi-desc">${esc(desc)}</div>`:''}
+        </div>`;
+      });
+    });
+  } else {
+    gearHtml=`<div class="fdesc" style="color:#aaa">No gear in loadout.</div>`;
+  }
+  if(lo.notes&&lo.notes.trim()){
+    gearHtml+=`<div class="gi-notes"><b>Notes:</b> ${esc(lo.notes)}</div>`;
+  }
+
   // Rides
   let ridesHtml='';
   (ch.rides||[]).forEach(ride=>{
@@ -3622,6 +3672,17 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:11.5pt;color:#111;backgrou
 .ride-blank-row .uln{flex:1}
 .ride-blank-det{display:flex;align-items:center;gap:3px;font-size:9.5pt;font-weight:400;text-transform:none;letter-spacing:0;color:#444}
 .uln{display:inline-block;border-bottom:1px solid #bbb;vertical-align:bottom;min-width:20px}
+.gear-sub{margin:4px 0 2px}.gsub-lbl{font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#999}
+.gear-item{margin-bottom:3px;padding-bottom:3px;border-bottom:1px solid #eee}
+.gi-hd{display:flex;align-items:baseline;gap:5px}
+.gi-cost{font-size:8.5pt;font-weight:700;color:#fff;background:#c00;padding:1px 5px;border-radius:3px;font-variant-numeric:tabular-nums;flex-shrink:0;letter-spacing:.02em}
+.gear-item .gi-cost:not(:empty)[data-free]{background:#2a8a4a}
+.gi-name{font-size:9.5pt;font-weight:700}
+.gi-tag{font-size:7pt;font-weight:700;text-transform:uppercase;color:#2a8a4a;letter-spacing:.4px}
+.gi-stats{font-size:8.5pt;color:#444;margin-top:1px;font-variant-numeric:tabular-nums}
+.gi-feats{font-size:8pt;color:#666;font-style:italic;margin-top:1px}
+.gi-desc{font-size:8pt;color:#777;line-height:1.3;margin-top:1px}
+.gi-notes{font-size:8.5pt;color:#555;margin-top:6px;padding:4px 6px;background:#f5f5f5;border-left:2px solid #c00}
 @media print{@page{size:letter portrait;margin:.45in}body{margin:0}}`;
 
   const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${esc(ch.name)} — Outgunned</title><style>${css}</style></head><body>
@@ -3661,6 +3722,7 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:11.5pt;color:#111;backgrou
   <div class="col">
     ${powersHtml?`<div class="sec"><div class="st">Origin &amp; Superpowers</div>${powersHtml}</div>`:''}
     <div class="sec"><div class="st">Feats</div>${featsHtml}</div>
+    <div class="sec"><div class="st">Gear</div>${gearHtml}</div>
     <div class="sec"><div class="st">Rides</div>${ridesHtml}</div>
   </div>
 </div>
