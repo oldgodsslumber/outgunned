@@ -64,18 +64,63 @@ window.MP = (function(){
     app  = firebase.initializeApp(cfg);
     auth = firebase.auth();
     db   = firebase.database();
+    // LOCAL persistence (default, but set explicitly so a browser that
+    // partitions storage or runs in restricted contexts still tries the
+    // strongest available option — Firebase falls back to SESSION → NONE
+    // automatically if LOCAL isn't writable).
+    try{
+      auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(e=>{
+        console.warn('[mp] setPersistence LOCAL failed, falling back:',e&&e.message);
+      });
+    }catch(e){ /* older SDK: persistence API not available */ }
     auth.onAuthStateChanged(u=>{
       user = u||null;
       authCbs.slice().forEach(cb=>{try{cb(user);}catch(e){console.error(e);}});
     });
+    // If we were sent back from a redirect-based sign-in (mobile Safari,
+    // Chrome with third-party storage blocked, popup-blocker, etc.), pick
+    // up the result so onAuthStateChanged fires and the lobby updates.
+    try{
+      auth.getRedirectResult().catch(e=>{
+        // 'auth/no-auth-event' is benign — just means there was no pending redirect.
+        if(e&&e.code&&e.code!=='auth/no-auth-event'){
+          console.warn('[mp] getRedirectResult error:',e.code,e.message);
+        }
+      });
+    }catch(e){ /* SDK may not expose getRedirectResult on this build */ }
     inited = true;
   }
   function onAuth(cb){authCbs.push(cb); if(inited)cb(user); return ()=>{authCbs=authCbs.filter(x=>x!==cb);};}
 
   // ---- Auth ----------------------------------------------------------------
+  // Popup is faster when it works, but several common environments break it:
+  //   - Chrome/Edge with third-party storage partitioning (default since 2024)
+  //   - Mobile Safari (popups close immediately)
+  //   - Any popup-blocker
+  //   - WKWebView / in-app browsers
+  // When popup fails with one of these signals, fall back to signInWithRedirect
+  // so the user actually completes the flow instead of bouncing back to the
+  // sign-in button (which presents as "infinite sign-in loop").
+  const REDIRECT_FALLBACK_CODES = new Set([
+    'auth/popup-blocked',
+    'auth/popup-closed-by-user',
+    'auth/cancelled-popup-request',
+    'auth/operation-not-supported-in-this-environment',
+    'auth/web-storage-unsupported',
+    'auth/internal-error'
+  ]);
   function signInGoogle(){
     const p = new firebase.auth.GoogleAuthProvider();
-    return auth.signInWithPopup(p);
+    // Keep the user signed in on the same Google account across attempts.
+    p.setCustomParameters({prompt:'select_account'});
+    return auth.signInWithPopup(p).catch(err=>{
+      const code = err&&err.code;
+      if(code && REDIRECT_FALLBACK_CODES.has(code)){
+        console.warn('[mp] popup sign-in failed ('+code+'), falling back to redirect');
+        return auth.signInWithRedirect(p);
+      }
+      throw err;
+    });
   }
   function signOut(){return auth.signOut();}
   function currentUser(){return user;}
