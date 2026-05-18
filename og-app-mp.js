@@ -521,6 +521,20 @@
   }
   function _onCharsChange(chars){
     lastRemote.chars = chars||{};
+    // Hydrate S.char from the remote copy on rejoin: when we just joined a
+    // party (or signed back in), local S.char may be a fresh default with
+    // no name even though the party already has our hero on Firebase. If we
+    // don't pull it in, the next dice roll falls back to the Google display
+    // name instead of the hero's name. Only overwrite when the local copy is
+    // clearly empty/unnamed so we don't clobber in-progress local edits.
+    if(myCharId && lastRemote.chars[myCharId]){
+      const remote = lastRemote.chars[myCharId];
+      const localEmpty = !S.char || !S.char.name;
+      if(localEmpty && remote.name){
+        S.char = JSON.parse(JSON.stringify(remote));
+        if(typeof renderHero==='function'){ try{ renderHero(); }catch(_){} }
+      }
+    }
     if(typeof renderParty==='function') renderParty();
   }
   function _onNpcsChange(npcs){
@@ -609,14 +623,25 @@
 
     // doRoll() — append to the shared feed after the original runs. Use the
     // CHARACTER's name (not the player's Google display name) so the feed
-    // reflects who rolled in fiction.
+    // reflects who rolled in fiction. Falls back to the remote copy of our
+    // own char if S.char hasn't hydrated yet (happens right after rejoin),
+    // and only to displayName as a last resort.
     const origRoll = window.doRoll;
     if(typeof origRoll==='function'){
       window.doRoll = function(){
         origRoll.apply(this, arguments);
         if(!inParty || !S.dice) return;
         const sel = (typeof diceSel==='function') ? diceSel() : {};
-        const heroName = (S.char && S.char.name) || (MP.currentUser()&&MP.currentUser().displayName) || 'Player';
+        const remoteSelf = (myCharId && lastRemote.chars && lastRemote.chars[myCharId]) || null;
+        const heroName =
+          (S.char && S.char.name) ||
+          (remoteSelf && remoteSelf.name) ||
+          (MP.currentUser()&&MP.currentUser().displayName) ||
+          'Player';
+        // Include the actual dice values so the feed can show what was
+        // rolled — otherwise the Director only sees the success level and
+        // can't reason about re-rolls / free re-rolls / specific faces.
+        const diceArr = (Array.isArray(S.dice.dice) ? S.dice.dice.slice() : null);
         MP.appendRoll({
           name:   heroName,
           attr:   sel.attr || S.dice.attr,
@@ -626,6 +651,7 @@
           lvlNum: S.dice.lvlNum,
           matchCount: S.dice.matchCount,
           matchFace:  S.dice.matchFace,
+          dice:   diceArr,
         }).catch(console.error);
       };
     }
@@ -810,9 +836,34 @@
       return;
     }
     rollFeed.slice(-12).reverse().forEach(r=>{
-      const row = el('div',{style:{display:'flex',justifyContent:'space-between',padding:'4px 0',borderBottom:'1px dashed var(--border)',fontSize:'12px'}});
-      row.appendChild(el('span',{},[r.name||'?',' • ',(r.attr||'')+'+'+(r.skill||'')]));
-      row.appendChild(el('span',{style:{color:'var(--accent)',fontWeight:'700'}},[r.level||'']));
+      const row = el('div',{style:{padding:'5px 0',borderBottom:'1px dashed var(--border)',fontSize:'12px'}});
+      // Header line: who/what · success level
+      const head = el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',gap:'8px'}});
+      const modStr = (r.mod && r.mod!==0) ? (r.mod>0?` +${r.mod}`:` ${r.mod}`) : '';
+      head.appendChild(el('span',{style:{minWidth:'0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},[
+        r.name||'?', ' • ', (r.attr||'')+'+'+(r.skill||'')+modStr
+      ]));
+      head.appendChild(el('span',{style:{color:'var(--accent)',fontWeight:'700',flexShrink:'0'}},[r.level||'']));
+      row.appendChild(head);
+      // Dice strip: small numbered tiles, matched-face highlighted (only when
+      // mc>=2, mirroring the sheet's "hit" styling). Older feed entries may
+      // not carry a `dice` array — render only when present.
+      if(Array.isArray(r.dice) && r.dice.length){
+        const strip = el('div',{style:{display:'flex',gap:'3px',flexWrap:'wrap',marginTop:'4px'}});
+        const isHit = (r.matchCount||0)>=2;
+        r.dice.forEach(v=>{
+          const matched = isHit && v===r.matchFace;
+          strip.appendChild(el('span',{style:{
+            display:'inline-flex',alignItems:'center',justifyContent:'center',
+            width:'20px',height:'20px',borderRadius:'4px',
+            border:'1px solid '+(matched?'var(--accent)':'var(--border)'),
+            background:matched?'rgba(230,57,70,.22)':'var(--surface2)',
+            color:matched?'var(--accent)':'var(--text)',
+            fontSize:'11px',fontWeight:'700',fontVariantNumeric:'tabular-nums',lineHeight:'1'
+          }},[String(v)]));
+        });
+        row.appendChild(strip);
+      }
       feed.appendChild(row);
     });
   }
@@ -917,28 +968,37 @@
         if(ch.flaw)        body.appendChild(_kv('Flaw', ch.flaw));
 
         if(iAmDirector){
-          // Compact attributes grid.
-          if(ch.attrs){
-            const aRow = el('div',{style:{display:'flex',gap:'6px',flexWrap:'wrap',margin:'8px 0 4px 0'}});
+          // Attribute groups with every skill listed underneath, mirroring
+          // the hero sheet's Attributes & Skills layout. Each attribute is a
+          // column header (name + value pill) with rows of skill name + value
+          // and a trio of pip dots. Skills at default (1) are dimmed so the
+          // Director can scan for who's actually trained in what without
+          // hunting through chips.
+          if(ch.attrs && ch.skills && typeof ATTR_SKILLS!=='undefined'){
+            body.appendChild(el('div',{style:{fontSize:'10px',color:'var(--muted)',letterSpacing:'1.5px',margin:'8px 0 4px 0'}},['ATTRIBUTES & SKILLS']));
+            const grid = el('div',{style:{
+              display:'grid',
+              gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',
+              gap:'8px',marginTop:'2px'
+            }});
             ATTRS.forEach(a=>{
-              const v = ch.attrs[a] || 0;
-              aRow.appendChild(el('span',{style:{padding:'2px 6px',background:'var(--surface2)',border:'1px solid var(--border)',borderRadius:'4px',fontSize:'10px',fontWeight:'700'}},[a+' '+v]));
-            });
-            body.appendChild(el('div',{style:{fontSize:'10px',color:'var(--muted)',letterSpacing:'1.5px',marginTop:'8px'}},['ATTRIBUTES']));
-            body.appendChild(aRow);
-          }
-          // Skills — only the ones > 1 (default) to keep it compact.
-          if(ch.skills){
-            const trained = Object.keys(ch.skills).filter(k=>ch.skills[k]>1)
-                              .sort((a,b)=>ch.skills[b]-ch.skills[a]);
-            if(trained.length){
-              body.appendChild(el('div',{style:{fontSize:'10px',color:'var(--muted)',letterSpacing:'1.5px',marginTop:'8px'}},['SKILLS']));
-              const sList = el('div',{style:{display:'flex',gap:'4px',flexWrap:'wrap',marginTop:'2px'}});
-              trained.forEach(k=>{
-                sList.appendChild(el('span',{style:{padding:'2px 6px',background:'var(--surface3)',borderRadius:'3px',fontSize:'10px'}},[k+' '+ch.skills[k]]));
+              const av = ch.attrs[a] || 0;
+              const col = el('div',{style:{background:'var(--surface2)',border:'1px solid var(--border)',borderRadius:'6px',padding:'6px 8px'}});
+              const head = el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'4px',paddingBottom:'3px',borderBottom:'1px solid var(--border)'}});
+              head.appendChild(el('span',{style:{fontSize:'11px',fontWeight:'800',letterSpacing:'.04em'}},[a]));
+              head.appendChild(_pipPill(av,3));
+              col.appendChild(head);
+              (ATTR_SKILLS[a]||[]).forEach(sk=>{
+                const sv = ch.skills[sk] || 1;
+                const dim = sv<=1;
+                const skRow = el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'1px 0',fontSize:'11px',color:dim?'var(--muted)':'var(--text)'}});
+                skRow.appendChild(el('span',{},[sk]));
+                skRow.appendChild(_pipPill(sv,3,dim));
+                col.appendChild(skRow);
               });
-              body.appendChild(sList);
-            }
+              grid.appendChild(col);
+            });
+            body.appendChild(grid);
           }
           // Feat names only — descriptions stay on the player's sheet.
           if(ch.feats && ch.feats.length){
@@ -958,5 +1018,21 @@
     row.appendChild(el('span',{style:{color:'var(--muted)',fontSize:'11px'}},[label+': ']));
     row.appendChild(el('span',{},[String(value)]));
     return row;
+  }
+  // Trio of pip dots used in the Director's hero cards — filled up to `val`,
+  // empty after. `dim` softens the whole pill for default-tier skills so the
+  // Director can scan for actually-trained skills at a glance.
+  function _pipPill(val, max, dim){
+    max = max||3;
+    const wrap = el('span',{style:{display:'inline-flex',gap:'2px',alignItems:'center',opacity:dim?'.45':'1'}});
+    for(let i=1;i<=max;i++){
+      const on = i<=val;
+      wrap.appendChild(el('span',{style:{
+        width:'8px',height:'8px',borderRadius:'50%',
+        border:'1.5px solid var(--accent)',
+        background:on?'var(--accent)':'transparent'
+      }}));
+    }
+    return wrap;
   }
 })();
