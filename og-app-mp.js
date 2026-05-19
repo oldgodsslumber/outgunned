@@ -961,6 +961,11 @@
       // encounters without asking each player to read their sheet.
       const body = el('div',{style:{marginTop:'8px',fontSize:'12px',lineHeight:'1.5'}});
       if(ch){
+        // Resources strip — visible to everyone so the table can track each
+        // hero's spending currencies and Adrenaline at a glance. Gold is only
+        // surfaced for heroes whose coreBook is WoK (or who picked up Gold
+        // via a feat like Bad Name from a WoK include).
+        body.appendChild(_resourcesStrip(ch));
         if(ch.job)         body.appendChild(_kv(aliasLabel, ch.job));
         if(role)           body.appendChild(_kv('Role', role.name));
         if(trope)          body.appendChild(_kv('Trope', trope.name));
@@ -1018,6 +1023,33 @@
     row.appendChild(el('span',{style:{color:'var(--muted)',fontSize:'11px'}},[label+': ']));
     row.appendChild(el('span',{},[String(value)]));
     return row;
+  }
+  // Compact resources strip for the team panel: Adrenaline / Cash / (Gold if WoK).
+  // Mirrors the colors used on the hero sheet's own resource tiles so a quick
+  // glance lines up with what the player sees on their sheet.
+  function _resourcesStrip(ch){
+    const wrap = el('div',{style:{
+      display:'flex',gap:'6px',flexWrap:'wrap',margin:'4px 0 6px 0'
+    }});
+    const adrLbl = (typeof adrenalineName==='function') ? adrenalineName() : '⚡';
+    const showGold = ch && (ch.coreBook==='wok' || (ch.include && ch.include.wok && ch.include.wok.roles) || (ch.gold|0)>0);
+    const tiles = [
+      {lbl:adrLbl,    val:(ch.adrenaline|0), color:'var(--accent)'},
+      {lbl:'Cash $',  val:(ch.cash|0),       color:'var(--green)'},
+    ];
+    if(showGold) tiles.push({lbl:'Gold ◆', val:(ch.gold|0), color:'var(--gold)'});
+    tiles.forEach(t=>{
+      const tile = el('span',{style:{
+        display:'inline-flex',alignItems:'center',gap:'5px',
+        padding:'3px 8px',borderRadius:'12px',
+        background:'var(--surface2)',border:'1px solid var(--border)',
+        fontSize:'11px',lineHeight:'1'
+      }});
+      tile.appendChild(el('span',{style:{color:'var(--muted)'}},[t.lbl]));
+      tile.appendChild(el('span',{style:{color:t.color,fontWeight:'700',fontVariantNumeric:'tabular-nums'}},[String(t.val)]));
+      wrap.appendChild(tile);
+    });
+    return wrap;
   }
   // Trio of pip dots used in the Director's hero cards — filled up to `val`,
   // empty after. `dim` softens the whole pill for default-tier skills so the

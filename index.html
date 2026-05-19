@@ -3248,7 +3248,7 @@ function creationFinish(){
   const isSolo=!!c.solo;
   if(isSolo&&c.soloAttr&&attrs[c.soloAttr]!==undefined){attrs[c.soloAttr]++;}
   if(isSolo&&c.soloSkills){Object.entries(c.soloSkills).forEach(([sk,v])=>{if(v)skills[sk]=Math.min(3,(skills[sk]||1)+v);});}
-  const startSpotlight=(isSolo?2:1)+(fx.spotlightBonus||0);
+  const startSpotlight=(isSolo?2:0)+(fx.spotlightBonus||0);
   const startCashFinal=(fx.cashOverride??1)+(isSolo?2:0)+(fx.cashBonus||0);
   // For OSH heroes, Arcane Powers grants +1 starting Adrenaline (= 1 Power, on top of base)
   const adrenalineExtra=(isOSHChar&&role?.superpowerId==='arcane_powers')?1:0;
@@ -3385,7 +3385,7 @@ function renderSheet(){
     </div>`;
   });
 
-  const isWoK=bookHas('wok','roles');
+  const isWoK=isWoKActive();
   const isOSHChar=role?.book==='osh';
   const origin=isOSHChar&&ch.originId?ORIGINS.find(o=>o.id===ch.originId):null;
   const adrName=adrenalineName();
@@ -3515,7 +3515,7 @@ function renderSheetGearCard(ch,role){
   if(!ch.loadout)ch.loadout={items:[],notes:ch.gearList||''};
   const lo=ch.loadout;
   const cash=ch.cash||0;
-  const isWoK=bookHas('wok','roles');
+  const isWoK=isWoKActive();
   const cashLow=cash<=0;
   let h=`<div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;flex-wrap:wrap">
@@ -3633,6 +3633,7 @@ function printCharSheet(){
   const role=ROLES.find(r=>r.id===ch.roleId);
   const trope=TROPES.find(t=>t.id===ch.tropeId);
   const isWoK=bookHas('wok','roles');
+  const showGold=isWoKActive();
   function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
   function pips(val,max,square){
     let s='';
@@ -3852,7 +3853,7 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:11.5pt;color:#111;backgrou
   <div class="h-right"><div class="gtitle">OUTGUNNED</div><div style="font-size:6pt;color:#bbb;letter-spacing:1px">CHARACTER SHEET</div></div>
 </div>
 <div class="res-bar">
-  ${[[adrenalineName(),ch.adrenaline],['Spotlight',ch.spotlight],['Cash',ch.cash],...(isWoK?[['Gold',ch.gold||0]]:[])].map(([lbl,val])=>{
+  ${[[adrenalineName(),ch.adrenaline],['Spotlight',ch.spotlight],['Cash',ch.cash],...(showGold?[['Gold',ch.gold||0]]:[])].map(([lbl,val])=>{
     const total=Math.max(val,6);
     const pips=Array.from({length:total},(_,i)=>`<span class="pip${i<val?' grey':''}"></span>`).join('');
     return `<div class="res"><span class="rl">${lbl}</span><div class="res-pips">${pips}</div></div>`;

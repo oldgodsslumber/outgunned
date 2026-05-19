@@ -107,6 +107,16 @@ function bookHas(book,category){
   return !!(getInclude()[game]?.[category]);
 }
 function isOSHCore(){return getCoreBook()==='osh';}
+// "Is WoK currency (Gold) relevant here?" — true when WoK is the core book, or
+// when any WoK content (roles, items, feats, scenes) is included. Gold buys
+// WoK gear, so visibility shouldn't be gated on roles alone (a Core game that
+// pulls in WoK items still needs the Gold tile).
+function isWoKActive(){
+  if(getCoreBook()==='wok')return true;
+  const inc=getInclude().wok;
+  if(!inc)return false;
+  return !!(inc.roles||inc.tropes||inc.feats||inc.items||inc.scenes||inc.enemies);
+}
 
 // --- Conditions / Include / Creation / State factories ---
 function conditionsForBook(book){
