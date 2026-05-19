@@ -1981,7 +1981,6 @@ function creationStepPlan(){
   const usesTropeHere=!isSpecial||prodigyHere;
   const plan=[
     {label:'Games',render:renderStepGames},
-    {label:'Info', render:renderStep0},
     {label:'Role', render:renderStep1},
   ];
   if(usesTropeHere)plan.push({label:'Trope',render:renderStep2});
@@ -1989,6 +1988,9 @@ function creationStepPlan(){
   plan.push({label:'Feats', render:renderStepFeats});
   plan.push({label:'Gear',  render:renderStepGear});
   if(c.solo)plan.push({label:'Solo',render:renderStepSolo});
+  // Personal Info now lives at the end: players name themselves, pick a
+  // catchphrase, and choose a flaw AFTER they know what kind of hero they are.
+  plan.push({label:'Info', render:renderStep0});
   return plan;
 }
 
@@ -2121,10 +2123,32 @@ function renderStep0(){
   const isOSH = (c.coreBook||'core')==='osh';
   const jobLabel = isOSH ? 'Alias' : 'Job';
   const jobPh    = isOSH ? 'e.g. Shadow, Quicksilver, Doctor Strange' : 'e.g. Police Officer, Mercenary, Hacker';
+  const role=ROLES.find(r=>r.id===c.roleId);
+  const hasJobs=!!(role&&role.jobs&&role.jobs.length);
+  const hasCatch=!!(role&&role.catchphrases&&role.catchphrases.length);
+  const hasFlaws=!!(role&&role.flaws&&role.flaws.length);
+  // 🎲 buttons appear inline after each input. They pick from the role's
+  // suggested list (or, for Name, from the Oracle's name pools).
+  const die=(handler,enabled,title)=>`<button class="btn btn-secondary" type="button" title="${title}" onclick="${enabled?handler:''}" ${enabled?'':'disabled style="opacity:.35;cursor:not-allowed"'} style="padding:6px 10px;margin-left:6px;font-size:14px;line-height:1">🎲</button>`;
+  const plan=creationStepPlan();
+  const isLast=c.step>=plan.length-1;
+  const btnAction=isLast?'finishFromInfo()':'creationNext()';
+  const btnLabel=isLast?'Create Hero!':'Continue →';
   return `<div class="card">
     <h2>Personal Info</h2>
-    <div class="form-group"><label>Name *</label><input id="cr-name" value="${c.name}" placeholder="Your hero's name"></div>
-    <div class="form-group"><label>${jobLabel}</label><input id="cr-job" value="${c.job}" placeholder="${jobPh}"></div>
+    <div class="muted" style="font-size:11px;margin-bottom:10px">Now that you know who your hero is, fill in the details. 🎲 buttons roll a random suggestion${role?` from ${role.name}`:''}.</div>
+    <div class="form-group"><label>Name *</label>
+      <div style="display:flex;align-items:center">
+        <input id="cr-name" value="${c.name}" placeholder="Your hero's name" style="flex:1">
+        ${die('randomizeCreationField(\'name\')',true,'Roll a random name')}
+      </div>
+    </div>
+    <div class="form-group"><label>${jobLabel}</label>
+      <div style="display:flex;align-items:center">
+        <input id="cr-job" value="${c.job}" placeholder="${jobPh}" style="flex:1">
+        ${die('randomizeCreationField(\'job\')',hasJobs,hasJobs?'Roll a random '+jobLabel.toLowerCase()+' from your role':'Pick a role first')}
+      </div>
+    </div>
     <div class="form-group"><label>Age</label>
       <select id="cr-age">
         <option${c.age==='Young'?' selected':''}>Young</option>
@@ -2132,12 +2156,57 @@ function renderStep0(){
         <option${c.age==='Old'?' selected':''}>Old</option>
       </select>
     </div>
-    <div class="form-group"><label>Catchphrase</label><input id="cr-catchphrase" value="${c.catchphrase}" placeholder="Your creed in one sentence"></div>
-    <div class="form-group"><label>Flaw</label><input id="cr-flaw" value="${c.flaw}" placeholder="What keeps tripping you up"></div>
+    <div class="form-group"><label>Catchphrase</label>
+      <div style="display:flex;align-items:center">
+        <input id="cr-catchphrase" value="${c.catchphrase}" placeholder="Your creed in one sentence" style="flex:1">
+        ${die('randomizeCreationField(\'catchphrase\')',hasCatch,hasCatch?'Roll a random catchphrase from your role':'Pick a role first')}
+      </div>
+    </div>
+    <div class="form-group"><label>Flaw</label>
+      <div style="display:flex;align-items:center">
+        <input id="cr-flaw" value="${c.flaw}" placeholder="What keeps tripping you up" style="flex:1">
+        ${die('randomizeCreationField(\'flaw\')',hasFlaws,hasFlaws?'Roll a random flaw from your role':'Pick a role first')}
+      </div>
+    </div>
     <div class="muted" style="font-size:10px;margin-top:4px">Young: 1 Role Feat, 2 Adrenaline, exclusive Feat. Old: +1 Role/Trope Feat, 2 Lethal Bullets, 1 Experience.</div>
   </div>
-  <button class="btn btn-primary btn-full" onclick="creationNext()">Continue →</button>`;
+  <button class="btn btn-primary btn-full" onclick="${btnAction}">${btnLabel}</button>`;
 }
+
+// Info is the final step now — collect its values, run the same name check
+// creationNext used to enforce, then create the hero.
+window.finishFromInfo=function(){
+  const c=S.creation;
+  const nm=document.getElementById('cr-name'); if(nm) c.name=nm.value.trim();
+  if(!c.name){alert('Enter a name!');return;}
+  const jb=document.getElementById('cr-job'); if(jb) c.job=jb.value.trim();
+  const ag=document.getElementById('cr-age'); if(ag) c.age=ag.value;
+  const cp=document.getElementById('cr-catchphrase'); if(cp) c.catchphrase=cp.value.trim();
+  const fl=document.getElementById('cr-flaw'); if(fl) c.flaw=fl.value.trim();
+  creationFinish();
+};
+
+// Picks a random suggestion for one of the Personal Info fields and stuffs it
+// into both the input element and S.creation so it survives a step re-render.
+// Name uses the Oracle's name pools (see window.randomHeroName above);
+// job/catchphrase/flaw pull from the currently selected role's list.
+window.randomizeCreationField=function(field){
+  const c=S.creation;
+  const role=ROLES.find(r=>r.id===c.roleId);
+  let val=null;
+  if(field==='name'){
+    val=(typeof window.randomHeroName==='function')?window.randomHeroName():null;
+  }else if(role){
+    const list=field==='job'?role.jobs:field==='catchphrase'?role.catchphrases:field==='flaw'?role.flaws:null;
+    if(list&&list.length)val=list[Math.floor(Math.random()*list.length)];
+  }
+  if(val==null)return;
+  c[field]=val;
+  const elId={name:'cr-name',job:'cr-job',catchphrase:'cr-catchphrase',flaw:'cr-flaw'}[field];
+  const el=document.getElementById(elId);
+  if(el)el.value=val;
+  save();
+};
 
 function renderStep1(){
   const c=S.creation;
@@ -7799,6 +7868,16 @@ window.oracleCriminal=function(){
 
 // Country display labels
 OR.countryLabels={US:'United States',MX:'Mexico',UK:'United Kingdom',BR:'Brazil',IN:'India',NG:'Nigeria',JP:'Japan',DE:'Germany',FR:'France',CN:'China',RU:'Russia',KR:'South Korea',IT:'Italy',AU:'Australia',AR:'Argentina',PH:'Philippines',EG:'Egypt',PK:'Pakistan',CO:'Colombia',PL:'Poland'};
+
+// Exposed for the character-creation Name 🎲 button. Returns a random
+// "First Last" from a random country / random gender — same data the Oracle uses.
+window.randomHeroName=function(){
+  var keys=OR.countryKeys;
+  var ck=keys[d(keys.length)];
+  var c=OR.countries[ck];
+  var pool=d(2)?c.m:c.f;
+  return pick(pool)+' '+pick(c.l);
+};
 })();
 </script>
 </body>

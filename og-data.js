@@ -1114,3 +1114,59 @@ const ROLE_STARTING_GEAR={
     meta.hasContent=has;
   });
 })();
+
+// --- Role-suggested Jobs / Catchphrases / Flaws ---
+// Sourced from Outgunned Corebook, World of Killers, and Superheroes rulebooks.
+// Used by the Personal Info step's 🎲 buttons to randomize from the role's suggestions.
+// For OSH roles the corebook lists Origins instead of Jobs — those go here too,
+// since they fill the same "what are you outside the cape" slot.
+const ROLE_SUGGESTIONS={
+  // Core
+  commando:{jobs:['Soldier','Marine','Mercenary'],catchphrases:['Stay back, I got this','Nobody left behind','If it bleeds, we can defeat it'],flaws:["I don't trust anyone",'I think everyone else is weak','I never know when to back down']},
+  fighter:{jobs:['Martial Arts Teacher','Bodyguard','Bouncer'],catchphrases:["Let's get to the bottom of this. You and me, one on one","There's no need to fight","It doesn't hurt!"],flaws:["I don't believe in myself","This old wound won't let me be","I'm too hot-headed"]},
+  ace:{jobs:['Pilot','Courier','Private Driver'],catchphrases:['Freedom is priceless','Family always comes first','I feel a need for speed!'],flaws:['I can never refuse a challenge',"I can't stand laws and rules","I'm absent-minded and flaky"]},
+  agent:{jobs:['Police Officer','Government Agent','Double Agent'],catchphrases:['Not in my city',"Give it here, I'll do it","I'm not a hero, I'm just doing my job"],flaws:["I'm too arrogant and overconfident",'I always trust the wrong people',"I never accept help and don't work well with others"]},
+  face:{jobs:['White-collar Worker','Actor','Professional Gambler'],catchphrases:['Trust me',"Do you know who you're talking to?",'Surely we can reach an agreement'],flaws:['I underestimate my enemies',"I'm too vain","I'm a sucker for a pretty face"]},
+  nobody:{jobs:['Employee','Cashier','Nurse'],catchphrases:["I didn't even want to come here!",'Everyone can do their part','My kids are not gonna believe this!'],flaws:["I can't fend for myself",'I trust everyone',"I'm afraid of guns"]},
+  brain:{jobs:['Researcher','Professor','Hacker'],catchphrases:['Hear me out. I have a plan!','Have I ever been wrong before?','With the right lever, I shall move the world'],flaws:['I think too much before acting',"I'm really out of shape",'Without my glasses, I am nearly blind']},
+  sleuth:{jobs:['Detective','Reporter','Private Eye'],catchphrases:['You can run but you cannot hide','The truth always comes out in the end',"You can't run from your past"],flaws:["I don't know when to shut up","I'm a slave to my vices","I'm not comfortable with children"]},
+  criminal:{jobs:['Thief','Convict','Informer'],catchphrases:["In and out. It's a piece of cake","I'm not going back to prison",'If you want something, you have to take it'],flaws:['I take nothing seriously',"I'm too greedy and self-serving","I'm too anxious to prove myself"]},
+  spy:{jobs:['MI6 Agent','CIA Agent','KGB Spy'],catchphrases:["There's no time. I'll explain later",'The enemy of my enemy is my friend','It might be impossible, but we have to do it'],flaws:['Everybody lies',"I don't tolerate mistakes",'I push myself too hard for the mission']},
+  // WoK
+  samurai:{jobs:['Bodyguard','Yakuza','Blacksmith'],catchphrases:['You leave me no choice','I swear it on my honor','I shall finish what I started'],flaws:['I never leave my sword','My entire story is tattooed on my body','I never refuse a challenge']},
+  hired_gun:{jobs:['Mercenary','Bounty Hunter','Enforcer'],catchphrases:["What's in it for me?","That's not my problem",'One bullet is enough'],flaws:['I have a debt to repay','I follow a strict moral code','I never share with others']},
+  aristocrat:{jobs:['Family Associate','Heir','Belmont'],catchphrases:["There's no need to get heated",'Just name the price','They will hear about this'],flaws:['I feel untouchable','I believe everything has a price','I have a reputation to uphold']},
+  dog_trainer:{jobs:['Bounty Hunter','Unemployed','Canine Unit'],catchphrases:["If he's not allowed, I won't go","Who's a good boy?","Luna doesn't like guns"],flaws:["I can't stand cats","I'm far too protective","I can't say no"]},
+  derelict:{jobs:['Homeless','Rat','Unemployed'],catchphrases:['Nothing personal','Follow me, I know my way around here','Depends who you ask'],flaws:["I'm a hopeless liar",'I live in the past',"I don't know how to behave in society"]},
+  // WoK Special
+  assassin:{jobs:['Assassin','Avenger','Hooded Killer'],catchphrases:['Rest in peace','I live by the code',"They'll never see me coming"],flaws:['I never open up to others',"I'm impatient",'Everybody is expendable']},
+  // OSH (jobs = Origin list)
+  armored:{jobs:['Alien','Prototype','Simple Human'],catchphrases:['I am the only one who can do this','Whatever it takes','According to my calculations, maybe'],flaws:["I'm overconfident","I'm a control freak",'I need my armor to walk']},
+  beast:{jobs:['Evolved','Mutation','Myth'],catchphrases:["I'm saying this for the last time…",'What I do is not pretty',"I'm not the hero you believe I am"],flaws:["I'm easily provoked",'I always put myself first','Loud noises disorient me']},
+  blaster:{jobs:['Eternal','Evolved','Prototype'],catchphrases:["Don't make me do this",'There is always a choice','Over my dead body'],flaws:["I'm afraid of my own powers",'I need to keep my eyes covered','I never listen to orders']},
+  champion:{jobs:['Experiment','Divine','Myth'],catchphrases:['Get behind me!','I can do this all day','Nobody gets left behind'],flaws:['I believe I can save everyone','I cannot lie','I trust others too much']},
+  elemental:{jobs:['Evolved','Divine','Mutation'],catchphrases:["I'm on fire!",'The wind is changing','A mountain fears no wind'],flaws:['I always put myself first','I joke too much',"I can't read the room"]},
+  force_master:{jobs:['Evolved','Divine','Mutation'],catchphrases:["We can't control everything",'We are the future',"It's possible, in theory"],flaws:['I never take "no" as an answer',"I don't work with enemies",'I cause interference with electronics']},
+  maverick:{jobs:['Alien','Evolved','Simple Human'],catchphrases:['Good plan, too bad it sucks',"I'll make a name for myself","No, I don't think I will"],flaws:['I give in to my emotions','My accent is hard to understand','I take every bet']},
+  psychic:{jobs:['Alien','Evolved','Arcane'],catchphrases:['Knowledge is power','You need to trust me',"Don't repeat my mistakes"],flaws:["I always believe I'm right","I don't want to use my powers","I'm extremely picky"]},
+  shadow:{jobs:['Evolved','Prototype','Simple Human'],catchphrases:['I am vengeance','I will find you','Ideas are bullet-proof'],flaws:['I never change my mind',"I'm blind",'I see evil everywhere']},
+  shapeshifter:{jobs:['Alien','Evolved','Arcane'],catchphrases:["I've changed my mind",'I thought you liked me!','We are all connected'],flaws:['I hate my true appearance',"I joke when I shouldn't",'I never change']},
+  sorcerer:{jobs:['Divine','Arcane','Myth'],catchphrases:["Don't believe everything you see",'Of course I can, I think','We know frighteningly little about such things'],flaws:['I need to learn the truth',"I can't stand losing",'I have a dark secret']},
+  speedster:{jobs:['Evolved','Divine','Mutation'],catchphrases:['Be right back',"I'm sorry, I wasn't listening",'Hey, I had to try'],flaws:["I'm always hungry","I'm too awkward",'I ask too many questions']},
+  tank:{jobs:['Alien','Experiment','Evolved'],catchphrases:['I am always angry','Can I wreck that? Imma wreck that',"Muscles don't make the hero"],flaws:['I have a short temper','I can only say my name','I sink in water']},
+  teleporter:{jobs:['Evolved','Arcane','Myth'],catchphrases:["If I don't return, don't wait for me",'Did you miss me?',"I swear, I can't help it"],flaws:["I'm not really brave",'My head is always in the clouds','I often leave items behind']},
+  weaponmaster:{jobs:['Experiment','Mutation','Simple Human'],catchphrases:["There's no honor in this",'Maximum effort!',"But I wasn't aiming at you"],flaws:['I always overdo it',"I'm deaf in one ear",'I follow a strict code']},
+  marvel:{jobs:['Alien','Divine','Eternal'],catchphrases:["I can't allow this",'I can. And I will',"I'm flawed, too"],flaws:['I underestimate my enemies',"I can't control my strength",'I see good in everybody']},
+  prodigy:{jobs:['Eternal','Evolved','Mutation'],catchphrases:["I've hit the Jackpot!","Don't know. Don't care",'Do I look like a hero to you?'],flaws:['I have overwhelming responsibilities','I lose control','I take things too far']}
+};
+// Splice the suggestions onto each role so consumers can read role.jobs / .catchphrases / .flaws directly.
+(function _attachRoleSuggestions(){
+  if(typeof ROLES==='undefined')return;
+  ROLES.forEach(r=>{
+    const s=ROLE_SUGGESTIONS[r.id];
+    if(!s)return;
+    r.jobs=s.jobs;
+    r.catchphrases=s.catchphrases;
+    r.flaws=s.flaws;
+  });
+})();
