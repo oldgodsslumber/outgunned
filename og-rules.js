@@ -99,7 +99,15 @@ function adrCostChip(){
 // --- State accessors (reads global `S`) ---
 function getCtx(){return S.char||S.creation||{coreBook:'core',include:{}};}
 function getCoreBook(){return getCtx().coreBook||'core';}
-function getInclude(){return getCtx().include||{};}
+function getInclude(){
+  // Lazily migrate so a saved S.char created before a new include flag (e.g.
+  // 'enemies', added 2026-05-16) gets the back-fill from its older sibling
+  // flag. Without this, the WoK/OSH enemy roster vanishes for any character
+  // that finished creation before the migration shipped.
+  const ctx=getCtx();
+  if(ctx.include && typeof ensureIncludeShape==='function')ensureIncludeShape(ctx.include);
+  return ctx.include||{};
+}
 function bookHas(book,category){
   // Resolve content book (e.g. 'special') to its game
   const game=BOOK_META[book]?.game||book;
@@ -243,6 +251,13 @@ function startingCashBudget(){
   if(c&&c.solo)budget+=2;
   const picked=[].concat(c&&c.roleFeatsSelected||[], c&&c.tropeFeatsSelected||[], c&&c.tropeFeatsSelected2||[]);
   if(picked.some(n=>typeof n==='string'&&/cash\s*flow/i.test(n)))budget+=2;
+  if(typeof FEATS!=='undefined'){
+    picked.forEach(n=>{
+      const f=FEATS.find(ff=>ff.name===n);
+      const bonus=f&&f.creationEffects&&f.creationEffects.gearBudgetBonus;
+      if(bonus)budget+=bonus;
+    });
+  }
   return budget;
 }
 // Sum of cost*qty across the loadout entries. Granted items (free starting

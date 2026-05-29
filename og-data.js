@@ -249,7 +249,7 @@ const FEATS_OSH=[
   {name:'Team Leader',book:'osh',trigger:'Passive',desc:'Your comrades look to you to guide them and help them through the darkness. Gain a Free Re-roll to inspire and coordinate others, and to all rolls made to remove the Like a Fool and Defeated Conditions. When Heroes assemble, make a heartfelt speech to your group to raise the starting Teamwork to 2.'},
   {name:'Trained Fighter',book:'osh',trigger:'Passive',desc:'You’ve been through your fair share of battles, but it’s not time to rest yet. Choose one fighting style or melee weapon (e.g. hand-to-hand combat, batons, katana). Gain a Free Re-roll for all Action and Reaction Rolls made with your chosen style or weapon.'},
   {name:'Transformation',book:'osh',trigger:'Full Turn',adr:true,desc:'Your true powers only get revealed when you transform. You have two forms — one completely human, the other with incredible powers. While in human form you cannot access your Superpower or the Feats connected to it. When you transform, you regain access to all Superpowers and Feats on your Hero Sheet, and you may also move one Attribute Point of your choice (for example, from Focus to Brawn). Transformation requires a Full Turn. Quick Shift [Quick Action]: spend 1 Adrenaline to transform as a Quick Action and recover all Grit.'},
-  {name:'Unlimited Funds',book:'osh',trigger:'Passive',desc:'You’re not just rich, you are filthy rich. At character creation, you can spend 10$ on gear instead of 4, and then start the game with 5$. Once per Session, you can leverage your vast assets to gain access to exclusive services — a private jet, tickets to the most exclusive gala of the year, reserving a whole hotel, buying a restaurant to skip the line.',creationEffects:{cashOverride:5}},
+  {name:'Unlimited Funds',book:'osh',trigger:'Passive',desc:'You’re not just rich, you are filthy rich. At character creation, you can spend 10$ on gear instead of 4, and then start the game with 5$. Once per Session, you can leverage your vast assets to gain access to exclusive services — a private jet, tickets to the most exclusive gala of the year, reserving a whole hotel, buying a restaurant to skip the line.',creationEffects:{cashOverride:5,gearBudgetBonus:6}},
   {name:'Unstoppable Force',book:'osh',trigger:'Quick Action',adr:true,desc:'You can use the incredible strength of your muscles or a manifestation of your powers to strike the enemy where it truly hurts. When you run or throw something at great speed, nothing can stop you. Devastating Attack [Quick Action]: spend 1 Adrenaline to gain +1 to your next Action Roll during combat. If you hit the Enemy, they lose 1 extra Grit. This special action can also be activated in combination with other special actions, like Smash! or Explosive Force.'},
   {name:'Wall-Climber',book:'osh',trigger:'Passive',desc:'You move like a spider, walking on walls and ceilings. You can climb and hang on any horizontal or vertical surface, and gain a Free Re-roll to all rolls made to climb.'}
 ];
@@ -967,6 +967,8 @@ const ITEMS_CORE=[
   {id:'telescopic_sight',name:'Telescopic Sight',book:'core',category:'gear',cost:2,desc:'Grants the Precision Shot Feat to a rifle or assault rifle.'},
   {id:'toolbox',name:'Toolbox',book:'core',category:'gear',cost:1,desc:'Grants Help to repair Rides and other things.'},
   {id:'wingsuit',name:'Wingsuit',book:'core',category:'gear',cost:3,desc:'Grants Help to glide. Includes a parachute.'},
+  {id:'phone',name:'Phone',book:'core',category:'gear',cost:1,desc:'Grants Help to communicate at a distance and look things up.'},
+  {id:'radio',name:'Radio',book:'core',category:'gear',cost:1,desc:'Grants Help to coordinate with allies and monitor channels.'},
   // --- Rides ---
   {id:'common_ride',name:'Common Ride (Bike/Car/Boat)',book:'core',category:'ride',cost:3,rideType:['bike','car','nautical'],speed:1,armor:3,desc:'A bike, car, or speed-1 nautical ride.'},
   {id:'two_bit_ride',name:'Two-bit Ride',book:'core',category:'ride',cost:1,speed:0,armor:3,desc:'Old or broken-down. May start with 1–2 armor missing.'}
@@ -1035,10 +1037,10 @@ const ITEMS=[...ITEMS_CORE,...ITEMS_OSH,...ITEMS_WOK];
 // item is granted free (the cap is just a quality gate per the rulebook).
 const ROLE_STARTING_GEAR={
   // --- Core ---
-  commando:{grant:['knife_sword'],pick:[{label:'Weapon of choice',match:{kind:'category',category:'gun'}}],notes:['Telephone or Radio']},
+  commando:{grant:['knife_sword'],pick:[{label:'Weapon of choice',match:{kind:'category',category:'gun'}},{label:'Phone or Radio',match:{kind:'oneOf',ids:['phone','radio']}}]},
   fighter: {pick:[{label:'One 1$ item of your choice',match:{kind:'cost',max:1}}]},
   ace:     {pick:[{label:'Pistol or Shotgun',match:{kind:'oneOf',ids:['pistol','shotgun']}}],notes:['Ride (Speed 1) — see Ride sheet']},
-  agent:   {grant:['pistol','handcuffs'],notes:['Badge','Telephone or Radio']},
+  agent:   {grant:['pistol','handcuffs'],pick:[{label:'Phone or Radio',match:{kind:'oneOf',ids:['phone','radio']}}],notes:['Badge']},
   face:    {grant:['elegant_clothes'],pick:[{label:'Precious item of choice',match:{kind:'cost',max:1}}]},
   nobody:  {pick:[{label:'1$ item of choice OR Old Ride (Speed 0)',match:{kind:'cost',max:1}}]},
   brain:   {grant:['portable_computer'],notes:['Notebook','Pencil']},
@@ -1047,7 +1049,7 @@ const ROLE_STARTING_GEAR={
   spy:     {grant:['elegant_clothes','pistol','silencer'],pick:[{label:'Item of choice',match:{kind:'cost',max:2}}]},
   // --- WoK (currency labelled Gold via the terminology layer) ---
   samurai: {grant:['wok_katana'],pick:[{label:'One 1$ item of choice',match:{kind:'cost',max:1}}]},
-  hired_gun:{grant:['pistol'],pick:[{label:'Weapon of choice',match:{kind:'category',category:'gun'}}],notes:['Telephone']},
+  hired_gun:{grant:['pistol','phone'],pick:[{label:'Weapon of choice',match:{kind:'category',category:'gun'}}]},
   aristocrat:{grant:['elegant_clothes'],notes:['Items worth up to 5$ (spend your starting cash + ask the Director about the extra $4)']},
   dog_trainer:{pick:[{label:'Pistol / Rifle / Shotgun',match:{kind:'oneOf',ids:['pistol','rifle','shotgun']}}],notes:['Trained Dog (see WoK supporting characters)']},
   derelict:{notes:['Nothing — start with whatever you can scavenge']},

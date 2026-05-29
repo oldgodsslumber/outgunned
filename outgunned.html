@@ -4699,8 +4699,11 @@ function renderEnemyTemplates(type){
   const templates=all
     .map((t,i)=>({t,i}))
     .filter(({t})=>{
-      const b=t.book||(type==='wok'?'wok':type==='osh'?'osh':'core');
-      return bookHas(b,'enemies');
+      // Untagged entries in goons/badguys/bosses are universal core templates
+      // and should always be visible regardless of the chosen core book.
+      // Only tagged entries (book='wok'/'osh'/...) are gated by the picker.
+      if(!t.book)return true;
+      return bookHas(t.book,'enemies');
     });
   let html='';
   templates.forEach(({t,i})=>{

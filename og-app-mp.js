@@ -425,6 +425,7 @@
     // Re-show tabs that director-mode had hidden so leaving snaps the UI
     // back to the single-player layout.
     _applyDirectorGating();
+    _applyDirectorDiceGating();
     _refreshTopBar();
     _showLobbyOverlay();
   }
@@ -772,16 +773,21 @@
   // result + history, and the Hero-grit card on the Dice screen. Keep the
   // shared bits (enemy strip, NPC strip, roll feed, scene/objective).
   function _applyDirectorDiceGating(){
-    if(!inParty) return;
-    const dir = MP.isDirector();
+    // Director gating must release when we leave a party (back to single
+    // player) — otherwise the dice picker / result / history stay hidden
+    // because we set display:none while we were the Director. Always run
+    // and treat "not in party" the same as "not director".
+    const dir = inParty && MP.isDirector();
     ['dice-picker-card','dice-result-area','dice-action-btns','dice-history','dice-grit']
       .forEach(id=>{ const e = $(id); if(e) e.style.display = dir ? 'none' : ''; });
-    // Title and subtitle also become misleading for a Director.
     const titleRow = document.querySelector('#dice-roller-col .pg-title');
     const subRow   = document.querySelector('#dice-roller-col .pg-sub');
     if(dir){
-      if(titleRow) titleRow.textContent = 'Director Board';
-      if(subRow)   subRow.textContent = 'Live table view — rolls, enemies, and the current scene.';
+      if(titleRow){ if(!titleRow.dataset.ogOrig) titleRow.dataset.ogOrig = titleRow.textContent; titleRow.textContent = 'Director Board'; }
+      if(subRow){   if(!subRow.dataset.ogOrig)   subRow.dataset.ogOrig   = subRow.textContent;   subRow.textContent   = 'Live table view — rolls, enemies, and the current scene.'; }
+    }else{
+      if(titleRow && titleRow.dataset.ogOrig){ titleRow.textContent = titleRow.dataset.ogOrig; }
+      if(subRow   && subRow.dataset.ogOrig){   subRow.textContent   = subRow.dataset.ogOrig; }
     }
   }
 
